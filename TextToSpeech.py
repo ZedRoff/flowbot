@@ -7,6 +7,6 @@ def sayInstruction(textToSay):
     engine.say(textToSay)#Ici on prend le text
     engine.runAndWait()
 
-file = open("Test.txt", "r")
-content = file.read()
-sayInstruction(content) #Il y a un tuto pour customiser la voix
+#file = open("Test.txt", "r")
+#content = file.read()
+#sayInstruction(content) #On peux customiser la voix
