@@ -2,5 +2,5 @@
 
 <hr />
 <blockquote>
-  Actually in development
+  Actually under development
 </blockquote>
