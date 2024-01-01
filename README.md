@@ -1,1 +1,1 @@
-# flowbot
+# flowbot : la productivité a votre portée
