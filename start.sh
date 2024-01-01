@@ -1,1 +1,1 @@
-back.sh && front.sh
+bash back.sh && bash front.sh
