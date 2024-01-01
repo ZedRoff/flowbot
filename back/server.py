@@ -5,7 +5,7 @@ from flask_cors import CORS
 
 
 from utils.SpeechToText import startup
-startup()
+
 
 app = Flask(__name__)
 CORS(app)
@@ -17,7 +17,6 @@ def hello():
 
 @app.route('/talk', methods=['POST'])
 def talk():
-    print("seen")
     if request.method == 'POST':
         data = request.get_json()
         textToSay = data['textToSay']
@@ -26,5 +25,8 @@ def talk():
         response = jsonify({'result': 'success'})
         return response
    
+
+
+threading.Thread(target=startup).start()
 if __name__ == '__main__':
     app.run(debug=True)
