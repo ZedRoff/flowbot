@@ -4,6 +4,8 @@ import threading
 from flask_cors import CORS
 
 
+from utils.SpeechToText import startup
+startup()
 
 app = Flask(__name__)
 CORS(app)
