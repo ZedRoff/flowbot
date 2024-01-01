@@ -1,8 +1,8 @@
 from vosk import Model, KaldiRecognizer
-from TextToSpeech import sayInstruction
+from back.utils.TextToSpeech import sayInstruction
 import pyaudio
 
-vModel = Model(r"D:\Flobot\vosk-model-small-fr-0.22")#ça tu dois le télécharger, ça permet d'éviter que la connection soit nécéssaire
+vModel = Model(r"C:\Users\amang\Desktop\flowbot\flowbot\back\vosk-model-small-fr-0.22") # A changer en fonction de ton utilisation, j'ai mit le fichier dans le gitignore afin qu'il soit ignorer par github, mais si tu modifies ce fichier, il faudra donc l'upload manuellement
 vRecognizerVocal = KaldiRecognizer(vModel, 16000)#le convertisseur
     
 vMicro = pyaudio.PyAudio()
@@ -16,4 +16,4 @@ while True:
         print(f"' {vText[14:-3]} '")
         if (vText).__contains__("ok google"):
             sayInstruction("oui")
-        #print(text)
+      
