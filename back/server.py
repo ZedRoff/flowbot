@@ -28,7 +28,12 @@ def talk():
 
 
 
+
 if __name__ == '__main__':
-    
-    threading.Thread(target=startup).start()
-    threading.Thread(target=app.run).start()
+    t1 = threading.Thread(target=startup)
+    t2 = threading.Thread(target=app.run, kwargs={'debug': True})
+    try:
+        t1.start()
+        t2.start()
+    except KeyboardInterrupt:
+        pass # on peut pas détruire un thread, faut que je vois pour régler ça, mais ça marche quand même
