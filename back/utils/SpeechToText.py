@@ -1,4 +1,5 @@
 from vosk import Model, KaldiRecognizer
+from utils.ActionsFromText import executeAction
 from utils.TextToSpeech import sayInstruction
 import pyaudio
 import time
@@ -20,6 +21,8 @@ def startup():
               
                 print(f"' {vText[14:-3]} '")
 
+                if flag:
+                    executeAction(f"{vText[14:-3]}")
 
                 if (vText[14:-3]).__contains__("flo"):
                     flag = True
