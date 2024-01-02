@@ -1,52 +1,65 @@
-
 from utils.TextToSpeech import sayInstruction
 import re
+from commands.fiche import command as ficheCommand
+from commands.reveil import command as reveilCommand
+from commands.fiche import specificity as ficheSpecificity
+from commands.reveil import specificity as reveilSpecificity
+import os
+import importlib
+
+
 flag = False
 action = ""
+python_files = [f for f in os.listdir("./commands") if f.endswith('.py')]
+
+
 def executeAction(pText):
     global flag
     global action
-    if len(pText) == 0: return # si la chaine est vide, on ne fait rien
+    if len(pText) == 0:
+        return 
     print(f"Commande reçue: {pText}")
+
     if pText == "flo":
         sayInstruction("Oui?")
         flag = True
         return
-    if flag:
 
-        if action != "" :
+    if flag:
+        if action != "":
             addSpecificity(pText)
             return
         
-        if pText == "test":
-            sayInstruction("Test OK")
-            flag = False
-            return 
-        elif (re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText)) or (re.search("créé",pText))):
-            if re.search("fiche",pText) :
-                sayInstruction("Biensûr, quel nom?")
-                action = "fiche"
-            elif re.search("réveil",pText) :
-                sayInstruction("Biensûr, à quel heure")
-                action = "réveil"
-            else :
-                action = ""
-        else :
-            sayInstruction("Je n'ai pas compris, veuillez répéter")
-            action = ""
-            
+        exec(pText)
+       
 
-        
 
-    
+def exec(pText):
+    global flag
+    global action
+    for f in python_files:
+        module = importlib.import_module(f"commands.{f[:-3]}")
+        if hasattr(module, "trigger"):
+            if module.trigger(pText):
+                if hasattr(module, "command") and hasattr(module, "specificity"):
+                    module.command()
+                    action = f[:-3]
+                elif hasattr(module, "command"):
+                    module.command()
+                    action = ""
+                    flag = False 
+                else:
+                    print("Commande mal formée dans le fichier " + f)
+               
 
-def addSpecificity(param) :
+
+def addSpecificity(param):
     global action 
     global flag
-    if action == "réveil" :
-        print("Réveil créer a " + param)
-    if action == "fiche" :
-        print("Fiche créer a " + param)    
-    flag = False
-    action = ""
-
+    for f in python_files:
+        module = importlib.import_module(f"commands.{f[:-3]}")
+        if hasattr(module, "specificity"):
+            if action == f[:-3]:
+                module.specificity(param)
+                action = ""
+                flag = False
