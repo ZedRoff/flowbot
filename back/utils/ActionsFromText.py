@@ -43,7 +43,8 @@ def exec(pText):
             if module.trigger(pText):
                 if hasattr(module, "command") and hasattr(module, "specificity"):
                     module.command()
-                    action = f[:-3]
+                    if hasattr(module, "specificityName"):
+                        action = module.specificityName
                 elif hasattr(module, "command"):
                     module.command()
                     action = ""
@@ -59,7 +60,8 @@ def addSpecificity(param):
     for f in python_files:
         module = importlib.import_module(f"commands.{f[:-3]}")
         if hasattr(module, "specificity"):
-            if action == f[:-3]:
-                module.specificity(param)
-                action = ""
-                flag = False
+            if hasattr(module, "specificityName"):
+                if action == module.specificityName:
+                    module.specificity(param)
+                    action = ""
+                    flag = False

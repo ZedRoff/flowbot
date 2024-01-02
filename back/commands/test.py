@@ -5,5 +5,7 @@ def command():
 
 def specificity(param):
     print(param + " a été transmis")
+def specificityName():
+    return "test"
 def trigger(pText):
     return pText == "test"

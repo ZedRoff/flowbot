@@ -5,7 +5,8 @@ def command():
 
 def specificity(param):
     sayInstruction("Fiche créée avec le nom " + param)
-
+def specificityName():
+    return "fiche"
 def trigger(pText):
-    return re.search("fiche",pText)
+    return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("fiche", pText)
     
