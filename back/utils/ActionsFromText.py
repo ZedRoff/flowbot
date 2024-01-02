@@ -1,29 +1,52 @@
-import re
+
 from utils.TextToSpeech import sayInstruction
-
+import re
+flag = False
 action = ""
-
-def executeAction( pText):
-    vText = pText.lower()
-    if action != "" :
-        addSpecificity(action,pText)
+def executeAction(pText):
+    global flag
+    global action
+    if len(pText) == 0: return # si la chaine est vide, on ne fait rien
+    print(f"Commande reçue: {pText}")
+    if pText == "flo":
+        sayInstruction("Oui?")
+        flag = True
         return
-    
-    if (re.search("fais",vText)) or (re.search("fait",vText)or (re.search("créer",vText))or (re.search("créé",vText))):
-        if re.search("fiche",vText) :
-            sayInstruction("Biensûr, quel nom?")
-            action = "fiche"
-        elif re.search("réveil",vText) :
-            sayInstruction("Biensûr, à quel heure")
-            action = "réveil"
+    if flag:
+
+        if action != "" :
+            addSpecificity(pText)
+            return
+        
+        if pText == "test":
+            sayInstruction("Test OK")
+            flag = False
+            return 
+        elif (re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText)) or (re.search("créé",pText))):
+            if re.search("fiche",pText) :
+                sayInstruction("Biensûr, quel nom?")
+                action = "fiche"
+            elif re.search("réveil",pText) :
+                sayInstruction("Biensûr, à quel heure")
+                action = "réveil"
+            else :
+                action = ""
         else :
+            sayInstruction("Je n'ai pas compris, veuillez répéter")
             action = ""
-    else :
-        action = ""
+            
 
+        
 
-def addSpecificity(type,param) :
+    
+
+def addSpecificity(param) :
+    global action 
+    global flag
     if action == "réveil" :
         print("Réveil créer a " + param)
-    elif action == "fiche" :
-       print("Fiche créer a " + param) 
+    if action == "fiche" :
+        print("Fiche créer a " + param)    
+    flag = False
+    action = ""
+
