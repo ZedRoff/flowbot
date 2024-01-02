@@ -9,7 +9,7 @@ def startup():
     vMicro = pyaudio.PyAudio()
     stream = vMicro.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=1024)
     stream.start_stream()
-    
+    flag = False
    
     while True:
         data = stream.read(1024)
@@ -17,9 +17,11 @@ def startup():
             vText = vRecognizerVocal.Result()
             print(vText)
             print(f"' {vText[14:-3]} '")
-            if (vText[14:-3]).__contains__("ok google"):
-                sayInstruction("oui")
+            if (vText[14:-3]).__contains__("flo"):
+                flag = True
+                sayInstruction("Oui, que puis-je faire pour vous ?")
+            if(vText[14:-3]).__contains__("merci") and flag:
+                flag = False
+                sayInstruction("Pas de soucis")
                 
 
-if __name__ == "__main__":
-    startup()
