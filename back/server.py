@@ -27,6 +27,7 @@ def talk():
    
 
 
-threading.Thread(target=startup).start()
+
 if __name__ == '__main__':
+    threading.Thread(target=startup).start()
     app.run(debug=True)
