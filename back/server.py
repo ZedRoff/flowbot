@@ -29,5 +29,9 @@ def talk():
 
 
 if __name__ == '__main__':
-    threading.Thread(target=startup).start()
-    app.run(debug=True)
+    try:
+        threading.Thread(target=app.run, kwargs={'debug': True}).start()
+        startup()
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt: Arrêt du serveur")
+        exit()
