@@ -1,8 +1,6 @@
 from vosk import Model, KaldiRecognizer
 from utils.ActionsFromText import executeAction
-from utils.TextToSpeech import sayInstruction
 import pyaudio
-import time
 def startup():
     vModel = Model(r"C:\Users\amang\Desktop\flowbot\flowbot\back\vosk-model-small-fr-0.22")
     vRecognizerVocal = KaldiRecognizer(vModel, 16000)
