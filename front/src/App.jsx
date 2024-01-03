@@ -4,7 +4,7 @@ import axios from 'axios';
 function App() {
     const handleSay = (textToSay) => {
         
-        axios.post('http://localhost:5000/talk', {
+        axios.post('http://localhost:5000/api/talk', {
             textToSay
         }).then((response) => {
             console.log(response.data);

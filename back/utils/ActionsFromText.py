@@ -30,11 +30,11 @@ def executeAction(pText):
             addSpecificity(pText)
             return
         
-        exec(pText)
+        executeCommand(pText)
        
 
 
-def exec(pText):
+def executeCommand(pText):
     global flag
     global action
     for f in python_files:

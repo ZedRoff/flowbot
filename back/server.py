@@ -1,42 +1,27 @@
-from flask import Flask, request, jsonify
-from utils.TextToSpeech import sayInstruction
+import os
+from flask import Flask
 import threading
 from flask_cors import CORS
-
-
-from utils.SpeechToText import startup
 
 
 app = Flask(__name__)
 CORS(app)
 
+def import_routes():
+    routes_dir = os.path.join(os.path.dirname(__file__), 'routes')
+    for filename in os.listdir(routes_dir):
+        if filename.endswith('.py'):
+            module_name = filename[:-3]
+            module = __import__(f'routes.{module_name}', fromlist=[''])
+            app.register_blueprint(module.bp)
 
-@app.route('/')
-def hello():
-    return 'API is working'
 
-@app.route('/talk', methods=['POST'])
-def talk():
-    if request.method == 'POST':
-        data = request.get_json()
-        textToSay = data['textToSay']
-        instruction_thread = threading.Thread(target=sayInstruction, args=(textToSay,))
-        instruction_thread.start()
-        
-        response = jsonify({'result': 'success'})
-        return response
-   
+import_routes()
 
 
 
 
 if __name__ == '__main__':
-    t1 = threading.Thread(target=startup)
-    t2 = threading.Thread(target=app.run)
-    try:
-        t1.start()
-        t2.start()
-        
-        
-    except KeyboardInterrupt:
-        pass # on peut pas détruire un thread, faut que je vois pour régler ça, mais ça marche quand même
+    # t1 = threading.Thread(target=startup)
+    # t2 = threading.Thread(target=app.run)
+    app.run(debug=True)
