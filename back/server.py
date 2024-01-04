@@ -2,11 +2,14 @@ import os
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
-
+from flask_socketio import emit
+from utils.EmitMessage import emit_message
+import threading
+from utils.SpeechToText import startup
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-CORS(app,resources={r"/*":{"origins":"*"}})
-socketio = SocketIO(app,cors_allowed_origins="*")
+CORS(app, resources={r"/*": {"origins": "*"}})
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def import_routes():
     routes_dir = os.path.join(os.path.dirname(__file__), 'routes')
@@ -18,7 +21,6 @@ def import_routes():
 
 import_routes()
 
-# Pour la connexion entre le téléphone et le serveur, pour l'instant, innutile
 
 @socketio.on('connect')
 def handle_connect():
@@ -28,5 +30,12 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
+@socketio.on('message')
+def handle_message(message):
+    emit_message("received")
+
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    threading.Thread(target=socketio.run, args=(app,)).start()
+    threading.Thread(target=startup, args=()).start()
+

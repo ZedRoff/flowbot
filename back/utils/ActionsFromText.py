@@ -1,9 +1,4 @@
 from utils.TextToSpeech import sayInstruction
-import re
-from commands.fiche import command as ficheCommand
-from commands.reveil import command as reveilCommand
-from commands.fiche import specificity as ficheSpecificity
-from commands.reveil import specificity as reveilSpecificity
 import os
 import importlib
 
