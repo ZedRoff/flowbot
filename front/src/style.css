@@ -18,14 +18,15 @@ body, #root {
 .app-container {
     display: flex;
     flex-direction: column;
-    font-size: 15px;
+    font-size: 10px;
     background: rgba(128, 128, 128, 0.5);
     padding: 15px;
     border-radius: 15px;
     justify-content: center;
     align-items: center;
     transition: .5s all;
-    
+    gap: 15px;
+    width: 150px;
 }
 .app-container:hover {
     background: rgba(128, 128, 128, 0.8);

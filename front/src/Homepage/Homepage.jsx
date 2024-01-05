@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { socket } from '../socket';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFolder, faIcons, faMusic, faWifi } from '@fortawesome/free-solid-svg-icons';
+import { faFolder, faIcons, faMusic, faTools, faWifi } from '@fortawesome/free-solid-svg-icons';
 import AppContainer from './AppContainer';
 function App() {
     const [isOn, setIsOn] = useState(false);
@@ -54,10 +54,11 @@ function App() {
                     </div>
             
             </header>
-            <main  className="main-container">
+            <main className="main-container">
               <AppContainer name="Réveil" icon={faIcons} />
                 <AppContainer name="Musique" icon={faMusic} />
                 <AppContainer name="Fichiers" icon={faFolder} />
+                <AppContainer name="Test" icon={faTools} />
 
             </main>
           
