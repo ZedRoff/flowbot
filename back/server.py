@@ -38,4 +38,3 @@ def handle_message(message):
 if __name__ == '__main__':
     threading.Thread(target=socketio.run, args=(app,)).start()
     threading.Thread(target=startup, args=()).start()
-
