@@ -43,3 +43,70 @@ body, #root {
 .icon {
     font-size: 35px;
 }
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 300px;
+    background: rgba(128, 128, 128, 0.5);
+    padding: 15px;
+    border-radius: 15px;
+    align-self: flex-start;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form-button {
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.test-container {
+    display: flex;
+   justify-content: flex-start;
+  padding: 25px;
+  gap: 25px;
+    height: 100vh;
+    
+}
+
+.command_list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.command {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(128, 128, 128, 0.5);
+    padding: 10px;
+    border-radius: 10px;
+    transition: .5s all;
+}
+.command:hover {
+    cursor: pointer;
+    background: rgba(128, 128, 128, 0.8);
+}
+.command_name {
+    font-weight: bold;
+}
+
+.command_reply {
+    color: #007bff;
+}

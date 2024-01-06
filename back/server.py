@@ -5,8 +5,24 @@ from flask_cors import CORS
 from utils.EmitMessage import emit_message
 import threading
 from utils.SpeechToText import startup
+import sqlite3
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
+
+con = sqlite3.connect("./db/database.db")
+cur = con.cursor()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS commandes(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            reply TEXT     
+)''')
+con.commit()
+con.close()
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = config.get('SECRET')
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -17,7 +33,6 @@ def import_routes():
             module_name = filename[:-3]
             module = __import__(f'routes.{module_name}', fromlist=[''])
             app.register_blueprint(module.bp)
-
 import_routes()
 
 
@@ -35,6 +50,8 @@ def handle_message(message):
 
 
 if __name__ == '__main__':
-    threading.Thread(target=socketio.run, args=(app,)).start()
-    threading.Thread(target=startup, args=()).start()
+
+    socketio.run(app)
+    #threading.Thread(target=socketio.run, args=(app,)).start()
+    #threading.Thread(target=startup, args=()).start()
 
