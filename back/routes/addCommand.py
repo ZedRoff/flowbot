@@ -15,7 +15,7 @@ def add_command():
         cur.execute("INSERT INTO commandes(name, reply) VALUES(?, ?)", (name, reply))
         con.commit()
         con.close()
-        
+        response = jsonify({'result': 'success'})
         return response
     
 

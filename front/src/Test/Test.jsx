@@ -16,7 +16,7 @@ const Test = () => {
                 name: name,
                 reply: message
             }
-        }).then((response) => {
+        }).then(() => {
             handleFetch()
         }
         ).catch((error) => {
@@ -24,7 +24,7 @@ const Test = () => {
         });
 
     };
-    const handleFetch = (e) => {
+    const handleFetch = () => {
         axios({
             method: 'get',
             url: '/api/getCommands'
