@@ -2,7 +2,6 @@ import os
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
-from flask_socketio import emit
 from utils.EmitMessage import emit_message
 import threading
 from utils.SpeechToText import startup
