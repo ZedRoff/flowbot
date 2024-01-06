@@ -1,6 +1,7 @@
 from utils.TextToSpeech import sayInstruction
 import os
 import importlib
+import sqlite3
 
 
 flag = False
@@ -24,10 +25,18 @@ def executeAction(pText):
         if action != "":
             addSpecificity(pText)
             return
-        
+        executeSimpleCommand(pText)
         executeCommand(pText)
        
-
+       
+def executeSimpleCommand(pText):
+    con = sqlite3.connect("./db/database.db")
+    cur = con.cursor()
+    cur.execute("SELECT reply FROM commandes WHERE name = ?", (pText,))
+    reply = cur.fetchone()
+    con.close()
+    if reply is not None:
+        sayInstruction(reply[0])
 
 def executeCommand(pText):
     global flag
