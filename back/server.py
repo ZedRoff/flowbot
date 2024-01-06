@@ -53,6 +53,6 @@ def handle_message(message):
 if __name__ == '__main__':
 
 
-    socketio.run(app)
-    #threading.Thread(target=socketio.run, args=(app,)).start()
-    #threading.Thread(target=startup, args=()).start()
+    #socketio.run(app)
+    threading.Thread(target=socketio.run, args=(app,)).start()
+    threading.Thread(target=startup, args=()).start()
