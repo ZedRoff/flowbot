@@ -26,4 +26,4 @@ def changerRappels(pText):
     rappelList[0] = pText
 
 def deletRappel(pText):
-    rappelList[0] =""
+    rappelList.remove(pText)
