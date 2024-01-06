@@ -12,6 +12,11 @@ def add_command():
         reply = data['reply']
         con = sqlite3.connect("./db/database.db")
         cur = con.cursor()
+        cur.execute("SELECT * FROM commandes WHERE name = ?", (name,))
+        command = cur.fetchone()
+        if command is not None:
+            response = jsonify({'result': 'error'})
+            return response
         cur.execute("INSERT INTO commandes(name, reply) VALUES(?, ?)", (name, reply))
         con.commit()
         con.close()

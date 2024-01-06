@@ -8,7 +8,7 @@ const Test = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         // Handle form submission here
-       
+        if(name === "" || message === "") return alert("Veuillez remplir tous les champs")
         axios({
             method: 'post',
             url: '/api/addCommand',
@@ -16,8 +16,14 @@ const Test = () => {
                 name: name,
                 reply: message
             }
-        }).then(() => {
-            handleFetch()
+        }).then((response) => {
+            if(response.data.result === "success"){
+                
+                alert("Commande ajoutée")
+                handleFetch()
+            }
+            else if(response.data.result === "error") alert("Erreur lors de l'ajout de la commande")
+            
         }
         ).catch((error) => {
             console.log(error);
