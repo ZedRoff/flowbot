@@ -1,6 +1,7 @@
 from flask import Blueprint
 import sqlite3
 from flask import request, jsonify
+import uuid
 
 bp = Blueprint('add_command', __name__)
 
@@ -15,9 +16,10 @@ def add_command():
         cur.execute("SELECT * FROM commandes WHERE name = ?", (name,))
         command = cur.fetchone()
         if command is not None:
-            response = jsonify({'result': 'error'})
+            response = jsonify({'result': 'alreadyexists'})
             return response
-        cur.execute("INSERT INTO commandes(name, reply) VALUES(?, ?)", (name, reply))
+        uuid_code = str(uuid.uuid4())
+        cur.execute("INSERT INTO commandes(uuid, name, reply) VALUES(?, ?, ?)", (uuid_code, name, reply))
         con.commit()
         con.close()
         response = jsonify({'result': 'success'})

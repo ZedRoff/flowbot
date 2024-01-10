@@ -110,3 +110,93 @@ body, #root {
 .command_reply {
     color: #007bff;
 }
+
+.chat-bot {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+}
+
+.chat-bot-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 300px;
+    background: rgba(128, 128, 128, 0.5);
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.chat-bot-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chat-bot-header h2 {
+    font-size: 20px;
+}
+
+.chat-bot-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-bot-message {
+    background: rgba(128, 128, 128, 0.8);
+    padding: 10px;
+    border-radius: 10px;
+    display:flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chat-bot-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.chat-bot-footer input[type="text"] {
+    flex-grow: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.chat-bot-footer button {
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.bot-message {
+    background-color: rgba(128, 128, 128, 0.8);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.user-message {
+    background-color: rgba(0, 123, 255, 0.8);
+    padding: 10px;
+    border-radius: 10px;
+    color: #fff;
+}
+.delete-button {
+    padding: 10px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}

@@ -11,6 +11,6 @@ def talk():
         textToSay = data['textToSay']
         instruction_thread = threading.Thread(target=sayInstruction, args=(textToSay,))
         instruction_thread.start()
-        emit_message({"command": "talk"})
+        emit_message({"message": textToSay})
         response = jsonify({'result': 'success'})
         return response

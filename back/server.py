@@ -8,13 +8,15 @@ from utils.SpeechToText import startup
 import sqlite3
 from dotenv import dotenv_values
 
+
+
 config = dotenv_values(".env")
 
 con = sqlite3.connect("./db/database.db")
 cur = con.cursor()
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT PRIMARY KEY,
             name TEXT,
             reply TEXT     
 )''')
@@ -47,7 +49,7 @@ def handle_disconnect():
 
 @socketio.on('message')
 def handle_message(message):
-    emit_message("received")
+    return
 
 
 if __name__ == '__main__':

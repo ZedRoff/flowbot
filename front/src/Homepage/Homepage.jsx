@@ -1,43 +1,24 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { socket } from '../socket';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faIcons, faMusic, faTools, faWifi } from '@fortawesome/free-solid-svg-icons';
 import AppContainer from './AppContainer';
+import axios from 'axios';
 function App() {
     const [isOn, setIsOn] = useState(false);
-    const [lastCommandUsed, setLastCommandUsed] = useState(null);
+   
     
-    const handleSay = (textToSay) => {
-        axios({
-            method: 'post',
-            url: '/api/talk',
-            data: {
-                textToSay
-            }
-        }).then((response) => {
-            console.log(response.data);
-        });
-    };
 
  
 
     useEffect(() => {
-        socket.on('connect', () => {
-            console.log('connected');
-            setIsOn(true);
-           
-        });
-        socket.on('disconnect', () => {
-            console.log('disconnected');
-            setIsOn(false);
-          
-        });
-        socket.on('message', (data) => {
-            console.log(data);
-            setLastCommandUsed(data); 
-            
-        });
+
+      axios({
+        method: 'get',
+        url: '/api/test'
+    }).then((response) => {
+        if(response.data === "Hello, World!") setIsOn(true)
+        else setIsOn(false)
+      })
     }, []);
 
     return (
@@ -47,7 +28,7 @@ function App() {
                 <h1>Flowbot</h1>
                 </div>
               <div style={{alignSelf: "flex-end", display: "flex",  gap: "15px",}}>
-                    <h2 className="battery">{Math.round(Math.random() * 100)}%</h2>
+                    <h2 className="status">Etat du serveur : </h2>
                     <h2 className="wifi">
                      <FontAwesomeIcon icon={faWifi} className={isOn ? "connected" : "not_connected"} />
                     </h2>
@@ -61,7 +42,7 @@ function App() {
                 <AppContainer name="Test" icon={faTools} />
 
             </main>
-          
+         
         </div>
     );
 }
