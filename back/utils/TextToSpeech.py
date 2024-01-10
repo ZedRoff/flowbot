@@ -1,5 +1,4 @@
 import pyttsx3
-from utils.EmitMessage import emit_message
 
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')

@@ -2,7 +2,6 @@ import os
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
-from utils.EmitMessage import emit_message
 import threading
 from utils.SpeechToText import startup
 import sqlite3
@@ -49,7 +48,7 @@ def handle_disconnect():
 
 @socketio.on('message')
 def handle_message(message):
-    return
+    print("Message received : "+message)
 
 
 if __name__ == '__main__':

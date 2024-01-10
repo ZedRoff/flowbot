@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 import threading
 from utils.TextToSpeech import sayInstruction
-from utils.EmitMessage import emit_message
 bp = Blueprint('talk', __name__)
 
 @bp.route('/api/talk', methods=['POST'])
@@ -11,6 +10,6 @@ def talk():
         textToSay = data['textToSay']
         instruction_thread = threading.Thread(target=sayInstruction, args=(textToSay,))
         instruction_thread.start()
-        emit_message({"message": textToSay})
+        # todo add back the talkfunc
         response = jsonify({'result': 'success'})
         return response

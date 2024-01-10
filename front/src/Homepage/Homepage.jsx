@@ -3,46 +3,50 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faIcons, faMusic, faTools, faWifi } from '@fortawesome/free-solid-svg-icons';
 import AppContainer from './AppContainer';
 import axios from 'axios';
+import { socket } from '../socket';
 function App() {
     const [isOn, setIsOn] = useState(false);
-   
+    const [isListening, setIsListening] = useState(false);
+
     
+    useEffect(() => {
+      socket.on("connect", () => {
+        console.log("connected")
+      })
+      socket.on("message", (data) => {
+        console.log(data)
+        if(data.message === "listening") setIsListening(true)
+        else if(data.message === "notlistening") setIsListening(false)
+      })
+      
+    }, [])
 
  
 
-    useEffect(() => {
-
-      axios({
-        method: 'get',
-        url: '/api/test'
-    }).then((response) => {
-        if(response.data === "Hello, World!") setIsOn(true)
-        else setIsOn(false)
-      })
-    }, []);
+    
 
     return (
         <div className="App">
-            <header style={{  display: "flex", padding: "15px", justifyContent: "space-between", alignItems: "center", width: "100%"   }}>
-              <div style={{display: "flex", flexDirection: "column", gap: "15px",}}>
-                <h1>Flowbot</h1>
-                </div>
-              <div style={{alignSelf: "flex-end", display: "flex",  gap: "15px",}}>
-                    <h2 className="status">Etat du serveur : </h2>
-                    <h2 className="wifi">
-                     <FontAwesomeIcon icon={faWifi} className={isOn ? "connected" : "not_connected"} />
-                    </h2>
-                    </div>
-            
-            </header>
-            <main className="main-container">
-              <AppContainer name="Réveil" icon={faIcons} />
-                <AppContainer name="Musique" icon={faMusic} />
-                <AppContainer name="Fichiers" icon={faFolder} />
-                <AppContainer name="Test" icon={faTools} />
+      <div className="princ_container">
+          <div className="title_div">
+            <h1 className="title">Flowbot</h1>
+          </div>
+          <div className="smiley_div">
+            <div className="row_1">
+              <div className="circle"></div>
+              <div className="circle"></div>
+            </div>
+            <div className="row_1">
+              <div className="rectangle"></div>
+              </div>
+          </div>
+          <div className="listening_div">
+            <div className="listening_circle" style={{background: isListening ? "green" : "red", animation: isListening ? "1s float infinite ease-in-out" : ""}}></div>
+          </div>
 
-            </main>
-         
+
+</div>
+
         </div>
     );
 }

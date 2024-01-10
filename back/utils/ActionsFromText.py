@@ -2,13 +2,11 @@ from utils.TextToSpeech import sayInstruction
 import os
 import importlib
 import sqlite3
-
-
 flag = False
 action = ""
 perso_cmd = False
 python_files = [f for f in os.listdir("./commands") if f.endswith('.py')]
-
+import requests
 
 def executeAction(pText):
     global flag
@@ -19,10 +17,14 @@ def executeAction(pText):
     print(f"Commande reçue: {pText}")
 
     if pText == "flo" and not flag and not perso_cmd:
+        requests.post("http://localhost:5000/api/emitMessage", json={"message": "listening"})
         sayInstruction("Oui, que puis-je faire pour vous ?")
         flag = True
+        
+        
         return
     if pText == "perso" and not flag and not perso_cmd:
+        requests.post("http://localhost:5000/api/emitMessage", json={"message": "listening"})
         sayInstruction("Vous pouvez utiliser vos commandes personnalisées")
         perso_cmd = True 
         return
@@ -31,22 +33,24 @@ def executeAction(pText):
             addSpecificity(pText)
             return
         executeCommand(pText)
+        
+
     if perso_cmd and not flag and action == "":
+        requests.post("http://localhost:5000/api/emitMessage", json={"message": "notlistening"})
         executeSimpleCommand(pText)
         perso_cmd = False
+        
     
         
        
        
 def executeSimpleCommand(pText):
-  
     con = sqlite3.connect("./db/database.db")
     cur = con.cursor()
     cur.execute("SELECT reply FROM commandes WHERE name = ?", (pText,))
     reply = cur.fetchone()
     con.close()
     if reply is not None:
-    
         sayInstruction(reply[0])
    
 
@@ -63,13 +67,14 @@ def executeCommand(pText):
                 real_cmd = True
                 if hasattr(module, "command") and hasattr(module, "specificity"):
                     module.command()
-                    
                     if hasattr(module, "specificityName"):
                         action = module.specificityName
                 elif hasattr(module, "command"):
+                    requests.post("http://localhost:5000/api/emitMessage", json={"message": "notlistening"})
                     module.command()
                     action = ""
                     flag = False 
+                    
                 else:
                     print("Commande mal formée dans le fichier " + f)
     if not real_cmd:
@@ -91,3 +96,4 @@ def addSpecificity(param):
                     module.specificity(param)
                     action = ""
                     flag = False
+                    requests.post("http://localhost:5000/api/emitMessage", json={"message": "notlistening"})
