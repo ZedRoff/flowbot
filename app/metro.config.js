@@ -13,7 +13,6 @@ module.exports = {
    sourceExts: ['js', 'json', 'ts', 'tsx', 'jsx'],
  },
  watchFolders: [
-  
    path.resolve(__dirname, '..'),
  ],
  projectRoot: path.resolve(__dirname),

@@ -5,13 +5,14 @@ import config from "../config.json"
 export default defineConfig({
  
   server: {
+    host: true,
+    port: 5173,
     proxy: {
       "/api": {
         target: `http://${config.URL}:5000/`,
         secure: false,
         changeOrigin: true,
-        
-      rewrite: (path) => path.replace(/^\/foo/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ""),
    
       
       },
