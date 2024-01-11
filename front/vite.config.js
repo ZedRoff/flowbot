@@ -11,8 +11,7 @@ export default defineConfig({
       "/api": {
         target: `http://${config.URL}:5000/`,
         secure: false,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        changeOrigin: true
    
       
       },

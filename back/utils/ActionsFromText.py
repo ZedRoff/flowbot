@@ -3,17 +3,13 @@ import os
 import importlib
 import sqlite3
 import requests
-import json
 flag = False
 action = ""
 perso_flag = False
 python_files = {f[:-3] for f in os.listdir("./commands") if f.endswith('.py')}
 modules = {}
 
-def get_config_value(key):
-    with open("../config.json") as f:
-        config = json.load(f)
-    return config.get(key)
+
 
 def executeAction(pText):
     global flag, action, perso_flag
@@ -22,13 +18,11 @@ def executeAction(pText):
     print(f"Commande reçue: {pText}")
 
     if pText == "flo" and not flag and not perso_flag:
-        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": "listening"})
         sayInstruction("Oui, que puis-je faire pour vous ?")
         flag = True
         return
 
     if pText == "perso" and not flag and not perso_flag:
-        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": "listening"})
         sayInstruction("Vous pouvez utiliser vos commandes personnalisées")
         perso_flag = True 
         return
@@ -75,7 +69,6 @@ def executeCommand(pText):
                     if hasattr(module, "specificityName"):
                         action = module.specificityName
                 else:
-                    requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": "notlistening"})
                     module.command()
                     action = ""
                     flag = False
@@ -97,4 +90,4 @@ def addSpecificity(param):
             module.specificity(param)
             action = ""
             flag = False
-            requests.post(f"{get_config_value('URL')}/api/emitMessage", json={"message": "notlistening"})
+            

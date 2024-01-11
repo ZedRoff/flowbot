@@ -6,5 +6,5 @@ bp = Blueprint('emit_message', __name__)
 @bp.route('/api/emitMessage', methods=['POST'])
 def emit_message():
     message = request.json.get('message')
-    emit('message', {'message': message}, broadcast=True)
+    emit('message', {'message': message}, broadcast=True, namespace='/')
     return 'Message emitted successfully'
