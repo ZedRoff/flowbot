@@ -1,12 +1,10 @@
 import os
+import json
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
-import threading
-from utils.SpeechToText import startup
 import sqlite3
 from dotenv import dotenv_values
-
 
 
 config = dotenv_values(".env")
@@ -36,7 +34,10 @@ def import_routes():
             app.register_blueprint(module.bp)
 import_routes()
 
-
+# Get URL from config.json
+with open('../config.json') as config_file:
+    config_data = json.load(config_file)
+    host = config_data.get('URL')
 
 @socketio.on('connect')
 def handle_connect():
@@ -48,12 +49,8 @@ def handle_disconnect():
 
 @socketio.on('message')
 def handle_message(message):
-    print("Message received : "+message)
+    print("Message received : " + message)
 
 
 if __name__ == '__main__':
-
-
-    #socketio.run(app)
-    threading.Thread(target=socketio.run, args=(app,)).start()
-    threading.Thread(target=startup, args=()).start()
+    socketio.run(app, host=host, port=5000, debug=True, use_reloader=True)
