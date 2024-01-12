@@ -17,6 +17,12 @@ cur.execute('''
             name TEXT,
             reply TEXT     
 )''')
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS chronometre(
+            uuid TEXT PRIMARY KEY,
+            name TEXT,
+            reply TEXT     
+)''')
 con.commit()
 con.close()
 

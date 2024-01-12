@@ -4,6 +4,12 @@ from tkinter import *
 import datetime
 import time
 import threading 
+from flask import Blueprint
+import sqlite3
+from flask import request, jsonify
+import uuid
+
+bp = Blueprint('set_chronometre', __name__)
 
 StartTime = 0
 
@@ -76,7 +82,9 @@ inPause = False
 
 def command():
     sayInstruction("Bien sûr")
-    startChronometre()
+    thread = threading.Thread(target=startChronometre)
+    thread.start()
+
 
 def specificity(param):
     print("ah")
@@ -87,10 +95,31 @@ def specificityName():
 
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("chronomètre", pText)
-    
+
+@bp.route('/api/chronometre', methods=['GET','POST'])
 def startChronometre():
-    thread1 = thread("timeThread", 1000) 
-    thread1.start()
+    data = request.get_json()
+    name = data['name']
+        
+    StartTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
+    currentTime = 0
+    pauseTime = 0
+    while True :
+        time.sleep(1)
+        if not inPause:
+            currentTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60-StartTime - pauseTime
+        else :
+            pauseTime+= datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
+            
+        con = sqlite3.connect("./db/database.db")
+        cur = con.cursor()
+        cur.execute("SELECT * FROM chronometre WHERE name = ?", (name,))
+        uuid_code = str(uuid.uuid4())
+        cur.execute("INSERT INTO chronometre(uuid, name, reply) VALUES(?, ?, ?)", (uuid_code, name, currentTime))
+        con.commit()
+        con.close()
+
+    
 
 def pauseChornometre():
     inPause = True
@@ -101,21 +130,4 @@ def restartChronometre():
 def resetChronometre():
     StartTime = datetime.datetime.now().strftime("%H:%M:%S")
 
-class thread(threading.Thread): 
-    def __init__(self, thread_name, thread_ID): 
-        threading.Thread.__init__(self) 
-        self.thread_name = thread_name 
-        self.thread_ID = thread_ID 
- 
-        # helper function to execute the threads
-    def run(self): 
-        StartTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
-        currentTime = 0
-        pauseTime = 0
-        while True :
-            time.sleep(1)
-            if not inPause:
-                currentTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60-StartTime - pauseTime
-            else :
-                pauseTime+= datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
-            print(currentTime)
+        
