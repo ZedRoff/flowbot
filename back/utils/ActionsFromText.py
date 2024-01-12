@@ -21,7 +21,11 @@ def executeAction(pText):
         return 
     
     print(f"Commande reçue: {pText}")
-
+    action = cur.execute("SELECT action FROM global").fetchone()[0]
+      
+    if action != "":
+        addSpecificity(pText)
+        return
     if pText == "flo" and not flag and not perso_flag:
         sayInstruction("Oui, que puis-je faire pour vous ?")
         flag = True
@@ -31,11 +35,8 @@ def executeAction(pText):
         sayInstruction("Vous pouvez utiliser vos commandes personnalisées")
         perso_flag = True 
         return
-    action = cur.execute("SELECT action FROM global").fetchone()[0]
-        
-    if action != "":
-        addSpecificity(pText)
-        return
+      
+    
     if flag and not perso_flag:  
         executeCommand(pText)
 
@@ -84,6 +85,7 @@ def executeCommand(pText):
         sayInstruction("Je n'ai pas compris votre demande")
         cur.execute("UPDATE global SET action = ?", ("",))
         db.commit()
+
 
 def addSpecificity(param):
     global flag

@@ -5,7 +5,7 @@ from tkinter import *
 import datetime
 import time
 import threading 
-from ResetAction import resetAction
+from utils.ResetAction import resetAction
 in_specificity = False
 
 alarmList = [""]

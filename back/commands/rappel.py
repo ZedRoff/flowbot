@@ -1,5 +1,7 @@
 from utils.TextToSpeech import sayInstruction
 import re
+from utils.ResetAction import resetAction
+in_specificity = False
 
 rappelList = [""]
 
@@ -9,9 +11,12 @@ def command():
 def specificity(param):
     sayInstruction("Votre rappel a bien été créé")
     setUpRappel(param)
+    resetAction()
+    in_specificity = False
+    
 
-def specificityName():
-    return "rappel"
+def getInSpecificity():
+    return in_specificity
 
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("rappel", pText)
