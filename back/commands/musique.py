@@ -14,9 +14,10 @@ def specificity(param):
 def specificityName():
     return "musique"
 def trigger(pText):
-    return ((re.search("joue",pText)) or (re.search("jou",pText) or (re.search("jous",pText)))) and (re.search("chançon", pText) or (re.search("chanson", pText)) or (re.search("musique",pText)))
+    return ((re.search("joue",pText)) or (re.search("jou",pText) or (re.search("jous",pText))or (re.search("musique",pText)))) and re.search("chançon", pText)
 
 def playMusic(param):
     pygame.mixer.init()
     pygame.mixer.music.load(r"D:/a/flowbot/flowbot/file/music/"+param.lower()+".mp3")
     pygame.mixer.music.play()
+    print("ha")
