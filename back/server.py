@@ -18,6 +18,40 @@ cur.execute('''
             reply TEXT     
 )''')
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS global(
+            action TEXT PRIMARY KEY
+            )
+            ''')
+con.commit()
+
+
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS chronometre(
+            active INTEGER PRIMARY KEY
+            )
+            ''')
+
+con.commit()
+
+
+res_test = cur.execute("SELECT action FROM global").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO global VALUES (?)", ("",))
+    con.commit()
+
+res_test = cur.execute("SELECT active FROM chronometre").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO chronometre VALUES (?)", (0,))
+    con.commit()
+
+
+cur.execute("UPDATE chronometre SET active = ?", (0,))
+con.commit()
+cur.execute("UPDATE global SET action = ?", ("",))
+con.commit()
+
+
 con.close()
 
 app = Flask(__name__)

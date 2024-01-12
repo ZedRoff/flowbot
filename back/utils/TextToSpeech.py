@@ -8,7 +8,7 @@ engine = pyttsx3.init()
 voices = engine.getProperty('voices')
 
 engine.setProperty('voice', voices[0].id)
-
+ 
 engine.setProperty('rate', 150)  
 engine.setProperty('volume', 0.8)  
 def get_config_value(key):
@@ -18,6 +18,7 @@ def get_config_value(key):
 def sayInstruction(textToSay):
     thread = threading.Thread(target=saySomeWordInThread, args=(textToSay,))
     thread.start()
+
 
 
 def saySomeWordInThread(string):

@@ -14,7 +14,7 @@ def specificity(param):
 def specificityName():
     return "musique"
 def trigger(pText):
-    return ((re.search("joue",pText)) or (re.search("jou",pText) or (re.search("jous",pText))or (re.search("musique",pText)))) and re.search("chançon", pText)
+    return ((re.search("joue",pText)) or (re.search("jou",pText) or (re.search("jous",pText)))) and (re.search("chançon", pText) or (re.search("chanson", pText)) or (re.search("musique",pText)))
 
 def playMusic(param):
     pygame.mixer.init()

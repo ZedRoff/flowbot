@@ -10,6 +10,5 @@ def talk():
         textToSay = data['textToSay']
         instruction_thread = threading.Thread(target=sayInstruction, args=(textToSay,))
         instruction_thread.start()
-        # todo add back the talkfunc
         response = jsonify({'result': 'success'})
         return response

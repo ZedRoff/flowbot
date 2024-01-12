@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar } from 'react-native'; // Add Platform and StatusBar
 import axios from 'axios';
 import config from "../config.json"
 import { socket } from './socket';
@@ -100,62 +100,66 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-    <ScrollView>
-      <View style={styles.commandMaker}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nom"
-          value={name}
-          onChangeText={(text) => setName(text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Message"
-          value={message}
-          onChangeText={(text) => setMessage(text)}
-        />
-        <Button
-          title="Crée la commande"
-          onPress={handleSubmit}
-        />
-        <View style={styles.commandList}>
-          {commands.map((command, idx) => (
-            <View style={styles.command} key={idx}>
-              <Text style={styles.commandName}>Nom : {command[1]}</Text>
-              <Text style={styles.commandReply}>Réponse : {String(command[2])}</Text>
+      {Platform.OS === 'ios' && <View style={styles.banner}></View>} 
+      <StatusBar backgroundColor="#f5f5f5" barStyle="dark-content" />
+      <ScrollView>
+        <View style={styles.commandMaker}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom"
+            value={name}
+            onChangeText={(text) => setName(text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Message"
+            value={message}
+            onChangeText={(text) => setMessage(text)}
+          />
+          <Button
+            title="Crée la commande"
+            onPress={handleSubmit}
+          />
+          <View style={styles.commandList}>
+            {commands.map((command, idx) => (
+              <View style={styles.command} key={idx}>
+                <Text style={styles.commandName}>Nom : {command[1]}</Text>
+                <Text style={styles.commandReply}>Réponse : {String(command[2])}</Text>
+                <Button
+                  title="Supprimer"
+                  onPress={() => handleDelete(command[0])}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+        <View style={styles.chatBot}>
+
+          <View style={styles.chatBotContainer}>
+              
+            <ScrollView style={styles.chatBotBody}>
+            
+                {messages.map((message, idx) => (
+                  <View key={idx} style={message.isBot ? styles.botMessage : styles.userMessage}>
+                    <Text>{String(message.message)}</Text>
+                  </View>
+                ))}
+       
+            </ScrollView>
+            <View style={styles.chatBotFooter}>
+              <TextInput
+                style={styles.input}
+                placeholder="Message"
+                value={inputValue}
+                onChangeText={(text) => setInputValue(text)}
+              />
               <Button
-                title="Supprimer"
-                onPress={() => handleDelete(command[0])}
+                title="Envoyer"
+                onPress={handleSend}
               />
             </View>
-          ))}
-        </View>
-      </View>
-      <View style={styles.chatBot}>
-        <View style={styles.chatBotContainer}>
-          <View style={styles.chatBotBody}>
-            <View style={styles.chatBotMessage}>
-              {messages.map((message, idx) => (
-                <View key={idx} style={message.isBot ? styles.botMessage : styles.userMessage}>
-                  <Text>{String(message.message)}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-          <View style={styles.chatBotFooter}>
-            <TextInput
-              style={styles.input}
-              placeholder="Message"
-              value={inputValue}
-              onChangeText={(text) => setInputValue(text)}
-            />
-            <Button
-              title="Envoyer"
-              onPress={handleSend}
-            />
           </View>
         </View>
-      </View>
       </ScrollView>
     </SafeAreaView>
   )
@@ -166,6 +170,10 @@ const styles = {
     flex: 1,
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
+  },
+  banner: {
+    height: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight, 
+    backgroundColor: '#007bff',
   },
   commandMaker: {
     flex: 1,
@@ -179,6 +187,7 @@ const styles = {
     paddingHorizontal: 10,
     borderRadius: 5,
     backgroundColor: '#fff',
+    width: "100%"
   },
   commandList: {
     marginTop: 10,
@@ -188,7 +197,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 10,
-
   },
   command: {
     flexDirection: 'column',
@@ -198,7 +206,6 @@ const styles = {
     padding: 10,
     borderRadius: 5,
     gap: 10,
-
   },
   commandName: {
     marginRight: 10,
@@ -215,7 +222,6 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     margin: 10,
-
   },
   chatBotContainer: {
     flexDirection: 'column',
@@ -224,8 +230,6 @@ const styles = {
     backgroundColor: '#e6e6e6',
     padding: 15,
     borderRadius: 15,
-    
-    
   },
   chatBotHeader: {
     justifyContent: 'center',
@@ -239,16 +243,23 @@ const styles = {
     flexGrow: 1,
     flexDirection: 'column',
     gap: 10,
+    backgroundColor: 'black',
+    padding: 10,
+    borderRadius: 10,
+    height: 300,
+    gap: 10,
+    display: 'flex',
+    flexDirection: 'column-reverse',
   },
   chatBotMessage: {
     backgroundColor: '#f2f2f2',
     padding: 10,
     borderRadius: 10,
     flexDirection: 'column',
-    gap: 5,
+    gap: 5
   },
   chatBotFooter: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 10,
     marginTop: 15,
   },

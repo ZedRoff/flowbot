@@ -1,9 +1,9 @@
 from utils.TextToSpeech import sayInstruction
 import re
-from tkinter import *
 import datetime
 import time
 import threading 
+import sqlite3
 
 StartTime = 0
 
@@ -72,18 +72,18 @@ convertStringToNum ={
     "soixante" : 60,
 }
 
-inPause = False
+
+
+db = sqlite3.connect("./db/database.db", check_same_thread=False)
+cur = db.cursor()
+
 
 def command():
     sayInstruction("Bien sûr")
     startChronometre()
+    cur.execute("UPDATE chronometre SET active = ?", (1,))
+    db.commit()
 
-def specificity(param):
-    print("ah")
-    
-
-def specificityName():
-    return "chronometre"
 
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("chronomètre", pText)
@@ -92,14 +92,6 @@ def startChronometre():
     thread1 = thread("timeThread", 1000) 
     thread1.start()
 
-def pauseChornometre():
-    inPause = True
-
-def restartChronometre():
-    inPause = False
-
-def resetChronometre():
-    StartTime = datetime.datetime.now().strftime("%H:%M:%S")
 
 class thread(threading.Thread): 
     def __init__(self, thread_name, thread_ID): 
@@ -107,14 +99,14 @@ class thread(threading.Thread):
         self.thread_name = thread_name 
         self.thread_ID = thread_ID 
  
-        # helper function to execute the threads
     def run(self): 
         StartTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
         currentTime = 0
         pauseTime = 0
         while True :
             time.sleep(1)
-            if not inPause:
+            active = db.execute("SELECT active FROM chronometre").fetchone()[0]
+            if active == 1:
                 currentTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60-StartTime - pauseTime
             else :
                 pauseTime+= datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60

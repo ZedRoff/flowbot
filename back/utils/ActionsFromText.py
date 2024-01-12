@@ -2,9 +2,13 @@ from utils.TextToSpeech import sayInstruction
 import os
 import importlib
 import sqlite3
-import requests
 flag = False
-action = ""
+db = sqlite3.connect("./db/database.db")
+cur = db.cursor()
+
+
+
+
 perso_flag = False
 python_files = {f[:-3] for f in os.listdir("./commands") if f.endswith('.py')}
 modules = {}
@@ -12,9 +16,10 @@ modules = {}
 
 
 def executeAction(pText):
-    global flag, action, perso_flag
+    global flag,  perso_flag
     if len(pText) == 0:
         return 
+    
     print(f"Commande reçue: {pText}")
 
     if pText == "flo" and not flag and not perso_flag:
@@ -26,11 +31,12 @@ def executeAction(pText):
         sayInstruction("Vous pouvez utiliser vos commandes personnalisées")
         perso_flag = True 
         return
-
-    if flag and not perso_flag:
-        if action != "":
-            addSpecificity(pText)
-            return
+    action = cur.execute("SELECT action FROM global").fetchone()[0]
+        
+    if action != "":
+        addSpecificity(pText)
+        return
+    if flag and not perso_flag:  
         executeCommand(pText)
 
     if perso_flag and not flag and action == "":
@@ -39,11 +45,10 @@ def executeAction(pText):
 
 def executeSimpleCommand(pText):
     global perso_flag
-    con = sqlite3.connect("./db/database.db")
-    cur = con.cursor()
+   
     cur.execute("SELECT reply FROM commandes WHERE name = ?", (pText,))
     reply = cur.fetchone()
-    con.close()
+  
     if reply is not None:
         sayInstruction(reply[0])
         perso_flag = False
@@ -53,7 +58,7 @@ def executeSimpleCommand(pText):
 
 
 def executeCommand(pText):
-    global flag, action
+    global flag
     real_cmd = False
     for f in python_files:
         module = modules.get(f)
@@ -66,28 +71,30 @@ def executeCommand(pText):
             if hasattr(module, "command"):
                 if hasattr(module, "specificity"):
                     module.command()
-                    if hasattr(module, "specificityName"):
-                        action = module.specificityName
+                    db.execute("UPDATE global SET action = ?", (f[:-3],))
+                    db.commit()
                 else:
                     module.command()
-                    action = ""
+                    cur.execute("UPDATE global SET action = ?", ("",))
+                    db.commit()
                     flag = False
             else:
                 print("Commande mal formée dans le fichier " + f)
     if not real_cmd:
         sayInstruction("Je n'ai pas compris votre demande")
-        action = ""
+        cur.execute("UPDATE global SET action = ?", ("",))
+        db.commit()
 
 def addSpecificity(param):
-    global action, flag
+    global flag
+    action = db.execute("SELECT action FROM global").fetchone()[0]
+    
     for f in python_files:
         module = modules.get(f)
         if module is None:
             module = importlib.import_module(f"commands.{f}")
             modules[f] = module
-
-        if hasattr(module, "specificity") and action == getattr(module, "specificityName", ""):
+        if hasattr(module, "specificity") and action == f[:-3] and hasattr(module, "getInSpecificity"):
             module.specificity(param)
-            action = ""
-            flag = False
-            
+            flag = module.getInSpecificity()
+            return
