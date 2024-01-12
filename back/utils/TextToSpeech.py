@@ -1,6 +1,9 @@
 import pyttsx3
 import requests
 import json
+import threading 
+
+
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')
 
@@ -13,13 +16,17 @@ def get_config_value(key):
         config = json.load(f)
     return config.get(key)
 def sayInstruction(textToSay):
-    try:
-        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": textToSay})
+    thread = threading.Thread(target=saySomeWordInThread, args=(textToSay,))
+    thread.start()
 
-        engine.say(textToSay)
+
+def saySomeWordInThread(string):
+    try:
+        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string})
+
+        engine.say(string)
         engine.startLoop(False)
         engine.iterate()
-        engine.endLoop()
-       
+        engine.endLoop()   
     except RuntimeError:
         pass
