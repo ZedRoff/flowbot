@@ -9,8 +9,6 @@ import sqlite3
 from flask import request, jsonify
 import uuid
 
-bp = Blueprint('set_chronometre', __name__)
-
 StartTime = 0
 
 convertStringToNum ={
