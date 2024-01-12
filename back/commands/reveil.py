@@ -4,11 +4,12 @@ import re
 from tkinter import *
 import datetime
 import time
+import threading 
 
 alarmList = [""]
 
 convertStringToNum ={
-    "zéro" : 00,
+    "zéro" : 0,
     "un" : 1,
     "une" : 1,
     "deux" : 2,
@@ -33,7 +34,7 @@ convertStringToNum ={
     "vingt et un" : 21,
     "vingt-deux" : 22,
     "vingt-trois" : 23,
-    "vingt-quarte" : 24,
+    "vingt-quatre" : 24,
     "vingt-cinq" : 25,
     "vingt-six" : 26,
     "vingt-sept" : 27,
@@ -84,27 +85,43 @@ def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("réveil", pText)
     
 def setUpAlarm(timeInString):
-    print(timeInString)
-    vStringSplited = timeInString.split("heure")
-    alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}:{convertStringToNum[vStringSplited[1].strip()]}:{00}"
+    if(not timeInString.__contains__("heures")):
+        return
+    vStringSplited = timeInString.split("heures")
+    alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}:{convertStringToNum[vStringSplited[1].strip()]}:00"
     alarmList.append(alarmTimer)
     print(alarmTimer)
     alarm()
 
 def alarm():
-    while True :
-        time.sleep(1)
-        currentTime = datetime.datetime.now().strftime("%H:%M")
-        for f in alarmList :
-            if f == currentTime :
-                if alarmList[0] == f:
-                    sayInstruction("Bonjour, voici vos rappels")
-                    for f in getListRappel():
-                        sayInstruction(f)
-                else :
-                    sayInstruction("AAAAAAA")
+    thread1 = thread("timeThread", 1000) 
+    thread1.start()
 
 def removeAlarm(pText):
-    vStringSplited = pText.split("heure")
-    alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]}:{convertStringToNum[vStringSplited[1].split()[0]]}:{00}"
+    print(pText)
+    vStringSplited = pText.split("heures")
+    print(vStringSplited[1])
+    alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]}:{convertStringToNum[vStringSplited[1].split()[0]]}:00"
     alarmList.remove(alarmTimer)
+
+
+class thread(threading.Thread): 
+    def __init__(self, thread_name, thread_ID): 
+        threading.Thread.__init__(self) 
+        self.thread_name = thread_name 
+        self.thread_ID = thread_ID 
+ 
+        # helper function to execute the threads
+    def run(self): 
+        while True :
+            time.sleep(1)
+            currentTime = datetime.datetime.now().strftime("%H:%M:%S")
+            for f in alarmList :
+                if f == currentTime :
+                    if alarmList[0] == f:
+                        sayInstruction("Bonjour, voici vos rappels")
+                        for f in getListRappel():
+                            sayInstruction(f)
+                    else :
+                        sayInstruction("AAAAAAA")
+ 
