@@ -5,6 +5,8 @@ from tkinter import *
 import datetime
 import time
 import threading 
+from ResetAction import resetAction
+in_specificity = False
 
 alarmList = [""]
 
@@ -77,11 +79,12 @@ def command():
     sayInstruction("Bien sûr, dans combien de temps ?")
 
 def specificity(param):
+    global in_specificity
     sayInstruction("Minuteur programmé pour dans " + param)
     setUpAlarm(param)
+    resetAction()
+    in_specificity = False
 
-def specificityName():
-    return "minuteur"
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("minuteur", pText)
     
@@ -104,7 +107,8 @@ def removeAlarm(pText):
     print(alarmTimer)
     alarmList.remove(alarmTimer)
 
-
+def getInSpecificity():
+    return in_specificity
 class thread(threading.Thread): 
     def __init__(self, thread_name, thread_ID): 
         threading.Thread.__init__(self) 

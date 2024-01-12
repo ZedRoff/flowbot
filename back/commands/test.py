@@ -25,6 +25,7 @@ def specificity(param):
         in_specificity = False
 
 def getInSpecificity():
+    global in_specificity
     return in_specificity
 
 def trigger(pText):

@@ -1,12 +1,10 @@
 from utils.TextToSpeech import sayInstruction
 import re
-import datetime
 import time
 import threading 
 import sqlite3
-
-StartTime = 0
-
+db = sqlite3.connect("./db/database.db", check_same_thread=False)
+cur = db.cursor()
 convertStringToNum ={
     "zéro" : 00,
     "un" : 1,
@@ -73,11 +71,6 @@ convertStringToNum ={
 }
 
 
-
-db = sqlite3.connect("./db/database.db", check_same_thread=False)
-cur = db.cursor()
-
-
 def command():
     sayInstruction("Bien sûr")
     startChronometre()
@@ -93,6 +86,8 @@ def startChronometre():
     thread1.start()
 
 
+counter = 0
+
 class thread(threading.Thread): 
     def __init__(self, thread_name, thread_ID): 
         threading.Thread.__init__(self) 
@@ -100,14 +95,16 @@ class thread(threading.Thread):
         self.thread_ID = thread_ID 
  
     def run(self): 
-        StartTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
-        currentTime = 0
-        pauseTime = 0
+        global counter
+      
         while True :
             time.sleep(1)
             active = db.execute("SELECT active FROM chronometre").fetchone()[0]
             if active == 1:
-                currentTime = datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60-StartTime - pauseTime
-            else :
-                pauseTime+= datetime.datetime.now().time().second+datetime.datetime.now().time().minute*60 + datetime.datetime.now().time().hour*60*60
-            print(currentTime)
+                counter+=1
+                print(counter)
+            elif active == 0:
+                pass
+            else:
+                print("en pause")
+          

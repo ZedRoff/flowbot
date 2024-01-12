@@ -7,7 +7,6 @@ db = sqlite3.connect("./db/database.db", check_same_thread=False)
 cur = db.cursor()
 
 
-StartTime = 0
 
 convertStringToNum ={
     "zéro" : 00,
@@ -74,17 +73,14 @@ convertStringToNum ={
     "soixante" : 60,
 }
 
-inPause = False
 
 def command():
+    print("pause")
     sayInstruction("Chronomètre mit en pause")
     cur.execute("UPDATE global SET action = ?", (2,))
     db.commit()
 
 
-    
-
-
 def trigger(pText):
-    return  re.search("pause", pText) and re.search("chronomètre", pText)
+    return re.search("pause", pText) and re.search("chronomètre", pText)
     

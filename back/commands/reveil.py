@@ -5,9 +5,10 @@ from tkinter import *
 import datetime
 import time
 import threading 
+from utils.ResetAction import resetAction
 
 alarmList = [""]
-
+in_specificity = False
 convertStringToNum ={
     "zéro" : 0,
     "un" : 1,
@@ -77,10 +78,15 @@ def command():
     sayInstruction("Bien sûr, à quelle heure ?")
 
 def specificity(param):
+    global in_specificity
     sayInstruction("Réveil programmé à " + param)
     setUpAlarm(param)
-def specificityName():
-    return "réveil"
+    in_specificity = False
+    resetAction()
+
+def getInSpecificity():
+    return in_specificity
+
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("réveil", pText)
     
