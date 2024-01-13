@@ -73,6 +73,10 @@ convertStringToNum ={
 
 
 def command():
+    active = db.execute("SELECT active FROM chronometre").fetchone()[0]
+    if active == 1 or active == 2:
+        sayInstruction("Un chronomètre est déjà en cours")
+        return
     sayInstruction("Un chronomètre a été créé")
     startChronometre()
     cur = db.cursor()
@@ -84,31 +88,34 @@ def command():
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("chronomètre", pText)
 
-thread1 = None
 
+stopwatch_start_time = None
 def startChronometre():
-    global thread1
+    global stopwatch_start_time   
     thread1 = threading.Thread(target=run)
+    stopwatch_start_time = time.time()
     thread1.start()
 
-
-
-
-counter = 0
 flag = True
+
+def time_convert(sec):
+  mins = sec // 60
+  sec = sec % 60
+  hours = mins // 60
+  mins = mins % 60
+  print("{0}:{1}:{2}".format(int(hours),int(mins),int(sec)))
 
 
 def run(): 
-    global counter, flag, thread1
+    global flag, stopwatch_start_time
     while flag:
         time.sleep(1)
         active = db.execute("SELECT active FROM chronometre").fetchone()[0]
         if active == 1:
-            counter+=1
-            print(counter)
+            elapsed_time = time.time() - stopwatch_start_time
+            time_convert(elapsed_time)
         elif active == 0:
-            counter = 0
+            stopwatch_start_time = None
             return
         else:
-            print("en pause")
-          
+            stopwatch_start_time = time.time() - elapsed_time
