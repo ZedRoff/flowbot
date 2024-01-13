@@ -4,7 +4,8 @@ import time
 import threading 
 import sqlite3
 db = sqlite3.connect("./db/database.db", check_same_thread=False)
-cur = db.cursor()
+
+
 convertStringToNum ={
     "zéro" : 00,
     "un" : 1,
@@ -72,39 +73,42 @@ convertStringToNum ={
 
 
 def command():
-    sayInstruction("Bien sûr")
+    sayInstruction("Un chronomètre a été créé")
     startChronometre()
+    cur = db.cursor()
     cur.execute("UPDATE chronometre SET active = ?", (1,))
     db.commit()
+    cur.close()
 
 
 def trigger(pText):
     return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("chronomètre", pText)
-    
+
+thread1 = None
+
 def startChronometre():
-    thread1 = thread("timeThread", 1000) 
+    global thread1
+    thread1 = threading.Thread(target=run)
     thread1.start()
 
 
-counter = 0
 
-class thread(threading.Thread): 
-    def __init__(self, thread_name, thread_ID): 
-        threading.Thread.__init__(self) 
-        self.thread_name = thread_name 
-        self.thread_ID = thread_ID 
- 
-    def run(self): 
-        global counter
-      
-        while True :
-            time.sleep(1)
-            active = db.execute("SELECT active FROM chronometre").fetchone()[0]
-            if active == 1:
-                counter+=1
-                print(counter)
-            elif active == 0:
-                pass
-            else:
-                print("en pause")
+
+counter = 0
+flag = True
+
+
+def run(): 
+    global counter, flag, thread1
+    while flag:
+        time.sleep(1)
+        active = db.execute("SELECT active FROM chronometre").fetchone()[0]
+        if active == 1:
+            counter+=1
+            print(counter)
+        elif active == 0:
+            counter = 0
+            return
+        else:
+            print("en pause")
           

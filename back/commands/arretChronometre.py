@@ -9,14 +9,14 @@ db = sqlite3.connect("./db/database.db", check_same_thread=False)
 
 
 def command():
-    sayInstruction("Chronomètre mit en pause")
+    sayInstruction("Arrêt du chronomètre")
     cur = db.cursor()
-    cur.execute("UPDATE chronometre SET active = ?", (2,))
+    cur.execute("UPDATE chronometre SET active = ?", (0,))
     db.commit()
     cur.close()
 
 
 
 def trigger(pText):
-    return re.search("pose", pText) and re.search("chronomètre", pText)
+    return (re.search("arrêt", pText) or re.search("arrête", pText) or re.search("stop", pText)) and re.search("chronomètre", pText)
     
