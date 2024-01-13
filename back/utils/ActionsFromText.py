@@ -10,7 +10,12 @@ cur = db.cursor()
 
 
 perso_flag = False
-python_files = {f[:-3] for f in os.listdir("./commands") if f.endswith('.py')}
+python_files = []
+for root, dirs, files in os.walk("./commands"):
+    for file in files:
+        if file.endswith(".py"):
+            python_files.append(f"{root[11:len(root)]}.{file[0:-3]}")
+print(python_files)
 modules = {}
 
 
