@@ -110,7 +110,7 @@ class Command(CommandMaker):
             super().sayInstruction("Un minuteur est déjà en cours")
             return
         super().sayInstruction("Minuteur programmé pour dans " + timeInString)
-        super().writeDb(f"UPDATE minuteur SET active = {1} WHERE min ='"+f"{alarmTimerMinutes}"+"'")
+        super().writeDb(f"UPDATE minuteur SET active = 1 WHERE min ='{alarmTimerMinutes}'")
 
         
         self.alarm(f"{alarmTimerMinutes}")
@@ -127,12 +127,12 @@ class Command(CommandMaker):
                 print(minuteurList[i])
                 if minuteurList[i] == 0 :
                     super().sayInstruction("AAAAAAA")
-                    super().writeDb(f"UPDATE minuteur SET active = {0} WHERE min ='"+i+"'")
+                    super().writeDb(f"UPDATE minuteur SET active = 0 WHERE min ='{i}'")
                     minuteurList.pop(i)
                     return
-                active = super().readDb(f"SELECT active FROM minuteur WHERE min = '{i}'")
+                active = super().readDb(f"SELECT active FROM minuteur WHERE min ='{i}'")
                 if(active == 0 or len(minuteurList) == 0):
-                    super().writeDb(f"UPDATE minuteur SET active = {0} WHERE min ='"+i+"'")
+                    super().writeDb(f"UPDATE minuteur SET active = 0 WHERE min ='{i}'")
                     minuteurList.pop(i)
                     return
                        

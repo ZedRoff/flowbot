@@ -14,6 +14,9 @@ cur = con.cursor()
 
 cur.execute("DROP TABLE minuteur")
 con.commit()
+cur.execute("DROP TABLE reveil")
+con.commit()
+
 
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
@@ -60,6 +63,14 @@ con.execute('''
             ''')
 con.commit()
 
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS reveil(
+                time TEXT PRIMARY KEY,
+                active INTEGER
+            )
+            ''')
+
+con.commit()
 
 cur.execute('''
             CREATE TABLE IF NOT EXISTS rappels(

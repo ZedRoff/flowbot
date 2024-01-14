@@ -73,26 +73,18 @@ db = sqlite3.connect("./db/database.db", check_same_thread=False)
 class Command(CommandMaker):
     
     def command(self):
-        super().sayInstruction("Quel était le temps du minuteur?")
+        super().sayInstruction("A quel heure il se déclanche?")
     
     def specificity(self,timeInString):
-        temp = self.convertToMin(timeInString)
-        super().writeDb(f"UPDATE minuteur SET active = 0 WHERE min ='{temp}'")
+        vStringSplited = timeInString.split("heures")
+        alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}{convertStringToNum[vStringSplited[1].strip()]}00"
+        
+        super().writeDb(f"UPDATE reveil SET active = 0 WHERE time ='{alarmTimer}'")
         super().resetAction()
         
     def trigger(self, pText):
-        return (re.search("arrêt", pText) or re.search("arrête", pText) or re.search("stop", pText)) and re.search("minuteur", pText)
+        return (re.search("arrêt", pText) or re.search("arrête", pText) or re.search("stop", pText)) and re.search("réveil", pText)
     
     def isSpecific(self):
         return True
     
-    def convertToMin(self,string):
-        vStringSplited = [""]
-        if(string.__contains__("minutes")):
-            vStringSplited = string.split("minutes")
-        elif(string.__contains__("minute")):
-            vStringSplited = string.split("minute")
-        else:
-            return 0
-        
-        return convertStringToNum[vStringSplited[0].strip()]*60

@@ -73,51 +73,61 @@ convertStringToNum ={
     "cinquante-neuf" : 59,
     "soixante" : 60,
 }
-class CommandMaker(CommandMaker):
+
+class Command(CommandMaker):
+    
     def command(self):
         super().sayInstruction("Bien sûr, à quelle heure ?")
+
     def specificity(self, param):
-        super().sayInstruction("Réveil programmé à " + param)
         self.setUpAlarm(param)
         super().resetAction()
+
     def trigger(self, pText):
-        return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("réveil", pText)
+        return ((re.search("fais",pText)) or (re.search("fait",pText)) or (re.search("créer",pText))or (re.search("créé",pText))) and re.search("réveil", pText)
+    
     def setUpAlarm(self, timeInString):
         if(not timeInString.__contains__("heures")):
             return
+        
         vStringSplited = timeInString.split("heures")
-        alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}:{convertStringToNum[vStringSplited[1].strip()]}:00"
+        alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}{convertStringToNum[vStringSplited[1].strip()]}00"
+
+        super().writeDb(f"INSERT OR IGNORE INTO reveil VALUES ({alarmTimer},{0})")
+
+        active = super().readDb(f"SELECT active FROM reveil WHERE time ='{alarmTimer}'")
+        if active == 1:
+            super().sayInstruction("Un reveil est déjà en cours")
+            return
+        super().sayInstruction("Réveil programmé à " + timeInString)
+        super().writeDb(f"UPDATE reveil SET active = 1 WHERE time ='{alarmTimer}'")
+
         alarmList.append(alarmTimer)
-        print(alarmTimer)
-        self.alarm()
-    def alarm(self):
-        thread1 = self.thread("timeThread", 1000) 
+        
+        self.alarm(alarmTimer)
+
+    def alarm(self,index):
+        thread1 = threading.Thread(target=self.alarmThread,args=(index,))
         thread1.start()
-    def removeAlarm(self, pText):
-        print(pText)
-        vStringSplited = pText.split("heures")
-        print(vStringSplited[1])
-        alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]}:{convertStringToNum[vStringSplited[1].split()[0]]}:00"
-        alarmList.remove(alarmTimer)
-    class thread(threading.Thread):
-        def __init__(self, thread_name, thread_ID):
-            threading.Thread.__init__(self)
-            self.thread_name = thread_name
-            self.thread_ID = thread_ID
-    # helper function to execute the threads
-        def run(self):
-            while True :
-                time.sleep(1)
-                currentTime = datetime.datetime.now().strftime("%H:%M:%S")
-                for f in alarmList :
-                    if f == currentTime :
-                        if alarmList[0] == f:
-                            super().sayInstruction("Bonjour, voici vos rappels")
-                            time.sleep(3)
-                            for f in Command().getRappelList():
-                                super().sayInstruction(f)
-                        else :
-                            super().sayInstruction("AAAAAAA")
+
+    def alarmThread(self,index):
+        while True :
+            time.sleep(1)
+            currentTime = datetime.datetime.now().strftime("%H%M%S")
+            if index == currentTime :
+                if alarmList[0] == index:
+                    super().sayInstruction("Bonjour, voici vos rappels")
+                    time.sleep(3)
+                    for f in Command().getRappelList():
+                        super().sayInstruction(f)
+                else :
+                    super().sayInstruction("AAAAAAA")
+
+            active = super().readDb(f"SELECT active FROM reveil WHERE time = '{index}'")
+            if(active == 0 or len(alarmList) == 0):
+                super().writeDb(f"UPDATE reveil SET active = 0 WHERE time ='{index}'")
+                alarmList.remove(index)
+                return
             
 
     def isSpecific(self):
