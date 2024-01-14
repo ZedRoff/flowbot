@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, Stat
 import axios from 'axios';
 import config from "../config.json"
 import { socket } from './socket';
+import RNPickerSelect from 'react-native-picker-select';
+
 
 const App = () => {
   const [name, setName] = useState('');
@@ -113,7 +115,7 @@ const App = () => {
         axios({
           method: "post",
           url: `http://${config.URL}:5000/api/emitMessage`,
-          data: {message: {color1, color2} }
+          data: {message: {color1, color2}, command: "background"}
         })
         alert("Fond d'écran changé")
 
@@ -121,6 +123,66 @@ const App = () => {
       else alert("Erreur lors du changement de fond d'écran")
     })
   }
+  const [selectedValueTopLeft, setSelectedValueTopLeft] = useState(null);
+  const [selectedValueTopRight, setSelectedValueTopRight] = useState(null);
+  const [selectedValueBottomLeft, setSelectedValueBottomLeft] = useState(null);
+  const [selectedValueBottomRight, setSelectedValueBottomRight] = useState(null);
+
+  const placeholder = {
+    label: 'Sélectionnez une option',
+    value: null,
+  };
+  const options = [
+    { label: 'chronometre', value: 'chronometre' },
+    { label: 'minuteur', value: 'minuteur' },
+    { label: 'fiches', value: 'fiches' },
+    { label: 'rappels', value: 'rappels' },
+  ];
+
+  const handleChangePositions = () => {
+ // check if at least one value is not null
+ const test = [selectedValueTopLeft, selectedValueTopRight, selectedValueBottomLeft, selectedValueBottomRight].some((el) => el !== null)
+  if(!test) return alert("Veuillez sélectionner au moins une valeur")
+
+    if (
+      (selectedValueTopLeft && selectedValueTopLeft === selectedValueTopRight) ||
+      (selectedValueTopLeft && selectedValueTopLeft === selectedValueBottomLeft) ||
+      (selectedValueTopLeft && selectedValueTopLeft === selectedValueBottomRight) ||
+      (selectedValueTopRight && selectedValueTopRight === selectedValueBottomLeft) ||
+      (selectedValueTopRight && selectedValueTopRight === selectedValueBottomRight) ||
+      (selectedValueBottomLeft && selectedValueBottomLeft === selectedValueBottomRight)
+    ) {
+      return alert("Les valeurs sélectionnées doivent être différentes");
+    }
+
+    axios({
+      method: "post",
+      url: `http://${config.URL}:5000/api/changePositions`,
+      data: {
+        topLeft: selectedValueBottomRight,
+        topRight: selectedValueTopRight,
+        bottomLeft: selectedValueBottomLeft,
+        bottomRight: selectedValueTopLeft,
+      },
+    })
+      .then((response) => {
+        if (response.data.result === "success") {
+          axios({
+            method: "post",
+            url: `http://${config.URL}:5000/api/emitMessage`,
+            data: {
+              message: 
+              {selectedValueTopLeft, selectedValueTopRight, selectedValueBottomLeft, selectedValueBottomRight}, command: "positions" }
+          })
+          alert("Positions changées");
+        } else {
+          alert("Erreur lors du changement de positions");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,6 +197,45 @@ const App = () => {
           <TextInput placeholder="Exemple : #00FFFF" style={styles.input} onChangeText={(text) => setColor2(text)} />
           <Button title="Changer" onPress={handleChangeBackground} />
         </View>
+
+    <View style={styles.positionsContainer}>
+      <View style={{display: "flex", gap: "15px", alignItems: "center", justifyContent: "center"}}> 
+       <Text style={styles.title}>Haut-Gauche</Text>
+        <RNPickerSelect
+        onValueChange={(value) => setSelectedValueTopLeft(value)}
+        items={options}
+        placeholder={placeholder}
+        value={selectedValueTopLeft}
+      /></View>
+      <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
+       <Text style={styles.title}>Bas-Gauche</Text>
+        <RNPickerSelect
+        onValueChange={(value) => setSelectedValueBottomLeft(value)}
+        items={options}
+        placeholder={placeholder}
+        value={selectedValueBottomLeft}
+      /></View>
+      <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
+       <Text style={styles.title}>Haut-Droite</Text>
+        <RNPickerSelect
+        onValueChange={(value) => setSelectedValueTopRight(value)}
+        items={options}
+        placeholder={placeholder}
+        value={selectedValueTopRight}
+      /></View>
+      <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
+       <Text style={styles.title}>Bas-Droite</Text>
+        <RNPickerSelect
+        onValueChange={(value) => setSelectedValueBottomRight(value)}
+        items={options}
+        placeholder={placeholder}
+        value={selectedValueBottomRight}
+      /></View>
+      <Button title="Changer" onPress={handleChangePositions} />
+
+      </View>
+
+
         <View style={styles.commandMaker}>
           <TextInput
             style={styles.input}

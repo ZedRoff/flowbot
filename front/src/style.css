@@ -10,4 +10,35 @@ body {
 }
 .app_container{
     height: 100vh;
+    display:flex;
+    width: 100vw;
+    
+}
+.app_left {
+    background:red;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+}
+.app_right {
+    background:purple;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+}
+.rappels {
+    background:blue;
+    flex:1;
+}
+.chronometre {
+    background:green;
+    flex:1;
+}
+.fiches {
+    background:yellow;
+    flex:1;
+}
+.minuteur {
+    background:orange;
+    flex:1;
 }

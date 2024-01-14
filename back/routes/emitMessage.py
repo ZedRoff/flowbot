@@ -9,6 +9,7 @@ def emit_message():
     data = request.get_json()
     print(data)
     message = data["message"]
+    command = data["command"]
     
-    emit('message', {'message': message}, broadcast=True, namespace='/')
+    emit('message', {'message': message, 'command': command}, broadcast=True, namespace='/')
     return jsonify({'result': 'success'})

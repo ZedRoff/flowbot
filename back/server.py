@@ -86,13 +86,33 @@ con.execute('''
             )
             ''')
 con.commit()
+
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS positions(
+                liste TEXT
+            )
+            ''')
+
+res_test = cur.execute("SELECT * FROM positions").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO positions VALUES (?)", ("",))
+    con.commit()
+res_test = cur.execute("SELECT * FROM commandes").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO commandes VALUES (?, ?, ?)", ("", "", ""))
+    con.commit()
+res_test = cur.execute("SELECT * FROM minuteur").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO minuteur VALUES (?, ?)", ("", 0))
+    con.commit()
+res_test = cur.execute("SELECT * FROM reveil").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO reveil VALUES (?, ?)", ("", 0))
+    con.commit()
 res_test = cur.execute("SELECT * FROM background").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO background VALUES (?, ?)", ("#6d0069", "#000b60"))
     con.commit()
-
-
-
 res_test = cur.execute("SELECT action FROM global").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO global VALUES (?)", ("",))
