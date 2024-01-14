@@ -61,7 +61,7 @@ class Command(CommandMaker):
         while True :
                 time.sleep(1)
                 minuteurList[i] -=1
-                print(minuteurList[i])
+                print(super().time_convert(minuteurList[i]))
                 if minuteurList[i] == 0 :
                     super().sayInstruction("AAAAAAA")
                     super().writeDb(f"UPDATE minuteur SET active = 0 WHERE min ='{i}'")

@@ -40,7 +40,7 @@ class CommandMaker(ABC):
         sec = sec % 60
         hours = mins // 60
         mins = mins % 60
-        print("{0}:{1}:{2}".format(int(hours),int(mins),int(sec)))
+        return "{0}:{1}:{2}".format(int(hours),int(mins),int(sec))
     def getRandomFromArray(array):
         return array[random.randint(0, len(array) - 1)]
     def convertStringToInt(self, pText):
