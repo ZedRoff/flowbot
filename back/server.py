@@ -11,6 +11,10 @@ config = dotenv_values(".env")
 
 con = sqlite3.connect("./db/database.db")
 cur = con.cursor()
+
+cur.execute("DROP TABLE minuteur")
+con.commit()
+
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
             uuid TEXT PRIMARY KEY,
@@ -36,7 +40,8 @@ con.commit()
 
 cur.execute('''
             CREATE TABLE IF NOT EXISTS minuteur(
-            active INTEGER PRIMARY KEY
+                min TEXT PRIMARY KEY,
+                active INTEGER
             )
             ''')
 
@@ -74,10 +79,6 @@ res_test = cur.execute("SELECT active FROM chronometre").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO chronometre VALUES (?)", (0,))
     con.commit()
-res_test = cur.execute("SELECT active FROM minuteur").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO minuteur VALUES (?)", (0,))
-    con.commit()
 res_test = cur.execute("SELECT * FROM devoirs").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO devoirs VALUES (?, ?, ?, ?, ?, ?, ?)", ("", "", "", "", "", "", ""))
@@ -90,8 +91,6 @@ if res_test is None:
 
 
 cur.execute("UPDATE chronometre SET active = ?", (0,))
-con.commit()
-cur.execute("UPDATE minuteur SET active = ?", (0,))
 con.commit()
 cur.execute("UPDATE global SET action = ?", ("",))
 con.commit()
