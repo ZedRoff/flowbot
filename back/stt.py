@@ -2,7 +2,8 @@ import pyaudio
 from vosk import Model, KaldiRecognizer
 from utils.ActionsFromText import execute_action
 
-model_path = r"C:\Users\amang\Desktop\flowbot\flowbot\back\vosk-model-small-fr-0.22"
+#model_path = r"C:\Users\amang\Desktop\flowbot\flowbot\back\vosk-model-small-fr-0.22"
+model_path = r"./vosk-model-small-fr-0.22"
 sample_rate = 16000
 chunk_size = 1024
 

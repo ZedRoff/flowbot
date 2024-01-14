@@ -6,7 +6,7 @@ import time
 import threading 
 from utils.CommandMaker import CommandMaker
 
-alarmList = [""]
+minuteurList = []
 
 convertStringToNum ={
     "zéro" : 0,
@@ -87,38 +87,37 @@ class Command(CommandMaker):
         return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("minuteur", pText)
     
     def setUpAlarm(self,timeInString):
-        if(not timeInString.__contains__("minutes") or not timeInString.__contains__("minute")):
+        vStringSplited = [""]
+        if(timeInString.__contains__("minutes")):
+            vStringSplited = timeInString.split("minutes")
+        elif(timeInString.__contains__("minute")):
+            vStringSplited = timeInString.split("minute")
+        else:
             return
-        vStringSplited = timeInString.split("minutes")
-        alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}:00"
-        alarmList.append(alarmTimer)
-        print(alarmTimer)
+        
+        alarmTimerMinutes = convertStringToNum[vStringSplited[0].strip()]*60
+        minuteurList.append(alarmTimerMinutes)
         self.alarm()
 
     def alarm(self):
-        thread1 = self.thread("timeThread", 1000) 
+        thread1 = threading.Thread(target=self.minuteurThread)
         thread1.start()
 
     def removeAlarm(self,pText):
         vStringSplited = pText.split("minute")
         alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]+datetime.datetime.now().time().minute}:{datetime.datetime.now().time().second}"
         print(alarmTimer)
-        alarmList.remove(alarmTimer)
+        minuteurList.remove(alarmTimer)
 
-    class thread(threading.Thread): 
-        def __init__(self, thread_name, thread_ID): 
-            threading.Thread.__init__(self) 
-            self.thread_name = thread_name 
-            self.thread_ID = thread_ID 
- 
-        # helper function to execute the threads
-        def run(self): 
-            while True :
+
+    def minuteurThread(self):
+        while True :
                 time.sleep(1)
-                currentTime = datetime.datetime.now().strftime("%M:%S")
-                print(currentTime)
-                for f in alarmList :
-                    if f == currentTime :
+                for i in range(len(minuteurList)) :
+                    minuteurList[i] -=1
+                    if minuteurList[i] == 0 :
                         super().sayInstruction("AAAAAAA")
+                        minuteurList.remove(i)
+            
     def isSpecific(self):
         return True
