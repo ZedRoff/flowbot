@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from utils.ActionsFromText import executeAction
+from utils.ActionsFromText import execute_action
 
 bp = Blueprint('use_command', __name__)
 
@@ -11,5 +11,5 @@ def use_command():
     if not message:
         return jsonify({"result": "error"})
     
-    executeAction(message)
+    execute_action(message)
     return jsonify({"result": "success"})

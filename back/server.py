@@ -17,13 +17,7 @@ cur.execute('''
             name TEXT,
             reply TEXT     
 )''')
-cur.execute('''
-            CREATE TABLE IF NOT EXISTS chronometre(
-            uuid TEXT PRIMARY KEY,
-            name TEXT,
-            reply TEXT     
-)''')
-con.commit()
+
 cur.execute('''
             CREATE TABLE IF NOT EXISTS global(
             action TEXT PRIMARY KEY
@@ -40,16 +34,47 @@ cur.execute('''
 
 con.commit()
 
+con.execute('''
+            CREATE TABLE IF NOT EXISTS devoirs(
+                lundi TEXT,
+                mardi TEXT,
+                mercredi TEXT,
+                jeudi TEXT,
+                vendredi TEXT,
+                samedi TEXT,
+                dimanche TEXT
+            )
+            ''')
+con.commit()
+
+
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS rappels(
+                liste TEXT
+            )
+            ''')
+con.commit()
+
+
+
 
 res_test = cur.execute("SELECT action FROM global").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO global VALUES (?)", ("",))
     con.commit()
-
 res_test = cur.execute("SELECT active FROM chronometre").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO chronometre VALUES (?)", (0,))
     con.commit()
+res_test = cur.execute("SELECT * FROM devoirs").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO devoirs VALUES (?, ?, ?, ?, ?, ?, ?)", ("", "", "", "", "", "", ""))
+    con.commit()
+res_test = cur.execute("SELECT * FROM rappels").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO rappels VALUES (?)", ("",))
+    con.commit()
+
 
 
 cur.execute("UPDATE chronometre SET active = ?", (0,))
@@ -57,7 +82,7 @@ con.commit()
 cur.execute("UPDATE global SET action = ?", ("",))
 con.commit()
 
-
+cur.close()
 con.close()
 
 app = Flask(__name__)

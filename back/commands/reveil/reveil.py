@@ -1,14 +1,14 @@
-from utils.TextToSpeech import sayInstruction
-from commands.rappel.rappel import getListRappel
+
+from commands.rappel.creerRappel import Command
 import re
 from tkinter import *
 import datetime
 import time
 import threading 
-from utils.ResetAction import resetAction
+from utils.CommandMaker import CommandMaker
+
 
 alarmList = [""]
-in_specificity = False
 convertStringToNum ={
     "zéro" : 0,
     "un" : 1,
@@ -73,61 +73,52 @@ convertStringToNum ={
     "cinquante-neuf" : 59,
     "soixante" : 60,
 }
+class CommandMaker(CommandMaker):
+    def command(self):
+        super().sayInstruction("Bien sûr, à quelle heure ?")
+    def specificity(self, param):
+        super().sayInstruction("Réveil programmé à " + param)
+        self.setUpAlarm(param)
+        super().resetAction()
+    def trigger(self, pText):
+        return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("réveil", pText)
+    def setUpAlarm(self, timeInString):
+        if(not timeInString.__contains__("heures")):
+            return
+        vStringSplited = timeInString.split("heures")
+        alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}:{convertStringToNum[vStringSplited[1].strip()]}:00"
+        alarmList.append(alarmTimer)
+        print(alarmTimer)
+        self.alarm()
+    def alarm(self):
+        thread1 = self.thread("timeThread", 1000) 
+        thread1.start()
+    def removeAlarm(self, pText):
+        print(pText)
+        vStringSplited = pText.split("heures")
+        print(vStringSplited[1])
+        alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]}:{convertStringToNum[vStringSplited[1].split()[0]]}:00"
+        alarmList.remove(alarmTimer)
+    class thread(threading.Thread):
+        def __init__(self, thread_name, thread_ID):
+            threading.Thread.__init__(self)
+            self.thread_name = thread_name
+            self.thread_ID = thread_ID
+    # helper function to execute the threads
+        def run(self):
+            while True :
+                time.sleep(1)
+                currentTime = datetime.datetime.now().strftime("%H:%M:%S")
+                for f in alarmList :
+                    if f == currentTime :
+                        if alarmList[0] == f:
+                            super().sayInstruction("Bonjour, voici vos rappels")
+                            time.sleep(3)
+                            for f in Command().getRappelList():
+                                super().sayInstruction(f)
+                        else :
+                            super().sayInstruction("AAAAAAA")
+            
 
-def command():
-    sayInstruction("Bien sûr, à quelle heure ?")
-
-def specificity(param):
-    global in_specificity
-    sayInstruction("Réveil programmé à " + param)
-    setUpAlarm(param)
-    in_specificity = False
-    resetAction()
-
-def getInSpecificity():
-    return in_specificity
-
-def trigger(pText):
-    return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("réveil", pText)
-    
-def setUpAlarm(timeInString):
-    if(not timeInString.__contains__("heures")):
-        return
-    vStringSplited = timeInString.split("heures")
-    alarmTimer = f"{convertStringToNum[vStringSplited[0].strip()]}:{convertStringToNum[vStringSplited[1].strip()]}:00"
-    alarmList.append(alarmTimer)
-    print(alarmTimer)
-    alarm()
-
-def alarm():
-    thread1 = thread("timeThread", 1000) 
-    thread1.start()
-
-def removeAlarm(pText):
-    print(pText)
-    vStringSplited = pText.split("heures")
-    print(vStringSplited[1])
-    alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]}:{convertStringToNum[vStringSplited[1].split()[0]]}:00"
-    alarmList.remove(alarmTimer)
-
-
-class thread(threading.Thread): 
-    def __init__(self, thread_name, thread_ID): 
-        threading.Thread.__init__(self) 
-        self.thread_name = thread_name 
-        self.thread_ID = thread_ID 
- 
-        # helper function to execute the threads
-    def run(self): 
-        while True :
-            time.sleep(1)
-            currentTime = datetime.datetime.now().strftime("%H:%M:%S")
-            for f in alarmList :
-                if f == currentTime :
-                    if alarmList[0] == f:
-                        sayInstruction("Bonjour, voici vos rappels")
-                        for f in getListRappel():
-                            sayInstruction(f)
-                    else :
-                        sayInstruction("AAAAAAA")
- 
+    def isSpecific(self):
+        return True

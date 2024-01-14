@@ -1,21 +1,15 @@
-from utils.TextToSpeech import sayInstruction
-from utils.ResetAction import resetAction
+
+
 import re
-in_specificity = False
+from utils.CommandMaker import CommandMaker
 
-def command():
-    sayInstruction("Bien sûr, a quel nom ?")
-
-def specificity(param):
-    global in_specificity
-    sayInstruction("Fiche créée avec le nom " + param)
-    resetAction()
-    in_specificity = False
-
-    
-def getInSpecificity():
-    return in_specificity
-
-def trigger(pText):
-    return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("fiche", pText)
-    
+class Command(CommandMaker):
+    def command(self):
+        super().sayInstruction("Bien sûr, a quel nom ?")
+    def specificity(self, param):
+        super().sayInstruction("Fiche créée avec le nom " + param)
+        super().resetAction()
+    def trigger(self, pText):
+        return ((re.search("fais",pText)) or (re.search("fait",pText) or (re.search("créer",pText))or (re.search("créé",pText)))) and re.search("fiche", pText)
+    def isSpecific(self):
+        return True

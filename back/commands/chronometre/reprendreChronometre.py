@@ -1,22 +1,14 @@
-from utils.TextToSpeech import sayInstruction
+
 import re
-import sqlite3
 
+from utils.CommandMaker import CommandMaker
 
-db = sqlite3.connect("./db/database.db", check_same_thread=False)
+class Command(CommandMaker):
 
-
-
-
-def command():
-    sayInstruction("Reprise du chronomètre")
-    cur = db.cursor()
-    cur.execute("UPDATE chronometre SET active = ?", (1,))
-    db.commit()
-    cur.close()
-
-
-
-def trigger(pText):
-    return (re.search("reprendre", pText) or re.search("reprend", pText) or re.search("continue", pText)) and re.search("chronomètre", pText)
-    
+    def command(self):
+        super().sayInstruction("Reprise du chronomètre")
+        super().writeDb("UPDATE chronometre SET active = 1")
+    def trigger(self, pText):
+        return (re.search("reprendre", pText) or re.search("reprend", pText) or re.search("continue", pText)) and re.search("chronomètre", pText)
+    def isSpecific(self):
+        return False

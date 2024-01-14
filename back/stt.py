@@ -1,6 +1,6 @@
 import pyaudio
 from vosk import Model, KaldiRecognizer
-from utils.ActionsFromText import executeAction
+from utils.ActionsFromText import execute_action
 
 model_path = r"C:\Users\amang\Desktop\flowbot\flowbot\back\vosk-model-small-fr-0.22"
 sample_rate = 16000
@@ -19,7 +19,7 @@ try:
         if recognizer.AcceptWaveform(data):
             result = recognizer.Result()
             query = result[14:-3].lower().strip()
-            executeAction(query)
+            execute_action(query)
 except KeyboardInterrupt:
     print("\nKeyboardInterrupt: Arrêt du STT")
 finally:
