@@ -79,6 +79,17 @@ cur.execute('''
             ''')
 con.commit()
 
+con.execute('''
+            CREATE TABLE IF NOT EXISTS background(
+                color1 TEXT,
+                color2 TEXT
+            )
+            ''')
+con.commit()
+res_test = cur.execute("SELECT * FROM background").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO background VALUES (?, ?)", ("#6d0069", "#000b60"))
+    con.commit()
 
 
 

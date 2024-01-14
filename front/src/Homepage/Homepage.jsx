@@ -1,54 +1,55 @@
-import { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFolder, faIcons, faMusic, faTools, faWifi } from '@fortawesome/free-solid-svg-icons';
-import AppContainer from './AppContainer';
-import axios from 'axios';
-import { socket } from '../socket';
-function App() {
-    const [isOn, setIsOn] = useState(false);
-    const [isListening, setIsListening] = useState(false);
+import React, { useEffect, useState } from "react"
+import {socket} from "../socket.js"
+import axios from "axios"
+import config from "../../../config.json"
+const Homepage = () => { 
+  let [color1, setColor1] = useState("")
+  let [color2, setColor2] = useState("")
 
-    
-    useEffect(() => {
-      socket.on("connect", () => {
-        console.log("connected")
-      })
-      socket.on("message", (data) => {
-        console.log(data)
-        if(data.message === "listening") setIsListening(true)
-        else if(data.message === "notlistening") setIsListening(false)
-      })
-      
-    }, [])
+  useEffect(() => {
+    axios({
+      method: "get",
+      url: `http://${config.URL}:5000/api/getBackground`
+    }).then((response) => {
+  
+      setColor1(response.data.result[0][0])
+      setColor2(response.data.result[0][1])
+    }).catch((error) => {
+      console.log(error)
+    }
+    )
 
- 
-
-    
-
-    return (
-        <div className="App">
-      <div className="princ_container">
-          <div className="title_div">
-            <h1 className="title">Flowbot</h1>
-          </div>
-          <div className="smiley_div">
-            <div className="row_1">
-              <div className="circle"></div>
-              <div className="circle"></div>
-            </div>
-            <div className="row_1">
-              <div className="rectangle"></div>
-              </div>
-          </div>
-          <div className="listening_div">
-            <div className="listening_circle" style={{background: isListening ? "green" : "red", animation: isListening ? "1s float infinite ease-in-out" : ""}}></div>
-          </div>
+  }, [])
 
 
-</div>
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("connected")
+    }
+    )
+    socket.on("disconnect", () => {
+      console.log("disconnected")
+    }
+    )
 
-        </div>
-    );
+    socket.on("message", (data) => {
+      setColor1(data.message.color1)
+      setColor2(data.message.color2)
+    })
+  }, [])
+
+
+
+
+
+
+
+
+  return (
+    <div className="app_container" style={{background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`}}>
+      <h1>Homepage</h1>
+    </div>
+  )
 }
 
-export default App;
+export default Homepage
