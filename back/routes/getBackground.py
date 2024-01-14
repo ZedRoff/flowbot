@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 import sqlite3
-import requests
 
 db = sqlite3.connect("./db/database.db", check_same_thread=False)
 

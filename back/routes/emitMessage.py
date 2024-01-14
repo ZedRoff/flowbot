@@ -7,7 +7,6 @@ bp = Blueprint('emit_message', __name__)
 def emit_message():
     
     data = request.get_json()
-    print(data)
     message = data["message"]
     command = data["command"]
     
