@@ -72,13 +72,19 @@ convertStringToNum ={
     "cinquante-neuf" : 59,
     "soixante" : 60,
 }
+
 class Command(CommandMaker):
 
     def command(self):
         super().sayInstruction("Bien sûr, dans combien de temps ?")
 
     def specificity(self,param):
+        active = super().readDb("SELECT active FROM minuteur")
+        if active == 1 :
+            super().sayInstruction("Un minuteur est déjà en cours")
+            return
         super().sayInstruction("Minuteur programmé pour dans " + param)
+        super().writeDb("UPDATE minuteur SET active = 1")
         self.setUpAlarm(param)
         super().resetAction()
 
@@ -103,16 +109,14 @@ class Command(CommandMaker):
         thread1 = threading.Thread(target=self.minuteurThread)
         thread1.start()
 
-    def removeAlarm(self,pText):
-        vStringSplited = pText.split("minute")
-        alarmTimer = f"{convertStringToNum[vStringSplited[0].split()[-1]]+datetime.datetime.now().time().minute}:{datetime.datetime.now().time().second}"
-        print(alarmTimer)
-        minuteurList.remove(alarmTimer)
-
 
     def minuteurThread(self):
         while True :
                 time.sleep(1)
+                active = super().readDb("SELECT active FROM minuteur")
+                if(active == 0 or len(minuteurList) == 0):
+                    super().writeDb("UPDATE minuteur SET active = 0")
+                    return
                 for i in range(len(minuteurList)) :
                     minuteurList[i] -=1
                     if minuteurList[i] == 0 :

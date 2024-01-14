@@ -34,6 +34,14 @@ cur.execute('''
 
 con.commit()
 
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS minuteur(
+            active INTEGER PRIMARY KEY
+            )
+            ''')
+
+con.commit()
+
 con.execute('''
             CREATE TABLE IF NOT EXISTS devoirs(
                 lundi TEXT,
@@ -66,6 +74,10 @@ res_test = cur.execute("SELECT active FROM chronometre").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO chronometre VALUES (?)", (0,))
     con.commit()
+res_test = cur.execute("SELECT active FROM minuteur").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO minuteur VALUES (?)", (0,))
+    con.commit()
 res_test = cur.execute("SELECT * FROM devoirs").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO devoirs VALUES (?, ?, ?, ?, ?, ?, ?)", ("", "", "", "", "", "", ""))
@@ -78,6 +90,8 @@ if res_test is None:
 
 
 cur.execute("UPDATE chronometre SET active = ?", (0,))
+con.commit()
+cur.execute("UPDATE minuteur SET active = ?", (0,))
 con.commit()
 cur.execute("UPDATE global SET action = ?", ("",))
 con.commit()
