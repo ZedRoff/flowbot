@@ -114,19 +114,8 @@ useEffect(() => {
   
           temp.push(corr[arr[i]])
         
-     
-      
-        
       }
-      // TODO : fix the confusion between the 2nd and 3rd elements of the array
-
-      let tmp = null;
-      tmp = temp[1]
-      temp[1] = temp[2]
-      temp[2] = tmp
-
-      setPositions(temp) 
-     
+      setPositions(temp)
     }
   
   })
@@ -149,7 +138,7 @@ useEffect(() => {
       
       }
      
-      setPositions((positions) => [corr[response.data.result[i]], ...positions])
+      setPositions((positions) => [ ...positions, corr[response.data.result[i]]])
    
     }
 

@@ -143,50 +143,140 @@ const App = () => {
     { label: 'rappels', value: 'rappels' },
   ];
 
-  const handleChangePositions = () => {
- // check if at least one value is not null
- const test = [selectedValueTopLeft, selectedValueTopRight, selectedValueBottomLeft, selectedValueBottomRight].some((el) => el !== null)
-  if(!test) return alert("Veuillez sélectionner au moins une valeur")
 
-    if (
-      (selectedValueTopLeft && selectedValueTopLeft === selectedValueTopRight) ||
-      (selectedValueTopLeft && selectedValueTopLeft === selectedValueBottomLeft) ||
-      (selectedValueTopLeft && selectedValueTopLeft === selectedValueBottomRight) ||
-      (selectedValueTopRight && selectedValueTopRight === selectedValueBottomLeft) ||
-      (selectedValueTopRight && selectedValueTopRight === selectedValueBottomRight) ||
-      (selectedValueBottomLeft && selectedValueBottomLeft === selectedValueBottomRight)
-    ) {
-      return alert("Les valeurs sélectionnées doivent être différentes");
-    }
 
+  useEffect(() => {
     axios({
-      method: "post",
-      url: `http://${config.URL}:5000/api/changePositions`,
-      data: {
-        topLeft: selectedValueBottomRight,
-        topRight: selectedValueTopRight,
-        bottomLeft: selectedValueBottomLeft,
-        bottomRight: selectedValueTopLeft,
-      },
+      method: "get",
+      url: `http://${config.URL}:5000/api/getPositions`,
+    }).then((response) => {
+      setSelectedValueTopLeft(response.data.result[0])
+      setSelectedValueBottomLeft(response.data.result[1])
+      setSelectedValueTopRight(response.data.result[2])
+      setSelectedValueBottomRight(response.data.result[3])
+        
     })
-      .then((response) => {
-        if (response.data.result === "success") {
-          axios({
-            method: "post",
-            url: `http://${config.URL}:5000/api/emitMessage`,
-            data: {
-              message: 
-              {selectedValueTopLeft, selectedValueTopRight, selectedValueBottomLeft, selectedValueBottomRight}, command: "positions" }
-          })
-          alert("Positions changées");
-        } else {
-          alert("Erreur lors du changement de positions");
-        }
+  })
+
+  
+const handleSetSelectedValueTopLeft = (value) => {
+  
+  setSelectedValueTopLeft(value)
+  axios({
+    url: `http://${config.URL}:5000/api/changePositions`,
+    method: "post",
+    data: {
+      topLeft: value,
+      bottomLeft: selectedValueBottomLeft,
+      topRight: selectedValueTopRight,
+      bottomRight: selectedValueBottomRight,
+    },
+
+  }).then((response) =>  {
+    if(response.data.result === "success") {
+      axios({
+        method: "post",
+        url: `http://${config.URL}:5000/api/emitMessage`,
+        data: {
+          message: 
+          {selectedValueTopLeft, selectedValueBottomLeft, selectedValueTopRight, selectedValueBottomRight}, command: "positions" }
       })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+      
+    } else {
+      alert("Erreur lors du changement de positions");
+    }
+  })
+
+}
+const handleSetSelectedValueBottomLeft = (value) => {
+  
+  setSelectedValueBottomLeft(value)
+  axios({
+    url: `http://${config.URL}:5000/api/changePositions`,
+    method: "post",
+    data: {
+      topLeft: selectedValueTopLeft,
+      bottomLeft: value,
+      topRight: selectedValueTopRight,
+      bottomRight: selectedValueBottomRight,
+    },
+
+  }).then((response) =>  {
+    if(response.data.result === "success") {
+      axios({
+        method: "post",
+        url: `http://${config.URL}:5000/api/emitMessage`,
+        data: {
+          message: 
+          {selectedValueTopLeft, selectedValueBottomLeft, selectedValueTopRight, selectedValueBottomRight}, command: "positions" }
+      })
+   
+    } else {
+      alert("Erreur lors du changement de positions");
+    }
+  
+  })
+}
+const handleSetSelectedValueTopRight = (value) => {
+ 
+  setSelectedValueTopRight(value)
+  axios({
+    url: `http://${config.URL}:5000/api/changePositions`,
+    method: "post",
+    data: {
+      topLeft: selectedValueTopLeft,
+      bottomLeft: selectedValueBottomLeft,
+      topRight: value,
+      bottomRight: selectedValueBottomRight,
+    },
+
+  }).then((response) =>  {
+    if(response.data.result === "success") {
+      axios({
+        method: "post",
+        url: `http://${config.URL}:5000/api/emitMessage`,
+        data: {
+          message: 
+          {selectedValueTopLeft, selectedValueBottomLeft, selectedValueTopRight, selectedValueBottomRight}, command: "positions" }
+      })
+ 
+    } else {
+      alert("Erreur lors du changement de positions");
+    }
+  
+  
+
+  })
+}
+const handleSetSelectedValueBottomRight = (value) => {
+ 
+  setSelectedValueBottomRight(value)
+  axios({
+    url: `http://${config.URL}:5000/api/changePositions`,
+    method: "post",
+    data: {
+      topLeft: selectedValueTopLeft,
+      bottomLeft: selectedValueBottomLeft,
+      topRight: selectedValueTopRight,
+      bottomRight: value,
+    },
+
+  }).then((response) =>  {
+    if(response.data.result === "success") {
+      axios({
+        method: "post",
+        url: `http://${config.URL}:5000/api/emitMessage`,
+        data: {
+          message: 
+          {selectedValueTopLeft, selectedValueBottomLeft, selectedValueTopRight, selectedValueBottomRight}, command: "positions" }
+      })
+   
+    } else {
+      alert("Erreur lors du changement de positions");
+    }
+  
+  })
+}
 
   return (
     <SafeAreaView style={styles.container}>
@@ -206,7 +296,7 @@ const App = () => {
       <View style={{display: "flex", gap: "15px", alignItems: "center", justifyContent: "center"}}> 
        <Text style={styles.title}>Haut-Gauche</Text>
         <RNPickerSelect
-        onValueChange={(value) => setSelectedValueTopLeft(value)}
+        onValueChange={(value) => handleSetSelectedValueTopLeft(value)}
         items={options}
         placeholder={placeholder}
         value={selectedValueTopLeft}
@@ -214,7 +304,7 @@ const App = () => {
       <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
        <Text style={styles.title}>Bas-Gauche</Text>
         <RNPickerSelect
-        onValueChange={(value) => setSelectedValueBottomLeft(value)}
+        onValueChange={(value) => handleSetSelectedValueBottomLeft(value)}
         items={options}
         placeholder={placeholder}
         value={selectedValueBottomLeft}
@@ -222,7 +312,7 @@ const App = () => {
       <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
        <Text style={styles.title}>Haut-Droite</Text>
         <RNPickerSelect
-        onValueChange={(value) => setSelectedValueTopRight(value)}
+        onValueChange={(value) => handleSetSelectedValueTopRight(value)}
         items={options}
         placeholder={placeholder}
         value={selectedValueTopRight}
@@ -230,13 +320,12 @@ const App = () => {
       <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
        <Text style={styles.title}>Bas-Droite</Text>
         <RNPickerSelect
-        onValueChange={(value) => setSelectedValueBottomRight(value)}
+        onValueChange={(value) => handleSetSelectedValueBottomRight(value)}
         items={options}
         placeholder={placeholder}
         value={selectedValueBottomRight}
       /></View>
-      <Button title="Changer" onPress={handleChangePositions} />
-
+    
       </View>
 
 

@@ -16,7 +16,7 @@ def change_positions():
         bottomLeft = data['bottomLeft']
         bottomRight = data['bottomRight']
       
-        liste = [topLeft, topRight, bottomLeft, bottomRight]
+        liste = [topLeft,bottomLeft, topRight, bottomRight]
         liste = [str(x) for x in liste]
         cur = db.cursor()
         liste = "|".join(liste)

@@ -13,7 +13,7 @@ con = sqlite3.connect("./db/database.db")
 cur = con.cursor()
 
 
-
+# Creating tables if they don't exist
 
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
@@ -89,14 +89,13 @@ cur.execute('''
                 liste TEXT
             )
             ''')
+con.commit()
+
+# Check if tables are empty, if so, insert default values
 
 res_test = cur.execute("SELECT * FROM positions").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO positions VALUES (?)", ("chronometre|rappels|minuteur|fiches",))
-    con.commit()
-res_test = cur.execute("SELECT * FROM commandes").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO commandes VALUES (?, ?, ?)", ("", "", ""))
     con.commit()
 res_test = cur.execute("SELECT * FROM minuteur").fetchone()
 if res_test is None:
@@ -127,12 +126,14 @@ if res_test is None:
     cur.execute("INSERT INTO rappels VALUES (?)", ("",))
     con.commit()
 
-
+# Reset values on each launch
 
 cur.execute("UPDATE chronometre SET active = ?", (0,))
 con.commit()
 cur.execute("UPDATE global SET action = ?", ("",))
 con.commit()
+
+# Close connections properly
 
 cur.close()
 con.close()
