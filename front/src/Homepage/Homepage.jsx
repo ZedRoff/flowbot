@@ -79,7 +79,7 @@ let Blank = () => {
 }
 
 
-let [positions, setPositions] = useState([function(){}, function(){}, function(){}, function(){}])
+let [positions, setPositions] = useState([])
 
 
 useEffect(() => {
@@ -132,8 +132,9 @@ useEffect(() => {
   })
 }, [])
 
-
+let [loaded, setLoaded] = useState(false)
 useEffect(() => {
+
   axios({
     method: "get",
     url: `http://${config.URL}:5000/api/getPositions`,
@@ -147,9 +148,12 @@ useEffect(() => {
         null: Blank
       
       }
+     
       setPositions((positions) => [corr[response.data.result[i]], ...positions])
    
     }
+
+    setLoaded(true)
    
   }).catch((error) => {
     console.log(error)
@@ -166,17 +170,26 @@ useEffect(() => {
 
 
   return (
-    <div className="app_container" style={{background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`}}>
-
-   <div className="app_left">
-  {positions[0]()}
-  {positions[1]()}
+   
+ loaded ? 
+  <div className="app_container" style={{background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`}}>
+    <div className="app_left">
+  
+    {positions[0] == undefined ? <></> : positions[0]()}
+   {positions[1] == undefined ? <></> : positions[1]()}
+   
+ 
    </div>
    <div className="app_right">
-   {positions[2]()}
-   {positions[3]()}
+   {positions[2] == undefined ? <></> : positions[2]()}
+   {positions[3] == undefined ? <></> : positions[3]()}
     </div>
+
     </div>
+
+    : <h1>Chargement ...</h1>
+   
+
   )
 }
 

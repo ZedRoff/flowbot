@@ -79,7 +79,6 @@ const App = () => {
       if (response.data.result === "success") {
         setInputValue("");
       } else {
-        console.log(response.data.result)
         alert("Erreur lors de l'utilisation de la commande")
       }
     }).catch((error) => {
@@ -99,7 +98,9 @@ const App = () => {
       console.log('disconnected');
     });
     socket.on('message', (data) => {
+      if(data.command == "command_usage") {
       setMessages((messages) => [...messages, { message: data.message, isBot: true }]);
+      }
     });
   }, [])
 

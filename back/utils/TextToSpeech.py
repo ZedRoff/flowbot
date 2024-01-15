@@ -23,7 +23,7 @@ def sayInstruction(textToSay):
 
 def saySomeWordInThread(string):
     try:
-        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string, "command": "talk"})
+        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string, "command": "command_usage"})
 
         engine.say(string)
         engine.startLoop(False)

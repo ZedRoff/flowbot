@@ -12,10 +12,7 @@ config = dotenv_values(".env")
 con = sqlite3.connect("./db/database.db")
 cur = con.cursor()
 
-cur.execute("DROP TABLE minuteur")
-con.commit()
-cur.execute("DROP TABLE reveil")
-con.commit()
+
 
 
 cur.execute('''
@@ -95,7 +92,7 @@ cur.execute('''
 
 res_test = cur.execute("SELECT * FROM positions").fetchone()
 if res_test is None:
-    cur.execute("INSERT INTO positions VALUES (?)", ("",))
+    cur.execute("INSERT INTO positions VALUES (?)", ("chronometre|rappels|minuteur|fiches",))
     con.commit()
 res_test = cur.execute("SELECT * FROM commandes").fetchone()
 if res_test is None:
