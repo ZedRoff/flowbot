@@ -14,10 +14,11 @@ const App = () => {
   const [inputValue, setInputValue] = useState('');
   const [color1, setColor1] = useState("")
   const [color2, setColor2] = useState("")
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name === "" || message === "") return alert("Veuillez remplir tous les champs")
-
+    
     axios({
       method: 'post',
       url: `http://${config.URL}:5000/api/addCommand`,
@@ -38,11 +39,12 @@ const App = () => {
   const handleFetch = () => {
     axios({
       method: 'get',
-      url: `http://${config.URL}:5000/api/getCommands`,
+      url: `http://${config.URL}:5000/api/getCommands`
      
     }).then((response) => {
       setCommands(response.data.result)
     }).catch((error) => {
+      console.info(error)
       console.log(error);
     });
   }
@@ -117,6 +119,7 @@ const App = () => {
           url: `http://${config.URL}:5000/api/emitMessage`,
           data: {message: {color1, color2}, command: "background"}
         })
+
         alert("Fond d'écran changé")
 
       }

@@ -12,33 +12,27 @@ body {
     height: 100vh;
     display:flex;
     width: 100vw;
+    padding: 25px;
+    gap: 25px;
     
 }
 .app_left {
-    background:red;
     display:flex;
     flex-direction:column;
     flex:1;
+    gap: 25px;
 }
 .app_right {
-    background:purple;
     display:flex;
     flex-direction:column;
     flex:1;
+    gap: 25px;
 }
-.rappels {
-    background:blue;
-    flex:1;
-}
-.chronometre {
-    background:green;
-    flex:1;
-}
-.fiches {
-    background:yellow;
-    flex:1;
-}
-.minuteur {
-    background:orange;
+.rappels, .chronometre, .fiches, .minuteur {
+    background:#212121;
+    color: white;
+    display:flex;
+    justify-content: center;
+    align-items: center;
     flex:1;
 }
