@@ -16,7 +16,7 @@ class Command(CommandMaker):
                 devoirs = ""
                 for i in range(len(devoirs_temp.split("|"))):
                     devoirs += f"{i+1} : {devoirs_temp.split('|')[i]}"
-                super().sayInstruction("Donnez l'indice du devoir à supprimer, voici les correspondances : {devoirs}")
+                super().sayInstruction(f"Donnez l'indice du devoir à supprimer, voici les correspondances : {devoirs}")
                 step = "devoir"
             else:
                 super().sayInstruction("Ce jour n'est pas valide")
@@ -25,12 +25,15 @@ class Command(CommandMaker):
             homework = super().readDb("SELECT "+day+" FROM devoirs")
             # get the length of the homework
             length = len(homework.split("|"))
-            if (int(param) > length) or (int(param) < 1):
+            choice = super().convertStringToInt(param)
+            if choice == None:
+                super().sayInstruction("Je n'ai pas compris votre choix")
+            if (choice > length) or (choice < 1):
                 super().sayInstruction("Cet indice n'est pas valide")
             else:
                 # remove the homework
                 homework = homework.split("|")
-                homework.pop(int(param)-1)
+                homework.pop(int(choice)-1)
                 homework = "|".join(homework)
                 super().writeDb(f"UPDATE devoirs SET {day} = '{homework}'")
                 super().sayInstruction("Devoir supprimé")
