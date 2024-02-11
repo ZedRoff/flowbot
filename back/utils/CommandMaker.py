@@ -3,7 +3,8 @@ from utils.TextToSpeech import sayInstruction
 import sqlite3
 import random
 from utils.ConvertStringToInt import convertStringToInt
-
+import requests 
+import json
 db = sqlite3.connect("./db/database.db", check_same_thread=False)
 from utils.ResetAction import resetAction
 class CommandMaker(ABC):
@@ -45,3 +46,11 @@ class CommandMaker(ABC):
         return array[random.randint(0, len(array) - 1)]
     def convertStringToInt(self, pText):
         return convertStringToInt(pText)
+    def emitMessage(self, message, type):
+     
+        requests.post(f"http://{self.get_config_value('URL')}:5000/api/emitMessage", json={"message": message, "command": type})
+    def get_config_value(self,key):
+        with open("../config.json") as f:
+            config = json.load(f)
+        return config.get(key)
+

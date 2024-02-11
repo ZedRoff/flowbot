@@ -111,6 +111,6 @@ languages = {
     "zoulou": "zu"
 }
 def convertLangToCode(pText):
-    if pText not in languages:
+    if pText.lower() not in languages:
         return None
-    return languages[pText]
+    return languages[pText.lower()]

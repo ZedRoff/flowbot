@@ -386,7 +386,11 @@ const handleSetSelectedValueBottomRight = (value) => {
             </View>
           </View>
         </View>
-      
+      <View style={styles.stopwatchContainer}>
+        <Text style={styles.stopwatchText}>Lance le chronomètre</Text>
+        <Text style={styles.stopwatchText}>Pause le chronomètre</Text>
+        <Text style={styles.stopwatchText}>Stop le chronomètre</Text>
+      </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -394,6 +398,21 @@ const handleSetSelectedValueBottomRight = (value) => {
 }
 
 const styles = {
+stopwatchContainer: {
+  marginTop: 10,
+  backgroundColor: '#f5f5f5',
+  padding: 10,
+  borderRadius: 5,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+},
+stopwatchText: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#333',
+  marginBottom: 10,
+},
   backgroundContainer: {
     padding: 10,
     backgroundColor: '#f5f5f5',

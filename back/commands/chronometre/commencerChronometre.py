@@ -36,7 +36,7 @@ class Command(CommandMaker):
         sec = sec % 60
         hours = mins // 60
         mins = mins % 60
-        print("{0}:{1}:{2}".format(int(hours),int(mins),int(sec)))
+        return "{0}:{1}:{2}".format(int(hours),int(mins),int(sec))
 
 
     def run(self): 
@@ -48,7 +48,9 @@ class Command(CommandMaker):
             active = super().readDb("SELECT active FROM chronometre")
             if active == 1:
                 elapsed_time = time.time() - stopwatch_start_time
-                self.time_convert(elapsed_time)
+                formated_time= self.time_convert(elapsed_time)
+                super().emitMessage(formated_time, "stopwatch")
+                
                 
             elif active == 0:
                 stopwatch_start_time = None
