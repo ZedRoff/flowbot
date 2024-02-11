@@ -8,7 +8,6 @@ from dotenv import dotenv_values
 
 
 config = dotenv_values(".env")
-
 con = sqlite3.connect("./db/database.db")
 cur = con.cursor()
 

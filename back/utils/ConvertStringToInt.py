@@ -64,4 +64,7 @@ convertStringToNum ={
 }
 
 def convertStringToInt(pText):
+    # if not exists in the dict, return None
+    if pText not in convertStringToNum:
+        return None
     return convertStringToNum[pText]
