@@ -4,6 +4,8 @@ import axios from 'axios';
 import config from "../config.json"
 import { socket } from './socket';
 import RNPickerSelect from 'react-native-picker-select';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 
 
 const App = () => {
@@ -156,7 +158,7 @@ const App = () => {
       setSelectedValueBottomRight(response.data.result[3])
         
     })
-  })
+  }, [])
 
   
 const handleSetSelectedValueTopLeft = (value) => {
@@ -188,6 +190,7 @@ const handleSetSelectedValueTopLeft = (value) => {
   })
 
 }
+
 const handleSetSelectedValueBottomLeft = (value) => {
   
   setSelectedValueBottomLeft(value)
@@ -276,8 +279,34 @@ const handleSetSelectedValueBottomRight = (value) => {
     }
   
   })
+ 
 }
+const [file, setFile] = useState(null);
 
+const pickFile = async () => {
+  try {
+    const result = await DocumentPicker.getDocumentAsync();
+    setFile(result);
+  } catch (error) {
+    console.error('Error picking file:', error);
+  }
+};
+const uploadFile = async () => {
+  try {
+    const formData = new FormData();
+    console.log(file)
+    formData.append('file', {
+      uri: file["assets"][0]["uri"],
+      name: file["assets"][0]["name"],
+      type: 'application/octet-stream',
+    });
+
+    await axios.post(`http://${config.URL}:5000/api/download`, formData);
+   alert("Fichier téléchargé avec succès")
+  } catch (error) {
+    alert("Erreur lors du téléchargement du fichier")
+  }
+};
   return (
     <SafeAreaView style={styles.container}>
       {Platform.OS === 'ios' && <View style={styles.banner}></View>} 
@@ -392,6 +421,14 @@ const handleSetSelectedValueBottomRight = (value) => {
         <Text style={styles.stopwatchText}>Stop le chronomètre</Text>
       </View>
       </ScrollView>
+
+    
+      <View>
+      <Button title="Pick File" onPress={pickFile} />
+      {file && <Button title="Upload File" onPress={uploadFile} />}
+    </View>
+
+
     </SafeAreaView>
   );
 

@@ -48,8 +48,7 @@ class Command(CommandMaker):
             active = super().readDb("SELECT active FROM chronometre")
             if active == 1:
                 elapsed_time = time.time() - stopwatch_start_time
-                formated_time= self.time_convert(elapsed_time)
-                super().emitMessage(formated_time, "stopwatch")
+                
                 
                 
             elif active == 0:
@@ -58,6 +57,7 @@ class Command(CommandMaker):
                 return
             else:
                 stopwatch_start_time = time.time() - elapsed_time
-                
+            formated_time= self.time_convert(elapsed_time)
+            super().emitMessage(formated_time, "stopwatch")    
     def isSpecific(self):
         return False
