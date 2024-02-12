@@ -14,7 +14,8 @@ cur = con.cursor()
 
 
 # Creating tables if they don't exist
-
+#cur.execute("DROP TABLE musiques")
+#con.commit()
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
             uuid TEXT PRIMARY KEY,
@@ -32,6 +33,14 @@ con.commit()
 
 cur.execute('''
             CREATE TABLE IF NOT EXISTS chronometre(
+            active INTEGER PRIMARY KEY
+            )
+            ''')
+
+con.commit()
+
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS musiques(
             active INTEGER PRIMARY KEY
             )
             ''')
@@ -117,6 +126,10 @@ res_test = cur.execute("SELECT active FROM chronometre").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO chronometre VALUES (?)", (0,))
     con.commit()
+res_test = cur.execute("SELECT active FROM musiques").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO musiques VALUES (?)", (0,))
+    con.commit()
 res_test = cur.execute("SELECT * FROM devoirs").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO devoirs VALUES (?, ?, ?, ?, ?, ?, ?)", ("", "", "", "", "", "", ""))
@@ -128,6 +141,9 @@ if res_test is None:
 
 # Reset values on each launch
 
+
+cur.execute("UPDATE musiques SET active = ?", (0,))
+con.commit()
 cur.execute("UPDATE chronometre SET active = ?", (0,))
 con.commit()
 cur.execute("UPDATE global SET action = ?", ("",))
