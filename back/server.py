@@ -5,6 +5,7 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 import sqlite3
 from dotenv import dotenv_values
+import os
 
 
 config = dotenv_values(".env")
@@ -13,7 +14,7 @@ cur = con.cursor()
 
 
 # Creating tables if they don't exist
-cur.execute("DROP TABLE son")
+cur.execute("DROP TABLE musiques")
 con.commit()
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
@@ -167,6 +168,8 @@ cur.close()
 con.close()
 
 app = Flask(__name__)
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = config.get('SECRET')
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -196,6 +199,7 @@ def handle_disconnect():
 @socketio.on('message')
 def handle_message(message):
     print("Message received : " + message)
+
 
 
 if __name__ == '__main__':

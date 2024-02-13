@@ -3,9 +3,15 @@ import { socket } from "../socket.js";
 import axios from "axios";
 import config from "../../../config.json";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faX} from "@fortawesome/free-solid-svg-icons";
+
+
 const Homepage = () => {
   let [color1, setColor1] = useState("");
   let [color2, setColor2] = useState("");
+  let [showPopup, setShowPopup] = useState(false);
+  let [files, setFiles] = useState([])
   
   let [stopWatch, setStopWatch] = useState("00:00:00");
   useEffect(() => {
@@ -94,6 +100,19 @@ const Homepage = () => {
       } else if(data.command == "stopwatch") {
        
         setStopWatch(data.message);
+      } else if(data.command == "show_files") {
+        setShowPopup(true);
+        axios({
+          method: "get",
+          url: `http://${config.URL}:5000/api/getFiles`,
+
+        }).then(res => {
+          setFiles(res.data.files);
+        
+        })
+
+      } else if(data.command == "hide_files") {
+        setShowPopup(false);
       }
     });
   }, []);
@@ -101,6 +120,14 @@ const Homepage = () => {
   let [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+
+    
+    
+
+
+
+
+
     axios({
       method: "get",
       url: `http://${config.URL}:5000/api/getPositions`,
@@ -119,12 +146,35 @@ const Homepage = () => {
         console.log(error);
       });
   }, []);
+  const unshowPopup = () => {
+    setShowPopup(!showPopup);
+  }
+
 
   return loaded ? (
     <div
       className="app_container"
       style={{ background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)` }}
     >
+    <div className="popup" style={{display: showPopup ? "flex": "none"}}>
+      <div className="popup_inside">
+        <div className="popup_header">
+          <h2>Popup</h2>
+         <FontAwesomeIcon icon={faX} className="cross" onClick={unshowPopup} />
+        </div>
+        <div className="popup_content">
+         {files.map((file, index) => {
+            return (
+              <div className="file" key={index}>
+                {file}
+              </div>
+            )
+          
+          })
+         }
+</div>
+      </div>
+    </div>
       <div className="app_left">
         {positions[0] == undefined ? <></> : positions[0]({stopWatch})}
         {positions[1] == undefined ? <></> : positions[1]({stopWatch})}

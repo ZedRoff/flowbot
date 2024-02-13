@@ -42,6 +42,6 @@ class Command(CommandMaker):
         
         
     def trigger(self, pText):
-        return (re.search("supprime",pText)) or (re.search("enlève",pText)) or (re.search("supprimer",pText))  and re.search("devoir", pText)
+        return (re.search("supprime",pText) or re.search("enlève",pText) or re.search("supprimer",pText))  and (re.search("devoir", pText))
     def isSpecific(self):
         return True
