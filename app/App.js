@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar } from 'react-native'; // Add Platform and StatusBar
+import React, { useEffect, useState, createContext } from 'react';
+import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar, Image } from 'react-native'; // Add Platform and StatusBar
 import axios from 'axios';
 import config from "../config.json"
 import { socket } from './socket';
@@ -7,6 +7,11 @@ import RNPickerSelect from 'react-native-picker-select';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 
+import Footer from './Homepage/Footer';
+import Header from './Homepage/Header';
+
+import Homepage from './Homepage/Homepage';
+export const PageContext = createContext();
 
 const App = () => {
   const [name, setName] = useState('');
@@ -16,7 +21,9 @@ const App = () => {
   const [inputValue, setInputValue] = useState('');
   const [color1, setColor1] = useState("")
   const [color2, setColor2] = useState("")
-  
+
+  let [currentPage, setCurrentPage] = useState("home");
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name === "" || message === "") return alert("Veuillez remplir tous les champs")
@@ -308,7 +315,30 @@ const uploadFile = async () => {
   }
 };
   return (
-    <SafeAreaView style={styles.container}>
+    <PageContext.Provider value={{currentPage, setCurrentPage}}>
+    <View style={styles.container}>
+    {Platform.OS === 'ios' && <View style={styles.banner}></View>}
+      <SafeAreaView style={styles.main}>
+    <Header />
+
+   
+    {currentPage === "home" && ( 
+      <Homepage />
+   )}
+   {currentPage === "apps" && (<h1>test</h1>)}
+
+
+
+     
+      </SafeAreaView>
+
+<Footer active="home" />
+
+    </View>
+
+    </PageContext.Provider>
+
+    /*<SafeAreaView style={styles.container}>
       {Platform.OS === 'ios' && <View style={styles.banner}></View>} 
       <StatusBar backgroundColor="#f5f5f5" barStyle="dark-content" />
       <ScrollView>
@@ -429,12 +459,44 @@ const uploadFile = async () => {
     </View>
 
 
-    </SafeAreaView>
+    </SafeAreaView>*/
   );
 
 }
 
 const styles = {
+
+  container: {
+    flexDirection: 'column',
+    flex: 1,
+
+  },
+  main: {
+    flex: 10,
+    gap: 10,
+    
+   
+  },
+  
+  banner: {
+    height: Platform.OS === 'ios' ? 45 : StatusBar.currentHeight, 
+    backgroundColor: '#007bff',
+
+  },
+  
+  
+  subTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 10,
+  },
+  
+  
+}
+
+/*
+
 stopwatchContainer: {
   marginTop: 10,
   backgroundColor: '#f5f5f5',
@@ -588,7 +650,7 @@ stopwatchText: {
     padding: 10,
     borderRadius: 10,
     color: '#fff',
-  },
-};
+  },*/
+
 
 export default App;

@@ -10,8 +10,15 @@
   },
   "dependencies": {
     "@expo/webpack-config": "^19.0.0",
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-brands-svg-icons": "^6.5.1",
+    "@fortawesome/free-regular-svg-icons": "^6.5.1",
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
+    "@fortawesome/react-native-fontawesome": "^0.3.0",
     "axios": "^1.6.5",
     "expo": "~49.0.15",
+    "expo-document-picker": "~11.5.4",
+    "expo-file-system": "~15.4.5",
     "expo-status-bar": "~1.6.0",
     "path": "^0.12.7",
     "react": "18.2.0",
@@ -20,10 +27,9 @@
     "react-native-document-picker": "^9.1.1",
     "react-native-file-picker": "^0.0.21",
     "react-native-picker-select": "^9.0.0",
+    "react-native-svg": "^14.1.0",
     "react-native-web": "~0.19.6",
-    "socket.io-client": "^4.7.3",
-    "expo-document-picker": "~11.5.4",
-    "expo-file-system": "~15.4.5"
+    "socket.io-client": "^4.7.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

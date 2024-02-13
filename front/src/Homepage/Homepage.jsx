@@ -121,12 +121,6 @@ const Homepage = () => {
 
   useEffect(() => {
 
-    
-    
-
-
-
-
 
     axios({
       method: "get",
