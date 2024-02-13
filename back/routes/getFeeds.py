@@ -14,10 +14,13 @@ def get_feeds():
             cur.execute("SELECT * FROM feeds")
             links = cur.fetchall()
             news = []
-            for link in links:
-                feed = feedparser.parse(link[1])
+            print(links[0][0])
+            for i in range(len(links)):
+                
+                feed = feedparser.parse(links[i][0])
+                
                 for post in feed.entries[:3]:
-                    news.append({'title': post.title, 'link': post.link, 'published': post.published})
+                    news.append(post)
             cur.close()
             response = jsonify({'result': news})
             return response

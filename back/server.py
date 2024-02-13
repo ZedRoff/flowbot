@@ -108,6 +108,12 @@ cur.execute('''
             )
             ''')
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS feeds(
+                url TEXT PRIMARY KEY
+            )
+            ''')
+con.commit()
 
 # Check if tables are empty, if so, insert default values
 
@@ -151,6 +157,11 @@ res_test = cur.execute("SELECT * FROM son").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO son VALUES (?,?,?)", (0.8,0.8,0.8))
     con.commit()
+res_test = cur.execute("SELECT * FROM feeds").fetchone()    
+if res_test is None:
+    cur.execute("INSERT INTO feeds VALUES (?)", ("https://www.lemonde.fr/rss/une.xml",))
+    con.commit()
+    
 
 # Reset values on each launch
 

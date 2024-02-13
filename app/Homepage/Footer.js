@@ -57,7 +57,8 @@ const styles = {
         justifyContent: 'space-evenly',
        
         alignItems: 'center',
-        borderTopWidth: 0.5
+        borderTopWidth: 0.5,
+        marginTop: 100
         
       },
     

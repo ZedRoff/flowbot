@@ -270,6 +270,7 @@ const handleSetSelectedValueBottomRight = (value) => {
 }
 const [file, setFile] = useState(null);
 
+
 const pickFile = async () => {
   try {
     const result = await DocumentPicker.getDocumentAsync();
@@ -294,6 +295,33 @@ const uploadFile = async () => {
     alert("Erreur lors du téléchargement du fichier")
   }
 };
+
+const [inputRssValue, setInputRssValue] = useState('');
+const handleConfirmRss = () => {
+  if (inputRssValue === "") return alert("Veuillez entrer une URL")
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addFeeds`,
+    data: {
+      url: inputRssValue
+    }
+  }).then((response) => {
+    if (response.data.result === "Invalid feed url") {
+      alert("Ce flux rss n'est pas valide")
+      
+    } else if(response.data.result === "Feed added successfully") {
+      alert("Flux RSS ajouté")
+      setInputRssValue("");
+    } else if(response.data.result === "Feed already exists") {
+      alert("Ce flux RSS existe déjà")
+    } else {
+      alert("Erreur lors de l'ajout du flux RSS")
+    }
+  }).catch((error) => {
+    console.log(error);
+  });
+}
+
   return (
     <PageContext.Provider value={{currentPage, setCurrentPage}}>
     <View style={styles.container}>
@@ -428,6 +456,23 @@ const uploadFile = async () => {
 <Text style={styles.stopwatchText}>Pause le chronomètre</Text>
 <Text style={styles.stopwatchText}>Stop le chronomètre</Text>
 </View>
+
+<View style={styles.rss}>
+<Text style={styles.title}>Ajouter un flux RSS</Text>
+<TextInput
+  style={styles.input}
+  placeholder="URL"
+  value={inputRssValue}
+  onChangeText={(text) => setInputRssValue(text)}
+/>
+<Button 
+  title="Ajouter"
+  onPress={handleConfirmRss}
+/>
+
+
+</View>
+
     </View>
    
 
@@ -445,8 +490,8 @@ const uploadFile = async () => {
 
 <Footer />
 
-    </View>
-
+  
+</View>
     </PageContext.Provider>
 
    

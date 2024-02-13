@@ -1,6 +1,9 @@
 
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import config from '../../config.json';
+
 const List = () => {
   let [date, setDate] = useState([new Date().toLocaleTimeString(), new Date().toLocaleDateString()])
   useEffect(() => { 
@@ -9,16 +12,52 @@ const List = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+  const [flux, setFlux] = useState([]);
+  useEffect(() => {
+ 
+axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getFeeds`
+  }).then((res) => {
+    setFlux(res.data.result)
+    console.log(res.data)
+  }).catch((err) => {
+    console.log(err)
+})
+  }, [])
+  const [currentFlux, setCurrentFlux] = useState(flux)
+  const handlePress = (index) => {
+    console.log(flux[index])
+  }
+
     
     return(
         <View style={styles.list}>
+
+<View style={styles.popup}  >
+  <Text style={styles.articleTitle}>
+    {currentFlux == 0 ? currentFlux.title : "test"}
+  </Text>
+</View>
+
         <Text style={styles.listTitle}>
           Informations générales
         </Text>
         <View style={styles.news}>
-          <Text>
-          Aucune news pour le moment
-          </Text>
+       
+         {flux.map((item, index) => {
+
+            return(
+              
+              <Pressable key={index} onPress={() => handlePress(index)}>
+              <View style={styles.link}>
+               <Text >{item.title}</Text>
+               </View>
+               </Pressable>
+            )
+         })
+         }
+       
     
         </View>
         <View style={styles.rappels}>
@@ -36,6 +75,12 @@ const List = () => {
 
 }
 const styles = {
+  link: {
+    padding: 10,
+    backgroundColor: 'grey',
+    borderRadius: 5,
+    marginBottom: 10
+  },
     news: {
         backgroundColor: '#f5f5f5',
         padding: 10,

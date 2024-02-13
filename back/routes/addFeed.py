@@ -16,11 +16,18 @@ def add_feeds():
         try:
             data = request.get_json()
             url = data['url']
+            
             # check if the url is valid
             feed = feedparser.parse(url)
             if feed.bozo == 1:
-                return jsonify({'error': 'Invalid feed url'})
+                return jsonify({'result': 'Invalid feed url'})
+            
             cur = con.cursor()
+
+            cur.execute("SELECT * FROM feeds WHERE url=?", (url,))
+            if cur.fetchone():
+                return jsonify({'result': 'Feed already exists'})
+            
             cur.execute("INSERT INTO feeds (url) VALUES (?)", (url,))
             con.commit()
             cur.close()
