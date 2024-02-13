@@ -1,16 +1,19 @@
 import React, { useEffect, useState, createContext } from 'react';
-import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar, Image } from 'react-native'; // Add Platform and StatusBar
+import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar } from 'react-native'; // Add Platform and StatusBar
 import axios from 'axios';
 import config from "../config.json"
 import { socket } from './socket';
 import RNPickerSelect from 'react-native-picker-select';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+
 
 import Footer from './Homepage/Footer';
 import Header from './Homepage/Header';
 
 import Homepage from './Homepage/Homepage';
+
+import AppContainer from './Apps/AppContainer';
+import Background from './settings/Background';
 export const PageContext = createContext();
 
 const App = () => {
@@ -19,8 +22,7 @@ const App = () => {
   const [commands, setCommands] = useState([]);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [color1, setColor1] = useState("")
-  const [color2, setColor2] = useState("")
+
 
   let [currentPage, setCurrentPage] = useState("home");
 
@@ -113,29 +115,7 @@ const App = () => {
     });
   }, [])
 
-  const handleChangeBackground = () => {
-    if(color1 === "" || color2 === "") return alert("Veuillez remplir tous les champs")
-    axios({
-      method: "post",
-      url: `http://${config.URL}:5000/api/changeBackground`,
-      data: {
-        color1: color1,
-        color2: color2
-      }
-    }).then((response) => {
-      if(response.data.result === "success") {
-        axios({
-          method: "post",
-          url: `http://${config.URL}:5000/api/emitMessage`,
-          data: {message: {color1, color2}, command: "background"}
-        })
-
-        alert("Fond d'écran changé")
-
-      }
-      else alert("Erreur lors du changement de fond d'écran")
-    })
-  }
+ 
   const [selectedValueTopLeft, setSelectedValueTopLeft] = useState(null);
   const [selectedValueTopRight, setSelectedValueTopRight] = useState(null);
   const [selectedValueBottomLeft, setSelectedValueBottomLeft] = useState(null);
@@ -325,34 +305,24 @@ const uploadFile = async () => {
     {currentPage === "home" && ( 
       <Homepage />
    )}
-   {currentPage === "apps" && (<h1>test</h1>)}
+   {currentPage === "apps" && (
+
+    <AppContainer />
+   )}
+   {currentPage === "settings" && (
+    <View style={styles.settingsContainer}>
+
+
+<Background />
 
 
 
-     
-      </SafeAreaView>
+        <View style={styles.positionsContainer}>
+        <Text style={styles.title}>Changer les positions</Text>
 
-<Footer active="home" />
+<View style={styles.positionsAligner}>
 
-    </View>
-
-    </PageContext.Provider>
-
-    /*<SafeAreaView style={styles.container}>
-      {Platform.OS === 'ios' && <View style={styles.banner}></View>} 
-      <StatusBar backgroundColor="#f5f5f5" barStyle="dark-content" />
-      <ScrollView>
-      <View style={styles.backgroundContainer}>
-          <Text style={styles.title}>Changer le fond d'écran</Text>
-          <Text style={styles.label}>Couleur 1</Text>
-          <TextInput placeholder="Exemple : #00FFFF" style={styles.input}  onChangeText={(text) => setColor1(text)}/>
-          <Text style={styles.label}>Couleur 2</Text>
-          <TextInput placeholder="Exemple : #00FFFF" style={styles.input} onChangeText={(text) => setColor2(text)} />
-          <Button title="Changer" onPress={handleChangeBackground} />
-        </View>
-
-    <View style={styles.positionsContainer}>
-      <View style={{display: "flex", gap: "15px", alignItems: "center", justifyContent: "center"}}> 
+      <View style={styles.positionsDisposer}> 
        <Text style={styles.title}>Haut-Gauche</Text>
         <RNPickerSelect
         onValueChange={(value) => handleSetSelectedValueTopLeft(value)}
@@ -360,7 +330,7 @@ const uploadFile = async () => {
         placeholder={placeholder}
         value={selectedValueTopLeft}
       /></View>
-      <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
+      <View style={styles.positionsDisposer}> 
        <Text style={styles.title}>Bas-Gauche</Text>
         <RNPickerSelect
         onValueChange={(value) => handleSetSelectedValueBottomLeft(value)}
@@ -368,7 +338,7 @@ const uploadFile = async () => {
         placeholder={placeholder}
         value={selectedValueBottomLeft}
       /></View>
-      <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
+      <View style={styles.positionsDisposer}> 
        <Text style={styles.title}>Haut-Droite</Text>
         <RNPickerSelect
         onValueChange={(value) => handleSetSelectedValueTopRight(value)}
@@ -376,7 +346,7 @@ const uploadFile = async () => {
         placeholder={placeholder}
         value={selectedValueTopRight}
       /></View>
-      <View style={{display: "flex", gap: "15px", alignItems: "center"}}> 
+      <View style={styles.positionsDisposer}> 
        <Text style={styles.title}>Bas-Droite</Text>
         <RNPickerSelect
         onValueChange={(value) => handleSetSelectedValueBottomRight(value)}
@@ -384,11 +354,12 @@ const uploadFile = async () => {
         placeholder={placeholder}
         value={selectedValueBottomRight}
       /></View>
-    
+    </View>
       </View>
 
 
-        <View style={styles.commandMaker}>
+      <View style={styles.commandMaker}>
+      <Text style={styles.title}>Créer une commande</Text>
           <TextInput
             style={styles.input}
             placeholder="Nom"
@@ -418,51 +389,70 @@ const uploadFile = async () => {
             ))}
           </View>
         </View>
-        <View style={styles.chatBot}>
 
-          <View style={styles.chatBotContainer}>
-              
-            <ScrollView style={styles.chatBotBody}>
-            
-                {messages.map((message, idx) => (
-                  <View key={idx} style={message.isBot ? styles.botMessage : styles.userMessage}>
-                    <Text>{String(message.message)}</Text>
-                  </View>
-                ))}
+        <View style={styles.uploadFile}>
+        <Text style={styles.title}>Upload un fichier</Text>
        
-            </ScrollView>
-            <View style={styles.chatBotFooter}>
-              <TextInput
-                style={styles.input}
-                placeholder="Message"
-                value={inputValue}
-                onChangeText={(text) => setInputValue(text)}
-              />
-              <Button
-                title="Envoyer"
-                onPress={handleSend}
-              />
-            </View>
-          </View>
+      <Button title="Choisir un fichier" onPress={pickFile} />
+      {file && <Button title="Ajouter le fichier" onPress={uploadFile} />}
+    </View>
+    <View style={styles.chatBot}>
+
+<View style={styles.chatBotContainer}>
+    
+  <ScrollView style={styles.chatBotBody}>
+  
+      {messages.map((message, idx) => (
+        <View key={idx} style={message.isBot ? styles.botMessage : styles.userMessage}>
+          <Text>{String(message.message)}</Text>
         </View>
-      <View style={styles.stopwatchContainer}>
-        <Text style={styles.stopwatchText}>Lance le chronomètre</Text>
-        <Text style={styles.stopwatchText}>Pause le chronomètre</Text>
-        <Text style={styles.stopwatchText}>Stop le chronomètre</Text>
-      </View>
-      </ScrollView>
+      ))}
+
+  </ScrollView>
+  <View style={styles.chatBotFooter}>
+    <TextInput
+      style={styles.input}
+      placeholder="Message"
+      value={inputValue}
+      onChangeText={(text) => setInputValue(text)}
+    />
+    <Button
+      title="Envoyer"
+      onPress={handleSend}
+    />
+  </View>
+</View>
+</View>
+<View style={styles.stopwatchContainer}>
+<Text style={styles.stopwatchText}>Lance le chronomètre</Text>
+<Text style={styles.stopwatchText}>Pause le chronomètre</Text>
+<Text style={styles.stopwatchText}>Stop le chronomètre</Text>
+</View>
+    </View>
+   
 
     
-      <View>
-      <Button title="Pick File" onPress={pickFile} />
-      {file && <Button title="Upload File" onPress={uploadFile} />}
+
+
+
+   )}
+   {currentPage === "infos" && (
+    <Text>Informations</Text>
+   )}
+
+
+      </SafeAreaView>
+
+<Footer />
+
     </View>
 
+    </PageContext.Provider>
 
-    </SafeAreaView>*/
+   
+   
   );
-
-}
+};
 
 const styles = {
 
@@ -484,18 +474,50 @@ const styles = {
 
   },
   
-  
-  subTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
+  positionsDisposer: {
+    background: "",
+   
+    borderRadius: 5,
+    padding: 10
+
+  },
+  positionsContainer: {
     padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 5,
+    marginBottom: 10,
+  
+  },
+  positionsAligner: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    gap: 10
+  },
+  commandMaker: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    width: "100%"
+  },
+  uploadFile: {
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 5,
+    
   },
   
-  
-}
 
-/*
+
+
 
 stopwatchContainer: {
   marginTop: 10,
@@ -512,46 +534,10 @@ stopwatchText: {
   color: '#333',
   marginBottom: 10,
 },
-  backgroundContainer: {
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 5,
-    marginBottom: 10,
-
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-  
-  },
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
-  },
-  banner: {
-    height: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight, 
-    backgroundColor: '#007bff',
-  },
-  commandMaker: {
-    flex: 1,
-    padding: 10,
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    backgroundColor: '#fff',
-    width: "100%"
-  },
+ 
+ 
+ 
+ 
   commandList: {
     marginTop: 10,
     backgroundColor: "black",
@@ -650,7 +636,8 @@ stopwatchText: {
     padding: 10,
     borderRadius: 10,
     color: '#fff',
-  },*/
+  }
+}
 
 
 export default App;

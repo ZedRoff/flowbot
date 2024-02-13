@@ -14,8 +14,8 @@ cur = con.cursor()
 
 
 # Creating tables if they don't exist
-#cur.execute("DROP TABLE musiques")
-#con.commit()
+cur.execute("DROP TABLE musiques")
+con.commit()
 cur.execute('''
             CREATE TABLE IF NOT EXISTS commandes(
             uuid TEXT PRIMARY KEY,
@@ -26,6 +26,15 @@ cur.execute('''
 cur.execute('''
             CREATE TABLE IF NOT EXISTS global(
             action TEXT PRIMARY KEY
+            )
+            ''')
+con.commit()
+
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS son(
+            currentVolMusic FLOAT PRIMARY KEY,
+            currentVolGeneral FLOAT,
+            currentVolNotification FLOAT
             )
             ''')
 con.commit()
@@ -137,6 +146,10 @@ if res_test is None:
 res_test = cur.execute("SELECT * FROM rappels").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO rappels VALUES (?)", ("",))
+    con.commit()
+res_test = cur.execute("SELECT * FROM son").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO son VALUES (?,?,?)", (0.8,0.8,0.8))
     con.commit()
 
 # Reset values on each launch

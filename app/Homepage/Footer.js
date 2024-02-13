@@ -7,7 +7,7 @@ import { faStore } from '@fortawesome/free-solid-svg-icons';
 import { faCog } from '@fortawesome/free-solid-svg-icons'; 
 import { PageContext } from '../App.js';
 import React, { useContext, useEffect } from 'react';
-const Footer = ({active}) => { 
+const Footer = () => { 
         let {currentPage, setCurrentPage} = useContext(PageContext)
         const handlePageChange = (page) => { 
                 console.log(page)
@@ -23,24 +23,24 @@ const Footer = ({active}) => {
 
       <View onPress={() => handlePageChange("home")}>
       <Pressable onPress={() => handlePageChange("home")}>
-            <FontAwesomeIcon icon={ faHome } size={ 30 } color={active == "home" ? "blue":"black"}/>
+            <FontAwesomeIcon icon={ faHome } size={ 30 } color={currentPage == "home" ? "blue":"black"}/>
             </Pressable>
       </View>
       
       <View style={styles.iconFooter}>
       <Pressable onPress={() => handlePageChange("apps")}>
-              <FontAwesomeIcon icon={ faStore } size={ 30 } color={active == "apps" ? "blue":"black"} />
+              <FontAwesomeIcon icon={ faStore } size={ 30 } color={currentPage == "apps" ? "blue":"black"} />
               </Pressable>
       </View>
       <View style={styles.iconFooter}>
       <Pressable onPress={() => handlePageChange("settings")}>
-              <FontAwesomeIcon icon={ faCog } size={ 30 } color={active == "settings" ? "blue":"black"} />
+              <FontAwesomeIcon icon={ faCog } size={ 30 } color={currentPage == "settings" ? "blue":"black"} />
               </Pressable>
       </View>
       <View style={styles.iconFooter}>
       
       <Pressable onPress={() => handlePageChange("infos")}>
-              <FontAwesomeIcon icon={ faMugSaucer } size={ 30 } color={active == "infos" ? "blue":"black"} />
+              <FontAwesomeIcon icon={ faMugSaucer } size={ 30 } color={currentPage == "infos" ? "blue":"black"} />
               </Pressable>
       </View>
       

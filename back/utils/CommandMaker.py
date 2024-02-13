@@ -7,8 +7,9 @@ import requests
 import json
 db = sqlite3.connect("./db/database.db", check_same_thread=False)
 from utils.ResetAction import resetAction
+
 class CommandMaker(ABC):
-    
+
     @abstractmethod
     def command(self):
         pass
@@ -46,6 +47,22 @@ class CommandMaker(ABC):
         return array[random.randint(0, len(array) - 1)]
     def convertStringToInt(self, pText):
         return convertStringToInt(pText)
+    def setVolumeMusic(self, pVol):
+        self.writeDb(f"UPDATE son SET currentVolMusic = '{pVol}'")
+    def setVolumeGeneral(self, pVol):
+        self.writeDb(f"UPDATE son SET currentVolGeneral = '{pVol}'")
+    def setVolumeNotification(self, pVol):
+        self.writeDb(f"UPDATE son SET currentVolNotification = '{pVol}'")
+    def setVolumeGlobal(self, pVol):
+        self.writeDb(f"UPDATE son SET currentVolMusic = '{self.getCurrentVolumeMusic()+pVol}'")
+        self.writeDb(f"UPDATE son SET currentVolGeneral = '{self.getCurrentVolumeGlobal()+pVol}'")
+        self.writeDb(f"UPDATE son SET currentVolNotification = '{self.getCurrentVolumeNotification()+pVol}'")
+    def getCurrentVolumeMusic(self):
+        return self.readDb("SELECT currentVolMusic FROM son")
+    def getCurrentVolumeNotification(self):
+        return self.readDb("SELECT currentVolNotification FROM son")
+    def getCurrentVolumeGlobal(self):
+        return self.readDb("SELECT currentVolGeneral FROM son")
     def emitMessage(self, message, type):
      
         requests.post(f"http://{self.get_config_value('URL')}:5000/api/emitMessage", json={"message": message, "command": type})
@@ -53,4 +70,3 @@ class CommandMaker(ABC):
         with open("../config.json") as f:
             config = json.load(f)
         return config.get(key)
-
