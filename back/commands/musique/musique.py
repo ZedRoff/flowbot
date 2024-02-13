@@ -6,6 +6,9 @@ from tkinter import *
 from pygame import mixer
 from utils.CommandMaker import CommandMaker
 
+def setVolume(volume):
+    mixer.music.set_volume(volume)
+
 class Command(CommandMaker):
     def command(self):
         super().sayInstruction("Bien sûr, quel musique voulez vous jouer?")
@@ -14,11 +17,14 @@ class Command(CommandMaker):
         active = super().readDb("SELECT active FROM musiques")
         if active == 1 or active == 2:
             super().sayInstruction("Une musique est déjà en cours")
+            super().resetAction()
             return
         super().writeDb("UPDATE musiques SET active = 1")
         thread = threading.Thread(target=self.playMusic, args=(param,))
         thread.start()
         super().resetAction()
+
+
 
     def trigger(self, pText):
         return (((re.search("joue",pText)) or (re.search("jou",pText)) or (re.search("jous",pText))or (re.search("jouer",pText))) and ((re.search("musique",pText)) or re.search("chançon", pText)))
@@ -29,6 +35,7 @@ class Command(CommandMaker):
         mixer.music.play()
         while True:
             time.sleep(0.1)
+            setVolume(super().getCurrentVolumeMusic())
             active = super().readDb("SELECT active FROM musiques")
             
             if active == 1 and not mixer.music.get_busy():
