@@ -70,4 +70,3 @@ class CommandMaker(ABC):
         with open("../config.json") as f:
             config = json.load(f)
         return config.get(key)
-
