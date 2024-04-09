@@ -2,7 +2,7 @@
 import re
 import time
 import threading 
-
+import requests
 from utils.CommandMaker import CommandMaker
 
 
@@ -18,7 +18,7 @@ class Command(CommandMaker):
             super().sayInstruction("Un chronomètre est déjà en cours")
             return
         super().sayInstruction("Un chronomètre a été créé")
-        super().writeDb("UPDATE chronometre SET active = 1")
+        requests.post(f"http://{super().get_config_value('URL')}:5000/api/stopwatch", json={"action": "start"})
         self.startChronometre()
       
     def trigger(self, pText):
@@ -45,11 +45,10 @@ class Command(CommandMaker):
         while True:
             
             time.sleep(1)
-            active = super().readDb("SELECT active FROM chronometre")
+            active = requests.post(f"http://{super().get_config_value('URL')}:5000/api/stopwatch", json={"action": "get"}).json()
+            active = active["result"][0]
             if active == 1:
                 elapsed_time = time.time() - stopwatch_start_time
-                
-                
                 
             elif active == 0:
                 stopwatch_start_time = None

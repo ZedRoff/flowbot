@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext } from 'react';
-import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar } from 'react-native'; // Add Platform and StatusBar
+import { View, Text, TextInput, Button, SafeAreaView, ScrollView, Platform, StatusBar, Pressable } from 'react-native'; // Add Platform and StatusBar
 import axios from 'axios';
 import config from "../config.json"
 import { socket } from './socket';
@@ -452,9 +452,18 @@ const handleConfirmRss = () => {
 </View>
 </View>
 <View style={styles.stopwatchContainer}>
+<Pressable onPress={() => axios.post(`http://${config.URL}:5000/api/stopwatch`, {action: "start"})}>
 <Text style={styles.stopwatchText}>Lance le chronomètre</Text>
+</Pressable>
+<Pressable onPress={() => axios.post(`http://${config.URL}:5000/api/stopwatch`, {action: "pause"})}>
 <Text style={styles.stopwatchText}>Pause le chronomètre</Text>
+</Pressable>
+<Pressable onPress={() => axios.post(`http://${config.URL}:5000/api/stopwatch`, {action: "stop"})}>
 <Text style={styles.stopwatchText}>Stop le chronomètre</Text>
+</Pressable>
+<Pressable onPress={() => axios.post(`http://${config.URL}:5000/api/stopwatch`, {action: "resume"})}>
+<Text style={styles.stopwatchText}>Reprend le chronomètre</Text>
+</Pressable>
 </View>
 
 <View style={styles.rss}>

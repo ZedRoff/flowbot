@@ -169,6 +169,7 @@ const Homepage = () => {
 </div>
       </div>
     </div>
+    {showPopup ? <div className="popup_background" onClick={unshowPopup}></div> : <></>}
       <div className="app_left">
         {positions[0] == undefined ? <></> : positions[0]({stopWatch})}
         {positions[1] == undefined ? <></> : positions[1]({stopWatch})}

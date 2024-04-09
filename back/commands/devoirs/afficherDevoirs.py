@@ -5,6 +5,7 @@ from utils.CommandMaker import CommandMaker
 
 class Command(CommandMaker):
     def command(self):
+        super().em
         super().sayInstruction("Bien sûr, sur quel jour ?")
     def specificity(self, param):
             # vérifie si le jour est valide

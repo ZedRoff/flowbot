@@ -15,6 +15,7 @@ class Command(CommandMaker):
         global step
         if step == "prompt":
             res_temp = search(param, advanced=True)
+            print(res_temp)
             res = list(map(lambda x: x, res_temp))[0]
             super().sayInstruction(res.description)
             super().resetAction()
