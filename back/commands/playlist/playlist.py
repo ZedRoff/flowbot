@@ -1,12 +1,9 @@
+
 import re
 import threading 
 import time
 from tkinter import *
-from pygame import mixer
 from utils.CommandMaker import CommandMaker
-
-def setVolume(volume):
-    mixer.music.set_volume(volume)
 
 class Command(CommandMaker):
     def command(self):
