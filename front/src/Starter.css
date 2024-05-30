@@ -1,0 +1,99 @@
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+@keyframes textColorChange {
+    from {
+        color: black;
+    }
+    to {
+        color: blue;
+    }
+}
+
+.starter-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+}
+.starter-image {
+    width: 500px;
+    height: 500px;
+    border-radius: 15px;
+    animation: scaleIn 1s forwards; /* Ajout de l'animation scaleIn */
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0); /* Échelle initiale à 0 */
+    }
+    to {
+        transform: scale(1); /* Échelle finale à 1 */
+    }
+}
+
+.starter-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    border-radius: 15px;
+    width: 100%;
+    gap: 50px;
+}
+
+.starter-text-container {
+    flex: 1;
+    justify-content:center;
+    align-items:center;
+    text-align: center;
+}
+.starter-image-container {
+    flex: 1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+}
+
+.starter-text {
+    animation: slideInDown 1s ease-out;
+}
+
+.cursor {
+    display: inline-block;
+    width: 1px;
+    background-color: black;
+    animation: blink 1s step-start infinite;
+}
+
+.highlight {
+    font-weight: bold;
+    animation: textColorChange 0.5s forwards;
+}
