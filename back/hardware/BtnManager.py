@@ -1,6 +1,8 @@
 import RPi.GPIO as GPIO
 import threading
 import time
+#To start script, start the thread
+
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
@@ -31,7 +33,14 @@ def getInt(num):
 
 #do action
 def action(doubleAction):
-    print(doubleAction)
+    if( not doubleAction):
+        print("action 0") #Add function
+    elif (doubleAction): 
+        print("action 1") #Add function
+    elif(doubleAction == 2): 
+        print("action 3") #Add function
+    elif(doubleAction == 3): 
+        print("action 4") #Add function
 
 #thread
 def actionThread():
@@ -58,10 +67,10 @@ def run():
                     valInt2=2
 
                 if(valInt2==1 and not GPIO.input(15)):
-                    print("GAUCHE") #Action gauche (fonction a ajouter)
+                    print("GAUCHE") #Action left (add function)
                     valInt2=0
                 if(valInt2==2 and not GPIO.input(13)):
-                    print("DROITE") #Action droit (fonction a ajouter)
+                    print("DROITE") #Action right (add function)
                     valInt2=0
                     
         if(GPIO.input(11)): #Boutton
@@ -72,7 +81,8 @@ def run():
                 stopTime = False
                 if(actionCounter == 3):
                     actionCounter = 0
-        elif(not stopTime):
+                action(actionCounter) #Action function
+        elif(not stopTime): #timming (if you want, add a held-up button)
             prevVal = False
             if(timePast > 0.5):
                 actionCounter = 0
@@ -86,6 +96,7 @@ def run():
                 timePast2=0
                 prevValMol = True
                 stopTime2 = False
+                action(3) #Action function
         elif(not stopTime2):
             prevValMol = False
             if(timePast2 > 0.5):
@@ -93,4 +104,3 @@ def run():
                 timePast2 = 0.0
             else :
                 timePast2+= 0.1
-actionThread()
