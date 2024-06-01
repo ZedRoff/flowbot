@@ -6,7 +6,55 @@ import icon1 from './images/hello.jpg';
 import icon3 from './images/productivity.png';
 import icon4 from './images/meet.jpg';
 
+import io from 'socket.io-client';
+
+import config from "../../config.json";
+
 const Starter = () => { 
+
+    let [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const socket = io(`http://${config.URL}:5000`);
+
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket server');
+            socket.emit('message', 'bot');
+            socket.emit('message', 'checkup')
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from WebSocket server');
+        });
+
+        socket.on('message', (message) => {
+            console.log(message)
+            if(message == "mobile_connected") {
+                setIsMobile(true);
+            } else if(message == "mobile_disconnected") {
+                setIsMobile(false);
+                
+            }  else if(message == "gogo") {
+                window.location.href = "/accueil"
+            }
+
+
+
+            for(let i = 0; i < message.length; i++){
+                if(message[i].type == "mobile") {
+                    setIsMobile(true);
+                }
+             
+            }
+            
+        });
+
+        return () => {
+            
+            socket.disconnect();
+        };
+    }, []);
+
     const res = React.useMemo(() => [
         { text: "Bonjour, Je suis Flowbot", image: icon1 }, 
         { text: "Je suis un assistant virtuel, qui vous aide a être plus productif", image: icon3 }, 
@@ -30,7 +78,7 @@ const Starter = () => {
     };
 
     useEffect(() => {
-        console.log(i, res.length)
+      
         if (i < res.length) {
             if (charIndex < res[i].text.length) {
                 const timer = setTimeout(() => {
@@ -43,7 +91,7 @@ const Starter = () => {
                     setI(i + 1);
                     setCharIndex(0);
                     setContent('');
-                }, 1000); 
+                }, 100); 
                 return () => clearTimeout(timer);
             }
         } else {
@@ -58,24 +106,31 @@ const Starter = () => {
         }
     }, [charIndex, res, i]);
 
-    // Redirection vers la page de questions une fois l'introduction terminée
-    useEffect(() => {
-        if (introFinished) {
-            window.location.href = "/questions";
-        }
-    }, [introFinished]);
+   
 
     return (
-        <div className="starter-container">
-            <div className="starter-content">
-                <div className="starter-text-container">
-                    <h1 className="starter-text" dangerouslySetInnerHTML={{ __html: content + '<span class="cursor"></span>' }}></h1>
+        isMobile ? (
+
+
+            !introFinished ? (
+                <div className="starter-container">
+                <div className="starter-content">
+                    <div className="starter-text-container">
+                        <h1 className="starter-text" dangerouslySetInnerHTML={{ __html: content + '<span class="cursor"></span>' }}></h1>
+                    </div>
+                    <div className="starter-image-container">
+                        <img src={res[i]?.image} alt="illustration" className="starter-image" key={i} /> {/* Ajouter la clé unique */}
+                    </div>
                 </div>
-                <div className="starter-image-container">
-                    <img src={res[i]?.image} alt="illustration" className="starter-image" key={i} /> {/* Ajouter la clé unique */}
-                </div>
-            </div>
-        </div>
+            </div>  
+            ) : (
+                <h1>Regardez le téléphone</h1>
+            )
+           
+        ) : (
+            <h1>Connectez le téléphone</h1>
+        )
+       
     );
 }
 

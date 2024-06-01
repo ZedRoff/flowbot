@@ -5,167 +5,196 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 import sqlite3
 from dotenv import dotenv_values
-import os
+from flask import request
 
-
+# Charger les configurations depuis .env
 config = dotenv_values(".env")
-con = sqlite3.connect("./db/database.db")
+
+# Initialiser la base de données
+con = sqlite3.connect("./db/database.db", check_same_thread=False)
 cur = con.cursor()
 
-
-# Creating tables if they don't exist
-cur.execute("DROP TABLE musiques")
+# Création des tables si elles n'existent pas
+cur.execute("DROP TABLE IF EXISTS musiques")
 con.commit()
+
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS commandes(
-            uuid TEXT PRIMARY KEY,
-            name TEXT,
-            reply TEXT     
+    CREATE TABLE IF NOT EXISTS commandes(
+    uuid TEXT PRIMARY KEY,
+    name TEXT,
+    reply TEXT     
 )''')
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS global(
-            action TEXT PRIMARY KEY
-            )
-            ''')
+    CREATE TABLE IF NOT EXISTS global(
+    action TEXT PRIMARY KEY
+    )
+''')
 con.commit()
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS son(
-            currentVolMusic FLOAT PRIMARY KEY,
-            currentVolGeneral FLOAT,
-            currentVolNotification FLOAT
-            )
-            ''')
-con.commit()
-
-
-cur.execute('''
-            CREATE TABLE IF NOT EXISTS chronometre(
-            active INTEGER PRIMARY KEY
-            )
-            ''')
-
+    CREATE TABLE IF NOT EXISTS son(
+    currentVolMusic FLOAT PRIMARY KEY,
+    currentVolGeneral FLOAT,
+    currentVolNotification FLOAT
+    )
+''')
 con.commit()
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS musiques(
-            active INTEGER PRIMARY KEY
-            )
-            ''')
-
+    CREATE TABLE IF NOT EXISTS chronometre(
+    active INTEGER PRIMARY KEY
+    )
+''')
 con.commit()
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS minuteur(
-                min TEXT PRIMARY KEY,
-                active INTEGER
-            )
-            ''')
-
-con.commit()
-
-con.execute('''
-            CREATE TABLE IF NOT EXISTS devoirs(
-                lundi TEXT,
-                mardi TEXT,
-                mercredi TEXT,
-                jeudi TEXT,
-                vendredi TEXT,
-                samedi TEXT,
-                dimanche TEXT
-            )
-            ''')
+    CREATE TABLE IF NOT EXISTS musiques(
+    active INTEGER PRIMARY KEY
+    )
+''')
 con.commit()
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS reveil(
-                time TEXT PRIMARY KEY,
-                active INTEGER
-            )
-            ''')
-
+    CREATE TABLE IF NOT EXISTS minuteur(
+    min TEXT PRIMARY KEY,
+    active INTEGER
+    )
+''')
 con.commit()
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS rappels(
-                liste TEXT
-            )
-            ''')
-con.commit()
-
-con.execute('''
-            CREATE TABLE IF NOT EXISTS background(
-                color1 TEXT,
-                color2 TEXT
-            )
-            ''')
+    CREATE TABLE IF NOT EXISTS devoirs(
+    lundi TEXT,
+    mardi TEXT,
+    mercredi TEXT,
+    jeudi TEXT,
+    vendredi TEXT,
+    samedi TEXT,
+    dimanche TEXT
+    )
+''')
 con.commit()
 
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS positions(
-                liste TEXT
-            )
-            ''')
+    CREATE TABLE IF NOT EXISTS reveil(
+    time TEXT PRIMARY KEY,
+    active INTEGER
+    )
+''')
 con.commit()
+
 cur.execute('''
-            CREATE TABLE IF NOT EXISTS feeds(
-                url TEXT PRIMARY KEY
-            )
+    CREATE TABLE IF NOT EXISTS rappels(
+    liste TEXT
+    )
+''')
+con.commit()
+
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS background(
+    color1 TEXT,
+    color2 TEXT
+    )
+''')
+con.commit()
+
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS positions(
+    liste TEXT
+    )
+''')
+con.commit()
+
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS feeds(
+    url TEXT PRIMARY KEY
+    )
+''')
+con.commit()
+
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS starter(
+    has_finished INTEGER PRIMARY KEY
+    )
+''')
+con.commit()
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS preferences(
+            voice TEXT,
+            name TEXT
+)
             ''')
 con.commit()
 
-# Check if tables are empty, if so, insert default values
-
+# Vérifier si les tables sont vides, si oui, insérer les valeurs par défaut
 res_test = cur.execute("SELECT * FROM positions").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO positions VALUES (?)", ("chronometre|rappels|minuteur|fiches",))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM minuteur").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO minuteur VALUES (?, ?)", ("", 0))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM reveil").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO reveil VALUES (?, ?)", ("", 0))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM background").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO background VALUES (?, ?)", ("#6d0069", "#000b60"))
     con.commit()
+
 res_test = cur.execute("SELECT action FROM global").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO global VALUES (?)", ("",))
     con.commit()
+
 res_test = cur.execute("SELECT active FROM chronometre").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO chronometre VALUES (?)", (0,))
     con.commit()
+
 res_test = cur.execute("SELECT active FROM musiques").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO musiques VALUES (?)", (0,))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM devoirs").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO devoirs VALUES (?, ?, ?, ?, ?, ?, ?)", ("", "", "", "", "", "", ""))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM rappels").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO rappels VALUES (?)", ("",))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM son").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO son VALUES (?,?,?)", (0.8,0.8,0.8))
     con.commit()
+
 res_test = cur.execute("SELECT * FROM feeds").fetchone()    
 if res_test is None:
     cur.execute("INSERT INTO feeds VALUES (?)", ("https://www.lemonde.fr/rss/une.xml",))
     con.commit()
-    
 
-# Reset values on each launch
+res_test = cur.execute("SELECT * FROM starter").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO starter VALUES (?)", (0,))
+    con.commit()
 
+res_test = cur.execute("SELECT * FROM preferences").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO preferences VALUES (?, ?)", ("male", "User"))
+    con.commit()
 
+# Réinitialiser les valeurs à chaque lancement
 cur.execute("UPDATE musiques SET active = ?", (0,))
 con.commit()
 cur.execute("UPDATE chronometre SET active = ?", (0,))
@@ -173,17 +202,20 @@ con.commit()
 cur.execute("UPDATE global SET action = ?", ("",))
 con.commit()
 
-# Close connections properly
-
+# Fermer correctement les connexions
 cur.close()
 con.close()
 
+# Initialiser Flask et SocketIO
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = config.get('SECRET')
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Liste pour stocker les utilisateurs connectés
+connected_users = []
 
 def import_routes():
     routes_dir = os.path.join(os.path.dirname(__file__), 'routes')
@@ -194,7 +226,7 @@ def import_routes():
             app.register_blueprint(module.bp)
 import_routes()
 
-# Get URL from config.json
+# Charger l'URL depuis config.json
 with open('../config.json') as config_file:
     config_data = json.load(config_file)
     host = config_data.get('URL')
@@ -202,17 +234,34 @@ with open('../config.json') as config_file:
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
+   
+    connected_users.append({"id": request.sid})
+    
 
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
+    
+    for user in connected_users:
+        if user["id"] == request.sid:
+            socketio.emit('message', user["type"] + "_disconnected")
+            connected_users.remove(user)
 
 @socketio.on('message')
 def handle_message(message):
-    print("Message received : " + message)
+    print("received message: " + message)
+    if message == "checkup":
+        socketio.emit('message', connected_users)
+    elif message == "starter_finished":
+        socketio.emit("message", "starter_finished")
+    elif message == "gogo":
+        socketio.emit("message", "gogo")
 
 
+
+    connected_users[len(connected_users)-1]["type"] = message
+    socketio.emit('message', message + "_connected")
+ 
 
 if __name__ == '__main__':
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True)
-    
