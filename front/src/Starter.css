@@ -74,6 +74,18 @@
     align-items:center;
     text-align: center;
 }
+.phone-connect-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+  
+  .phone-icon {
+    margin-bottom: 20px;
+  }
+  
 .starter-image-container {
     flex: 1;
     display:flex;

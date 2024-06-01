@@ -3,8 +3,12 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 
 def get_weather(city_name):
+    headers = {
+            "User-Agent": "flowbot"
+        }
     geocode_url = f"https://nominatim.openstreetmap.org/search?city={city_name}&format=json"
-    geocode_response = requests.get(geocode_url)
+    geocode_response = requests.get(geocode_url, headers=headers)
+   
     geocode_data = geocode_response.json()
 
     if geocode_data:
@@ -17,6 +21,7 @@ def get_weather(city_name):
         
         if 'current_weather' in weather_data:
             current_weather = weather_data['current_weather']
+        
             weather_info = {
                 "City": city_name,
                 "Temperature": current_weather["temperature"],
@@ -44,8 +49,9 @@ temperature_ressenti = {
 }
 
 def obtenir_ressenti_temperature(temperature):
+ 
     for ressenti, plage in temperature_ressenti.items():
-        if temperature in plage:
+        if int(temperature) in plage:
             return ressenti
     return "Extrême"  # Pour les températures hors des plages définies
 
@@ -59,6 +65,7 @@ def g_w():
     if request.method == 'POST':
         data = request.get_json()
         city_name = data["location"]
+        
         weather_info = get_weather(city_name)
         infos = {}
         # get today's day

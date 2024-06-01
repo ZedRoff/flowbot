@@ -127,6 +127,12 @@ CREATE TABLE IF NOT EXISTS preferences(
 )
             ''')
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS city(
+            city TEXT
+            )
+            ''')
+con.commit()
 
 # Vérifier si les tables sont vides, si oui, insérer les valeurs par défaut
 res_test = cur.execute("SELECT * FROM positions").fetchone()
@@ -194,6 +200,12 @@ if res_test is None:
     cur.execute("INSERT INTO preferences VALUES (?, ?)", ("male", "User"))
     con.commit()
 
+res_test = cur.execute("SELECT * FROM city").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
+    con.commit()
+
+
 # Réinitialiser les valeurs à chaque lancement
 cur.execute("UPDATE musiques SET active = ?", (0,))
 con.commit()
@@ -234,7 +246,6 @@ with open('../config.json') as config_file:
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
-   
     connected_users.append({"id": request.sid})
     
 
@@ -244,24 +255,46 @@ def handle_disconnect():
     
     for user in connected_users:
         if user["id"] == request.sid:
-            socketio.emit('message', user["type"] + "_disconnected")
-            connected_users.remove(user)
+            # user["type"] throws a KeyErrror
+            if "type" in user:
+
+                socketio.emit('message', {"from": "back", "type": "mobile_status_change", "message": False})
+                connected_users.remove(user)
 
 @socketio.on('message')
 def handle_message(message):
-    print("received message: " + message)
-    if message == "checkup":
-        socketio.emit('message', connected_users)
-    elif message == "starter_finished":
-        socketio.emit("message", "starter_finished")
-    elif message == "gogo":
-        socketio.emit("message", "gogo")
+
+
+    who = message["from"]
+    msg = message["message"]
+   
+    if who == "bot" and msg == "check_mobile_connected":
+        flag = False
+        for user in connected_users:
+            print(user)
+            if "type" in user and user["type"] == "mobile":
+                flag = True
+        socketio.emit("message", {"from": "back", "type": "check_mobile_connected", "message": flag })
+    elif who == "mobile" and msg == "mobile_connected":
+        connected_users[len(connected_users)-1]["type"] = "mobile"
+        socketio.emit('message', {"from": "back", "type": "mobile_status_change", "message": True})
+    elif who == "mobile" and msg == "city_changed":
+        socketio.emit("message", {"from": "back", "type": "city_changed", "message": message["city"]})
+    elif who == "mobile" and msg == "starter_finished":
+        socketio.emit("message", {"from": "back", "type": "starter_finished", "message": "starter_finished"})
+    elif who == "bot" and msg == "bot_connected":
+        connected_users[len(connected_users)-1]["type"] = "bot"
+        socketio.emit('message', {"from": "back", "type": "bot_status_change", "message": True})
+    elif who == "mobile" and msg == "music_play":
+       
+        socketio.emit("message", {"from": "back", "type": "music_play", "title": message["title"], "duration": message["duration"]})
+    
+
+
+    
 
 
 
-    connected_users[len(connected_users)-1]["type"] = message
-    socketio.emit('message', message + "_connected")
- 
 
 if __name__ == '__main__':
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True)

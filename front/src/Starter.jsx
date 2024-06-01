@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Starter.css'; // Importer le fichier CSS
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMobileAlt, faPlug } from "@fortawesome/free-solid-svg-icons";
 
 // Importer les images
 import icon1 from './images/hello.jpg';
@@ -19,8 +21,8 @@ const Starter = () => {
 
         socket.on('connect', () => {
             console.log('Connected to WebSocket server');
-            socket.emit('message', 'bot');
-            socket.emit('message', 'checkup')
+            socket.emit('message', {from: 'bot', message: 'bot_connected'});
+            socket.emit('message', {from: 'bot', message: 'check_mobile_connected'})
         });
 
         socket.on('disconnect', () => {
@@ -28,29 +30,21 @@ const Starter = () => {
         });
 
         socket.on('message', (message) => {
-            console.log(message)
-            if(message == "mobile_connected") {
-                setIsMobile(true);
-            } else if(message == "mobile_disconnected") {
-                setIsMobile(false);
-                
-            }  else if(message == "gogo") {
+
+            let who = message["from"];
+            let type = message["type"];
+            let msg = message["message"];
+
+            if(type == "mobile_status_change") {
+                setIsMobile(msg);
+            } else if(type == "check_mobile_connected") {
+                setIsMobile(msg)
+            } else if(type == "starter_finished") {
                 window.location.href = "/accueil"
             }
-
-
-
-            for(let i = 0; i < message.length; i++){
-                if(message[i].type == "mobile") {
-                    setIsMobile(true);
-                }
-             
-            }
-            
         });
 
         return () => {
-            
             socket.disconnect();
         };
     }, []);
@@ -109,11 +103,8 @@ const Starter = () => {
    
 
     return (
-        isMobile ? (
-
-
-            !introFinished ? (
-                <div className="starter-container">
+        <div className="starter-container">
+            {!introFinished ? (
                 <div className="starter-content">
                     <div className="starter-text-container">
                         <h1 className="starter-text" dangerouslySetInnerHTML={{ __html: content + '<span class="cursor"></span>' }}></h1>
@@ -122,15 +113,22 @@ const Starter = () => {
                         <img src={res[i]?.image} alt="illustration" className="starter-image" key={i} /> {/* Ajouter la clé unique */}
                     </div>
                 </div>
-            </div>  
             ) : (
-                <h1>Regardez le téléphone</h1>
-            )
-           
-        ) : (
-            <h1>Connectez le téléphone</h1>
-        )
-       
+                <div className="phone-connect-container">
+                    {isMobile ? (
+                        <>
+                            <FontAwesomeIcon icon={faMobileAlt} size="3x" className="phone-icon" />
+                            <h1>Complétez le formulaire sur téléphone</h1>
+                        </>
+                    ) : (
+                        <>
+                            <FontAwesomeIcon icon={faPlug} size="3x" className="phone-icon" />
+                            <h1>Connectez le téléphone</h1>
+                        </>
+                    )}
+                </div>
+            )}
+        </div>  
     );
 }
 
