@@ -40,8 +40,6 @@ def turnOnLed(typeOn,Color):
 
 
 def run(ListLed,typeOn):
-    print(ListLed)
-    print(typeOn)
     if(typeOn == 2 or typeOn == 4):
         for i in range(0,len(ListLed)+typeOn-2):
             if(typeOn == 2) : #gradual left-right
@@ -49,20 +47,23 @@ def run(ListLed,typeOn):
             elif(typeOn == 4) : #wave left-right
                 if(i<len(ListLed)):
                     GPIO.output(ListLed[i], GPIO.HIGH)
-                    if(i>2):
+                    if(i>=2):
                         GPIO.output(ListLed[i-2], GPIO.LOW)
                 else :
                     GPIO.output(ListLed[i-2], GPIO.LOW)
             time.sleep(0.3)
     else:
-        for i in range(len(ListLed)+typeOn-3,0,-1):
+        for i in range(len(ListLed)+typeOn-3,-1,-1):
             if(typeOn == 3) : #gradual right-left
-                GPIO.output(ListLed[i], GPIO.HIGH)
+                GPIO.output(ListLed[i-1], GPIO.HIGH)
             elif(typeOn == 5) : #wave right-left
-                if(i>2):
-                    GPIO.output(ListLed[i-2], GPIO.HIGH)
-                    if(i<len(ListLed)-2):
-                        GPIO.output(ListLed[i], GPIO.LOW)
-                else :
+                if(i<=2):
+                    
                     GPIO.output(ListLed[i], GPIO.LOW)
+                else :
+                    GPIO.output(ListLed[i-3], GPIO.HIGH)
+                    if(i<=len(ListLed)-1):
+                        
+                        GPIO.output(ListLed[i], GPIO.LOW)
+                    
             time.sleep(0.3)
