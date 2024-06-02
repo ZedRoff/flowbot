@@ -1,1 +1,1 @@
-cd back && python server.py
+cd back && python server.py && cd ../
