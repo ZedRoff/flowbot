@@ -1,0 +1,47 @@
+.timetable {
+    width: 100%;
+    margin-top: 50px;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: 40px repeat(7, 1fr);
+    grid-auto-rows: 40px;
+    gap: 2px;
+  }
+  
+  .element {
+    background-color: #007bff;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+  
+  .day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    font-weight: bold;
+    border-radius: 5px;
+  }
+  
+  .time-column {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .time-slot {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #ccc;
+  }
+  
+  /* Correction de la répartition des heures */
+  .time-column {
+    grid-row: 1 / span 24;
+  }
+  

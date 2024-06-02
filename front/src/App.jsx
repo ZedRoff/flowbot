@@ -5,6 +5,7 @@ import Homepage from './Homepage';
 import axios from 'axios';
 import config from "../../config.json";
 import { useEffect, useState } from 'react';
+import Timetable from './Timetable';
 
 const App = () => {
     const [hasFinishedStarter, setHasFinishedStarter] = useState(false);
@@ -34,6 +35,7 @@ const App = () => {
                     element={hasFinishedStarter ? <Homepage /> : <Navigate to="/" />} 
                 />
                 <Route path="/test" element={<Test />} />
+                <Route path="/timetable" element={<Timetable />} />
             </Routes>
         </Router>
     );
