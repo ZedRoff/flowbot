@@ -14,7 +14,8 @@ const Homepage = () => {
     const [loading, setLoading] = useState(true);
     const [phoneConnected, setPhoneConnected] = useState(false);
     const [musicInfo, setMusicInfo] = useState({});
-
+    const [time, setTime] = useState(0);
+  
     const cards = [
         {
             type: "weather",
@@ -26,18 +27,44 @@ const Homepage = () => {
            
         }, {
             type: "timetable"
-        }, {}, {}
+        }, {
+            type: "chronometre"
+        }, {}
     ]; 
-
+    const fetchDays = async() => {
+        axios({
+            method: 'get',
+            url: `http://${config.URL}:5000/api/getDays`,
+        }).then((response) => {
+            for(let i = 0; i < response.data.result.length; i++) {
+                let d = {};
+                d["name"] = response.data.result[i][0];
+                d["day"] = corr[response.data.result[i][1]];
+                d["startTime"] = parseInt(response.data.result[i][2]);
+                d["endTime"] = parseInt(response.data.result[i][3]);
+            
+                const id = Date.now(); 
+                setElements((els) => [...els, {...d, i}]);
+           
+            }
+        });
+    }
+    const updateTime = async() => {
+        const r3 = await axios.get(`http://${config.URL}:5000/api/getTemps`);
+                setTime(r3.data.temps);
+    }
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 const r1 = await axios.get(`http://${config.URL}:5000/api/getCity`);
                 const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
+                updateTime()
                 setWeather(r2.data.result);
                 console.log(r2.data.result);
+                fetchDays()
                 setLoading(false); 
+
             } catch (error) {
                 console.error("Erreur lors de la récupération des données météorologiques:", error);
             }
@@ -54,7 +81,7 @@ const Homepage = () => {
         socket.on('disconnect', () => {
             console.log('Disconnected from WebSocket server');
         });
-
+      
         socket.on('message', (message) => {
 
           
@@ -74,11 +101,15 @@ const Homepage = () => {
             } else if(type == "music_update") {
                 setMusicInfo(message);
                 console.log("Music updated: ", message);
-            }
+            } else if(type == 'timetable_update') {
+                console.log("ooooooofffffffffffff")
+                fetchDays()
+            } 
             console.log('Message received: ' + message);
         });
 
         fetchData(); // Appel initial
+        
         return () => {
             socket.disconnect();
         };
@@ -87,11 +118,33 @@ const Homepage = () => {
     const handleSliderChange = (event) => {
         setCurrentIndex(Number(event.target.value));
     };
+    useEffect(() => {
+        setInterval(() => {
+            updateTime()
+        }, 1000)
+    }, [])
+ 
     const timeConvert = (n) => {
-        // format into Minutes:Seconds
+      
         var num = n;
         var minutes = Math.floor(num / 60);
         var seconds = Math.floor(num % 60);
+        if(seconds < 10) {
+            seconds = "0" + seconds;
+        }
+        if(minutes < 10) {
+            minutes = "0" + minutes;
+        }
+        if(minutes == 0) {
+            minutes = "00";
+        }
+        if(seconds == 0) {
+            seconds = "00";
+        }
+        if(isNaN(minutes) || isNaN(seconds)) {
+            return "00:00";
+        }
+
         return minutes + ":" + seconds;
 
       
@@ -101,30 +154,32 @@ const Homepage = () => {
 
 
     const [elements, setElements] = useState([]);
-    const [newElement, setNewElement] = useState({
-      name: "",
-      day: 0,
-      startTime: 0,
-      endTime: 0
-    });
+    
   
-    const addElement = () => {
-      const id = Date.now(); 
-      setElements([...elements, { ...newElement, id }]);
-      setNewElement({
-        name: "",
-        day: 0,
-        startTime: 0,
-        endTime: 0
-      });
-    };
+ 
   
     const timeSlots = Array.from(Array(24).keys());
   
     const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    let corr = {
+        "Lundi": 0,
+        "Mardi": 1,
+        "Mercredi": 2,
+        "Jeudi": 3,
+        "Vendredi": 4,
+        "Samedi": 5,
+        "Dimanche": 6
+        
+    }
+
+  
+   
+   
+  
   
 
-
+    
+  
 
 
 
@@ -181,6 +236,14 @@ const Homepage = () => {
                                             </div>
                                         </div>
                                     ) : (
+                                       
+
+                                            
+
+
+
+
+
                                         card.type === "music" ? (
                                             <div className="music-card">
                                             <img src={musicInfo.image ? musicInfo.image : "https://via.placeholder.com/300x150"} alt="Album Cover" />
@@ -201,39 +264,7 @@ const Homepage = () => {
                                         ) : (
                                             card.type === "timetable" ? (
 <div className="timetable">
-      <div className="add-element">
-        <input
-          type="text"
-          placeholder="Nom"
-          value={newElement.name}
-          onChange={(e) => setNewElement({ ...newElement, name: e.target.value })}
-        />
-        <select
-          value={newElement.day}
-          onChange={(e) => setNewElement({ ...newElement, day: parseInt(e.target.value) })}
-        >
-          {daysOfWeek.map((day, index) => (
-            <option key={index} value={index}>{day}</option>
-          ))}
-        </select>
-        <select
-          value={newElement.startTime}
-          onChange={(e) => setNewElement({ ...newElement, startTime: parseInt(e.target.value) })}
-        >
-          {timeSlots.map((time) => (
-            <option key={time} value={time}>{time}:00</option>
-          ))}
-        </select>
-        <select
-          value={newElement.endTime}
-          onChange={(e) => setNewElement({ ...newElement, endTime: parseInt(e.target.value) })}
-        >
-          {timeSlots.map((time) => (
-            <option key={time} value={time}>{time}:00</option>
-          ))}
-        </select>
-        <button onClick={addElement}>Ajouter</button>
-      </div>
+    
       <div className="grid">
       
         <div className="time-column">
@@ -251,23 +282,41 @@ const Homepage = () => {
         ))}
       
         {elements.map(element => (
+        
           <div
-            key={element.id}
+            key={element?.id}
             className="element"
             style={{
-              gridRowStart: element.startTime + 2,
-              gridRowEnd: element.endTime + 2,
-              gridColumn: element.day + 2,
+              gridRowStart: element?.startTime + 2,
+              gridRowEnd: element?.endTime + 2,
+              gridColumn: element?.day + 2,
             }}
           >
-            {element.name}
-            <div>{element.startTime}:00 - {element.endTime}:00</div>
+          {console.log(element)}
+            {element?.name}
+            <div>{element?.startTime}:00 - {element?.endTime}:00</div>
           </div>
         ))}
       </div>
     </div>
-                                            ): (
-                                        <div className="blank-card">Blank Card</div>))
+                                            ) : (
+
+
+
+                                                card.type === "chronometre" ? (
+                                                    <div className="stopwatch" style={{width: "100%"}}>
+                                                    <div className="display">{timeConvert(time)}</div>
+                                                   
+                                                  </div>
+                                                ) : (
+                                                    
+
+
+                                        <div className="blank-card">Blank Card</div>
+                                    )
+                                )
+                                    
+                                    )
                                     )}
                                 </div>
                             ))}

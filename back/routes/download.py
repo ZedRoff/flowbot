@@ -7,8 +7,10 @@ bp = Blueprint('download', __name__)
 @bp.route('/api/download', methods=['POST'])
 def download_file():
     if request.method == 'POST':
+        print(request.files)
         if 'file' not in request.files:
             return 'No file part'
+        
 
         file = request.files['file']
         if file.filename == '':
@@ -16,6 +18,7 @@ def download_file():
         print(file.name)
         filename = os.path.join('uploads', file.filename)
         file.save(filename)
+     
         return 'File uploaded successfully'
 
     return jsonify({'message': 'ok'})

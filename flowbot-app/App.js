@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform } from 'react-native';
 import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faUser, faMars, faVenus, faVoicemail, faX } from '@fortawesome/free-solid-svg-icons';
 import Slider from '@react-native-community/slider';
+import * as DocumentPicker from 'expo-document-picker';
+import RNPickerSelect from 'react-native-picker-select'
+import * as FileSystem from 'expo-file-system';
 const App = () => {
   const [hasFinishedStarter, setHasFinishedStarter] = useState(false);
   const [processFinished, setProcessFinished] = useState(false);
@@ -204,17 +207,198 @@ const handleChangeVolume = (value) => {
 }
 
 
+const [showFichiers, setShowFichiers] = useState(false);
+
+const [fileInfo, setFileInfo] = useState(null);
+const [fileContent, setFileContent] = useState('');
+
+const [file, setFile] = useState(null);
+const [showChronometre, setShowChronometre] = useState(false);
+  
 
 
+const pickFile = async () => {
+
+  try {
+    let result = await DocumentPicker.getDocumentAsync();
+    setFile(result);
+    
+  } catch (err) {
+    console.error("Error picking document: ", err);
+  }
+};
+
+
+const uploadFile = async () => {
+  try {
+    const formData = new FormData();
+ 
+    formData.append('file',{
+      uri: file["assets"][0]["uri"],
+      name: file["assets"][0]["name"],
+      type: file["assets"][0]["mimeType"] || 'application/octet-stream',
+    });
+
+
+    await axios.post(`http://${config.URL}:5000/api/download`, formData);
+   alert("Fichier téléchargé avec succès")
+  } catch (error) {
+    console.log(error)
+    alert("Erreur lors du téléchargement du fichier")
+  }
+};
+
+const [showTimeTable, setShowTimeTable] = useState(false);
+let [nomDay, setNomDay] = useState("");
+let [from, setFrom] = useState("");
+let [to, setTo] = useState("");
+let [day, setDay] = useState("");
+
+const handleAddDay = () => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addDays`,
+    data: {
+      name: nomDay,
+      day: day,
+      f: from,
+      t: to,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Day added successfully");
+      setShowTimeTable(false);
+    }
+  }
+  )
+}
+const handleStartChronometre = () => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/startChronometre`,
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Chronometre started successfully");
+
+    }
+  }
+  )
+}
+const handleStopChronometre = () => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/stopChronometre`,
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Chronometre stopped successfully");
+
+    }
+  }
+  )
+}
+const handlePauseChronometre = () => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/pauseChronometre`,
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Chronometre paused successfully");
+
+    }
+  }
+  )
+}
+const handleResumeChronometre = () => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/continueChronometre`,
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Chronometre resumed successfully");
+
+    }
+  }
+  )
+}
+
+
+  
   return (
-    hasFinishedStarter || processFinished ? (
+
+
+    <SafeAreaView style={styles.container}>
+    {Platform.OS === 'ios' && <View style={styles.banner}></View>} 
+
+
+
+    {hasFinishedStarter || processFinished ? (
       <View style={styles.container}>
+        
         <Button title="Météo" onPress={() => {
            setShowMeteo(true);
+           setShowMusique(false);
+            setShowFichiers(false);
+            setShowTimeTable(false)
+            
+          setShowChronometre(false)
+
         }} />
  <Button title="Musique" onPress={() => {
            setShowMusique(true);
+            setShowMeteo(false);
+            setShowFichiers(false);
+            setShowTimeTable(false)
+            
+          setShowChronometre(false)
+
         }} />
+        <Button title="Fichiers" onPress={() => {
+          setShowFichiers(true);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowTimeTable(false)
+          
+          setShowChronometre(false)
+        }} />
+        <Button title="Emploi du temps" onPress={() => {
+          setShowTimeTable(true);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowFichiers(false);
+          setShowChronometre(false)
+        }} />
+
+        <Button title="Chronometre" onPress={() => {
+          setShowFichiers(false);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowTimeTable(false);
+          setShowChronometre(true);
+        }
+        } />
+
+        {showChronometre && (
+          <View style={styles.popupContainer}>
+            <View style={styles.popupHeader}>
+              <Text style={styles.headerText}>Chronomètre</Text>
+              <Pressable onPress={() => setShowChronometre(false)}>
+                <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+              </Pressable>
+            </View>
+
+
+            <View style={styles.popupMain}>
+           <Button title="Start" onPress={handleStartChronometre} />
+            <Button title="Stop" onPress={handleStopChronometre} />
+            <Button title="Pause" onPress={handlePauseChronometre} />
+            <Button title="Reprendre" onPress={handleResumeChronometre} />
+       
+</View>
+
+
+            </View>
+        )}
+
         {showMeteo && ( 
           <View style={styles.popupContainer}>
             <View style={styles.popupHeader}>
@@ -271,6 +455,72 @@ const handleChangeVolume = (value) => {
             </View>
           </View>
         )}
+        {showTimeTable && ( 
+          <View style={styles.popupContainer}>
+            <View style={styles.popupHeader}>
+              <Text style={styles.headerText}>Emploi du temps</Text>
+              <Pressable onPress={() => setShowTimeTable(false)}>
+                <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+              </Pressable>
+            </View>
+
+            <View style={styles.popupMain}>
+            <Text style={styles.labelText}>Nom</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Exemple : Coder un truc cool"
+                value={nomDay}
+                onChangeText={setNomDay}
+              />
+              <Text style={styles.labelText}>Jour</Text>
+              <RNPickerSelect
+                onValueChange={(value) => setDay(value)}
+                items={[
+                  { label: 'Lundi', value: 'Lundi' },
+                  { label: 'Mardi', value: 'Mardi' },
+                  { label: 'Mercredi', value: 'Mercredi' },
+                  { label: 'Jeudi', value: 'Jeudi' },
+                  { label: 'Vendredi', value: 'Vendredi' },
+                  { label: 'Samedi', value: 'Samedi' },
+                  { label: 'Dimanche', value: 'Dimanche' },
+                ]}
+              />
+              <Text style={styles.labelText}>De</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Exemple : 14"
+                value={from}
+                onChangeText={setFrom}
+              />
+              <Text style={styles.labelText}>À</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Exemple : 15"
+                value={to}
+                onChangeText={setTo}  
+              />
+              <Button title="Ajouter" onPress={handleAddDay} />
+              
+            </View>
+          </View>
+        
+        )}
+{showFichiers && (
+     <View style={styles.popupContainer}>
+     <View style={styles.popupHeader}>
+       <Text style={styles.headerText}>Sélectionner un fichier</Text>
+       <Pressable onPress={() => setShowFichiers(false)}>
+         <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+       </Pressable>
+     </View>
+     <View style={styles.popupMain}>
+     <Button title="Pick File" onPress={pickFile} />
+      {file && <Button title="Upload File" onPress={uploadFile} />}
+          </View>
+      
+     </View>
+    )}
+
       </View>
     ) : (
 
@@ -322,6 +572,8 @@ const handleChangeVolume = (value) => {
 
       
     )
+  }
+</SafeAreaView>
   );
 };
 
