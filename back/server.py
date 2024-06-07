@@ -138,6 +138,7 @@ con.commit()
 
 cur.execute('''
  CREATE TABLE IF NOT EXISTS days(
+            id TEXT PRIMARY KEY,
             name TEXT,
             day TEXT,
             f TEXT,
@@ -217,11 +218,7 @@ if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
 
-res_test = cur.execute("SELECT * FROM days").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO days VALUES (?, ?, ?, ?)", ("Faire a manger", "Lundi", "10", "12"))
-    cur.execute("INSERT INTO days VALUES (?, ?, ?, ?)", ("Faire a manger", "Mardi", "12", "14"))
-    con.commit()
+
 
 
 # Réinitialiser les valeurs à chaque lancement

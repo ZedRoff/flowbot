@@ -223,3 +223,32 @@ footer {
     background-color: #00b0cc;
   }
   
+
+  .train {
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .departure {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+  }
+  
+  .departure div {
+    flex: 1;
+  }
+  
+  .train-icon {
+    color: #000;
+    margin-right: 10px;
+  }
+  
+  .rer-a-logo {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+  }
