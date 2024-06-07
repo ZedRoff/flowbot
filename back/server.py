@@ -134,6 +134,19 @@ cur.execute('''
             ''')
 con.commit()
 
+
+
+cur.execute('''
+ CREATE TABLE IF NOT EXISTS days(
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            day TEXT,
+            f TEXT,
+            t TEXT
+ )
+            ''')
+con.commit()
+
 # Vérifier si les tables sont vides, si oui, insérer les valeurs par défaut
 res_test = cur.execute("SELECT * FROM positions").fetchone()
 if res_test is None:
@@ -204,6 +217,8 @@ res_test = cur.execute("SELECT * FROM city").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
+
+
 
 
 # Réinitialiser les valeurs à chaque lancement

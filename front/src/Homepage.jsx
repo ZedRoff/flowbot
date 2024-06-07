@@ -7,14 +7,28 @@ import icon from "./images/flo.png";
 import icon2 from "./images/sunny-day.png";
 import config from "../../config.json";
 import axios from 'axios';
+
 import './Timetable.css';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import 'pdfjs-dist/web/pdf_viewer.css';
+import { useRef } from 'react';
+import image from "./images/rerA.png"
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+
 const Homepage = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [weather, setWeather] = useState({});
     const [loading, setLoading] = useState(true);
     const [phoneConnected, setPhoneConnected] = useState(false);
     const [musicInfo, setMusicInfo] = useState({});
+    const [time, setTime] = useState(0);
+    const [minuteur, setMinuteur] = useState(0);
+    const [getC, setGetC] = useState(false);
+    const [pageC, setPageC] = useState(1);
 
+  
     const cards = [
         {
             type: "weather",
@@ -26,9 +40,44 @@ const Homepage = () => {
            
         }, {
             type: "timetable"
-        }, {}, {}
+        }, {
+            type: "chronometre"
+        }, {
+            type: "pdf"
+        },
+        {
+            type: "train"
+        }
     ]; 
-
+    const fetchDays = async() => {
+        axios({
+            method: 'get',
+            url: `http://${config.URL}:5000/api/getDays`,
+        }).then((response) => {
+            setElements([])
+            for(let i = 0; i < response.data.result.length; i++) {
+                let d = {};
+                d["id"] = response.data.result[i][0];
+                d["name"] = response.data.result[i][1];
+                d["day"] = corr[response.data.result[i][2]];
+                d["startTime"] = parseInt(response.data.result[i][3]);
+                d["endTime"] = parseInt(response.data.result[i][4]);
+            
+                setElements((els) => [...els, d]);
+           
+            }
+        });
+    }
+    const updateTime = async() => {
+        const r3 = await axios.get(`http://${config.URL}:5000/api/getTemps`);
+        
+                setTime(r3.data.temps);
+    }
+    const updateMinuteur = async() => {
+        const r4 = await axios.get(`http://${config.URL}:5000/api/getMinuteur`);
+        setMinuteur(r4.data.temps);
+    
+    }
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -36,8 +85,9 @@ const Homepage = () => {
                 const r1 = await axios.get(`http://${config.URL}:5000/api/getCity`);
                 const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
                 setWeather(r2.data.result);
-                console.log(r2.data.result);
+                fetchDays()
                 setLoading(false); 
+
             } catch (error) {
                 console.error("Erreur lors de la récupération des données météorologiques:", error);
             }
@@ -54,7 +104,7 @@ const Homepage = () => {
         socket.on('disconnect', () => {
             console.log('Disconnected from WebSocket server');
         });
-
+      
         socket.on('message', (message) => {
 
           
@@ -74,24 +124,62 @@ const Homepage = () => {
             } else if(type == "music_update") {
                 setMusicInfo(message);
                 console.log("Music updated: ", message);
+            } else if(type == 'timetable_update') {
+                fetchDays()
+            } else if(type == 'files_update') {
+                fetchPDFs()
+
             }
             console.log('Message received: ' + message);
         });
 
         fetchData(); // Appel initial
+        
         return () => {
             socket.disconnect();
         };
     }, []);
 
     const handleSliderChange = (event) => {
+        if (Number(event.target.value) === 3) {
+            setGetC(true);
+        } else {
+            setGetC(false);
+        }
         setCurrentIndex(Number(event.target.value));
     };
+    
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (getC) {
+                updateTime();
+                updateMinuteur();
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [getC]); // Mettre getC dans les dépendances de useEffect
+ 
     const timeConvert = (n) => {
-        // format into Minutes:Seconds
+      
         var num = n;
         var minutes = Math.floor(num / 60);
         var seconds = Math.floor(num % 60);
+        if(seconds < 10) {
+            seconds = "0" + seconds;
+        }
+        if(minutes < 10) {
+            minutes = "0" + minutes;
+        }
+        if(minutes == 0) {
+            minutes = "00";
+        }
+        if(seconds == 0) {
+            seconds = "00";
+        }
+        if(isNaN(minutes) || isNaN(seconds)) {
+            return "00:00";
+        }
+
         return minutes + ":" + seconds;
 
       
@@ -101,32 +189,117 @@ const Homepage = () => {
 
 
     const [elements, setElements] = useState([]);
-    const [newElement, setNewElement] = useState({
-      name: "",
-      day: 0,
-      startTime: 0,
-      endTime: 0
-    });
+    
   
-    const addElement = () => {
-      const id = Date.now(); 
-      setElements([...elements, { ...newElement, id }]);
-      setNewElement({
-        name: "",
-        day: 0,
-        startTime: 0,
-        endTime: 0
-      });
-    };
+ 
   
     const timeSlots = Array.from(Array(24).keys());
   
     const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-  
+    let corr = {
+        "Lundi": 0,
+        "Mardi": 1,
+        "Mercredi": 2,
+        "Jeudi": 3,
+        "Vendredi": 4,
+        "Samedi": 5,
+        "Dimanche": 6
+        
+    }
+    const [pdf, setPdf] = useState(null);
+    const canvasRef = useRef(null);
+    const [pdfName, setPdfName] = useState('');
+
+    const fetchPdf = async () => {
+        try {
+
+
+            axios({
+                method: 'post',
+                url: `http://${config.URL}:5000/api/processPDF`,
+                responseType: 'blob',
+                data: {
+                    pdf_name: pdfName
+                }
+             
+            }).then(async(response) => {
+                setPageC(1);
+                const blob = response.data;
+                const url = URL.createObjectURL(blob);
+    console.log(url)
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdfDoc = await loadingTask.promise;
+                setPdf(pdfDoc);
+            })
+           
+        } catch (error) {
+            console.error('Error fetching PDF:', error);
+        }
+    };
 
 
 
+    useEffect(() => {
+        if (pdf) {
+            renderPage(pageC);
+        }
+    }, [pdf, pageC]); 
 
+    const renderPage = async (pageNum) => {
+       
+        if (!pdf) return;
+
+        const page = await pdf.getPage(pageNum);
+        const scale = 1;
+        const viewport = page.getViewport({ scale });
+
+        const canvas = canvasRef.current;
+        const context = canvas?.getContext('2d');
+        canvas.height = viewport?.height;
+        canvas.width = viewport?.width;
+
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+        };
+
+        await page.render(renderContext).promise;
+    };
+const [pdfs, setPdfs] = useState([]);
+    const fetchPDFs = async() => {
+        axios({
+            method: 'get',
+            url: `http://${config.URL}:5000/api/getPDFs`,
+        }).then((response) => {
+            setPdfs(response.data.pdf_files);
+        
+            if (response.data.pdf_files.length > 0) {
+               
+                setPdfName(response.data.pdf_files[0]); 
+            }
+        });
+    }
+    const [train, setTrain] = useState([]);
+const [typeTrain, setTypeTrain] = useState("departures");
+
+    const fetchTrain = async() => {
+        axios({
+            method: 'get',
+            url: `http://${config.URL}:5000/api/getTrain`,
+        }).then((response) => {
+            if(response.data.result == "success") {
+                setTrain(response.data.departures);
+                setTypeTrain(response.data.type)
+            }
+          
+        });
+    }
+
+
+    useEffect(() => {
+        fetchPDFs();
+        fetchTrain();
+    }, []);
 
 
     return (
@@ -181,6 +354,14 @@ const Homepage = () => {
                                             </div>
                                         </div>
                                     ) : (
+                                       
+
+                                            
+
+
+
+
+
                                         card.type === "music" ? (
                                             <div className="music-card">
                                             <img src={musicInfo.image ? musicInfo.image : "https://via.placeholder.com/300x150"} alt="Album Cover" />
@@ -201,39 +382,7 @@ const Homepage = () => {
                                         ) : (
                                             card.type === "timetable" ? (
 <div className="timetable">
-      <div className="add-element">
-        <input
-          type="text"
-          placeholder="Nom"
-          value={newElement.name}
-          onChange={(e) => setNewElement({ ...newElement, name: e.target.value })}
-        />
-        <select
-          value={newElement.day}
-          onChange={(e) => setNewElement({ ...newElement, day: parseInt(e.target.value) })}
-        >
-          {daysOfWeek.map((day, index) => (
-            <option key={index} value={index}>{day}</option>
-          ))}
-        </select>
-        <select
-          value={newElement.startTime}
-          onChange={(e) => setNewElement({ ...newElement, startTime: parseInt(e.target.value) })}
-        >
-          {timeSlots.map((time) => (
-            <option key={time} value={time}>{time}:00</option>
-          ))}
-        </select>
-        <select
-          value={newElement.endTime}
-          onChange={(e) => setNewElement({ ...newElement, endTime: parseInt(e.target.value) })}
-        >
-          {timeSlots.map((time) => (
-            <option key={time} value={time}>{time}:00</option>
-          ))}
-        </select>
-        <button onClick={addElement}>Ajouter</button>
-      </div>
+    
       <div className="grid">
       
         <div className="time-column">
@@ -251,23 +400,76 @@ const Homepage = () => {
         ))}
       
         {elements.map(element => (
+        
           <div
-            key={element.id}
+            key={element?.id}
             className="element"
             style={{
-              gridRowStart: element.startTime + 2,
-              gridRowEnd: element.endTime + 2,
-              gridColumn: element.day + 2,
+              gridRowStart: element?.startTime + 2,
+              gridRowEnd: element?.endTime + 2,
+              gridColumn: element?.day + 2,
             }}
           >
-            {element.name}
-            <div>{element.startTime}:00 - {element.endTime}:00</div>
+            {element?.name}
+            <div>{element?.startTime}:00 - {element?.endTime}:00</div>
           </div>
         ))}
       </div>
     </div>
-                                            ): (
-                                        <div className="blank-card">Blank Card</div>))
+                                            ) : (
+
+
+
+                                                card.type === "chronometre" ? (
+                                                    <div className="stopwatch" style={{width: "100%"}}>
+                                                    <div className="display">{timeConvert(time)}</div>
+                                                    <div className="display">{timeConvert(minuteur)}</div>
+                                                   
+                                                  </div>
+                                                ) : (
+
+                                                    card.type === "pdf" ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
+            <select onChange={(e) => setPdfName(e.target.value)} style={{ margin: '10px' }} value={pdfName}>
+                {pdfs.map((pdf, index) => (
+                    <option key={index} value={pdf}>{pdf}</option>
+                ))}
+            </select>
+            <button onClick={fetchPdf} style={{ margin: '10px' }}>Charger le PDF</button>
+                                                   
+            <button onClick={() => setPageC((prev) => Math.max(prev - 1, 1))} style={{ margin: '10px' }}>Page précédente</button>
+            <button onClick={() => setPageC((prev) => (pdf && prev < pdf.numPages) ? prev + 1 : prev)} style={{ margin: '10px' }}>Page suivante</button>
+           
+                                                        <canvas ref={canvasRef} style={{ border: '1px solid black' }}></canvas>
+                                                    </div>
+
+
+
+
+
+                                                     
+                                                    ) : (
+                                                    card.type === "train" ? (
+                                                        <div className="train">
+                                                        <h2>Prochains départs du <i className="fas fa-train train-icon"></i> RER A <img src={image} alt="RER A Logo" className="rer-a-logo" /></h2>
+                                                        {train.map((departure, index) => (
+                                                          <div key={index} className="departure">
+                                                            <div>{departure.destination}</div>
+                                                           {console.log(departure.departure_time)}
+                                                            <div>Dans : {Math.floor( (new Date(departure.departure_time) - new Date()) / (1000*60))} minutes </div>
+                                                          </div>
+                                                        ))}
+                                                      </div>
+
+                                                    ) : (
+
+                                        <div className="blank-card">Blank Card</div>
+                                                    )
+                                                )
+                                    )
+                                )
+                                    
+                                    )
                                     )}
                                 </div>
                             ))}
