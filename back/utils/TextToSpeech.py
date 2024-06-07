@@ -1,21 +1,30 @@
-import pyttsx3
+import asyncio
+import edge_tts
+import vlc
 import requests
 import json
 import threading
 import sqlite3
+
+
 db = sqlite3.connect("./db/database.db", check_same_thread=False)
 
-engine = pyttsx3.init()
-voices = engine.getProperty('voices')
+VOICES = [ 'fr-FR-DeniseNeural','fr-FR-RemyMultilingualNeural','fr-FR-HenriNeural']
+VOICE = VOICES[2]
 
-engine.setProperty('voice', voices[0].id)
- 
-engine.setProperty('rate', 150)  
-engine.setProperty('volume', 0.8)  
+
 def get_config_value(key):
     with open("../config.json") as f:
         config = json.load(f)
     return config.get(key)
+
+
+async def amain(textToSpeak):
+    communicate = edge_tts.Communicate(text, VOICE)
+    await communicate.save("temp.mp3")
+    
+
+
 def sayInstruction(textToSay):
     thread = threading.Thread(target=saySomeWordInThread, args=(textToSay,))
     thread.start()
@@ -27,13 +36,17 @@ def setSound(value):
 def saySomeWordInThread(string):
     try:
         #setSound(self.CommandMaker.currentVolGeneral)
+        loop = asyncio.get_event_loop_policy().get_event_loop()
+        try:
+            loop.run_until_complete(amain(textToSpeak))
+        finally:
+            loop.close()
+            
+        p = vlc.MediaPlayer("temp.mp3")
+        p.play()
         setVolumeMusic(-0.6)
         requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string, "command": "command_usage"})
 
-        engine.say(string)
-        engine.startLoop(False)
-        
-        engine.iterate()
         setVolumeMusic(+0.6)
         engine.endLoop()   
     except RuntimeError:

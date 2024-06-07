@@ -35,7 +35,7 @@ def getInt(num):
 def action(doubleAction):
     if( not doubleAction):
         print("action 0") #Add function
-    elif (doubleAction): 
+    elif (doubleAction == 1): 
         print("action 1") #Add function
     elif(doubleAction == 2): 
         print("action 3") #Add function
@@ -79,17 +79,17 @@ def run():
                 timePast=0
                 prevVal = True
                 stopTime = False
-                if(actionCounter == 3):
+                if(actionCounter == 4):
                     actionCounter = 0
                 action(actionCounter) #Action function
         elif(not stopTime): #timming (if you want, add a held-up button)
             prevVal = False
-            if(timePast > 0.5):
+            if(timePast > 1):
                 actionCounter = 0
                 stopTime = True
                 timePast = 0.0
             else :
-                timePast+= 0.1
+                timePast+= 0.001
 
         if(GPIO.input(16)): #Boutton mollette
             if(not prevValMol):
@@ -101,6 +101,7 @@ def run():
             prevValMol = False
             if(timePast2 > 0.5):
                 stopTime2 = True
-                timePast2 = 0.0
+                timePast2 = 0.00
             else :
-                timePast2+= 0.1
+                timePast2+= 0.001
+run()
