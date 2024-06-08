@@ -16,7 +16,7 @@ def run_molette():
           time.sleep(0.001)
           if not GPIO.input(13) and GPIO.input(15):
                emit('message', {'message': 'GAUCHE', 'from': 'back', 'type': 'molette'}, broadcast=True, namespace='/')
-            
+               print("GAUCHE")
                time.sleep(0.5)
           elif not GPIO.input(15) and GPIO.input(13):
                emit('message', {'message': 'GAUCHE', 'from': 'back', 'type': 'molette'}, broadcast=True, namespace='/')
