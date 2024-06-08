@@ -1,14 +1,16 @@
 import os
 import json
 from flask import Flask
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import sqlite3
 from dotenv import dotenv_values
 from flask import request
+import RPi.GPIO as GPIO
+import time
+from threading import Thread
+ 
 
-import Molette
-import threading
 
 # Charger les configurations depuis .env
 config = dotenv_values(".env")
@@ -311,12 +313,62 @@ def handle_message(message):
 
     
 
+#Setup port name
+GPIO.setmode(GPIO.BOARD)
+ 
+#Setup port (pull down = btn)
+GPIO.setup(11,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(13,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(15,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(36,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+
+
+molette_appuyer = False
+action_appuyer = False
+
+def run_molette():
+     
+     while(True):
+          time.sleep(0.001)
+          if not GPIO.input(13) and GPIO.input(15):
+               emit("message", {"message": "GAUCHE", "from": "back", "type": "molette" }, namespace="/")
+               time.sleep(0.5)
+          elif not GPIO.input(15) and GPIO.input(13):
+               emit("message", {"message": "DROITE", "from": "back", "type": "molette" }, namespace="/")
+               time.sleep(0.5)
+def run_bouttons():
+     global molette_appuyer, action_appuyer
+     while(True):
+          time.sleep(0.1)
+          if GPIO.input(36) and not molette_appuyer:
+               emit("message", {"message": "APPUI", "from": "back", "type": "bouton_molette" }, namespace="/")
+               molette_appuyer = True
+          elif not GPIO.input(36) and molette_appuyer:
+               emit("message", {"message": "RELACHE", "from": "back", "type": "bouton_molette" }, namespace="/")
+               molette_appuyer = False
+          if GPIO.input(11) and not action_appuyer:
+               emit("message", {"message": "APPUI", "from": "back", "type": "bouton_action" }, namespace="/")
+               action_appuyer = True
+          elif not GPIO.input(11) and action_appuyer:
+               emit("message", {"message": "RELACHE", "from": "back", "type": "bouton_action" }, namespace="/")
+               
+               action_appuyer = False
+
+
+
+
+
+
+
 
 
 
 if __name__ == '__main__':
+    t1 = Thread(target=run_molette)
+    t2 = Thread(target=run_bouttons)
+    t1.start()
+    t2.start()
+
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
 
-    molette_thread = threading.Thread(target=Molette.run_molette)
-    molette_thread.daemon = True  
-    molette_thread.start()
+ 
