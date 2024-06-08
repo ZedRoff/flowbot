@@ -1,3 +1,13 @@
+
+
+
+body {
+overflow: hidden;
+overflow-x: hidden;
+overflow-y: hidden;
+
+}
+
 .header-element {
     color: white;
     font-size: 20px;

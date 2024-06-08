@@ -11,7 +11,7 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(13,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(15,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(16,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(36,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 #Variable time / counter
 actionCounter = 0
 timePast = 0.0
@@ -52,7 +52,7 @@ def run():
     valInt=0
     valInt2=0
     while(True):
-        time.sleep(0.001)
+        time.sleep(0.01)
         if(not GPIO.input(13) or not GPIO.input(15)) : #Encodeur (mollette)
             
             if(not GPIO.input(13) and not GPIO.input(15)) :
@@ -91,7 +91,7 @@ def run():
             else :
                 timePast+= 0.001
 
-        if(GPIO.input(16)): #Boutton mollette
+        if(GPIO.input(36)): #Boutton mollette
             if(not prevValMol):
                 timePast2=0
                 prevValMol = True
