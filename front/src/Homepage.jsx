@@ -129,6 +129,12 @@ const Homepage = () => {
             } else if(type == 'files_update') {
                 fetchPDFs()
 
+            } else if(type == 'molette') {
+                if(msg == "GAUCHE") {
+                    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+
+                } else if(msg == "DROITE") {
+                    setCurrentIndex((prev) => Math.min(prev + 1, cards.length - 1));
             }
             console.log('Message received: ' + message);
         });

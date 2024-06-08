@@ -7,6 +7,9 @@ import sqlite3
 from dotenv import dotenv_values
 from flask import request
 
+import Molette
+import threading
+
 # Charger les configurations depuis .env
 config = dotenv_values(".env")
 
@@ -313,3 +316,7 @@ def handle_message(message):
 
 if __name__ == '__main__':
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
+
+    molette_thread = threading.Thread(target=Molette.run_molette)
+    molette_thread.daemon = True  
+    molette_thread.start()
