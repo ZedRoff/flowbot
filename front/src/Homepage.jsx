@@ -136,7 +136,16 @@ const Homepage = () => {
                 } else if(msg == "DROITE") {
                     setCurrentIndex((prev) => Math.min(prev + 1, cards.length - 1));
             }
+<<<<<<< HEAD
         }
+=======
+        } else if(type == "bouton_action") {
+            if(msg == "APPUI") {
+                alert("appui du bouton")
+            }
+        }
+        console.log(type)
+>>>>>>> a7b398a99350b4cf6c4ae5dc9e193674250b507f
             console.log('Message received: ' + message);
         });
 

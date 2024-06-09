@@ -1,18 +1,14 @@
 import os
 import json
-from flask import Flask
+from flask import Flask, request
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import sqlite3
 from dotenv import dotenv_values
-from flask import request
 import RPi.GPIO as GPIO
 import time
 from threading import Thread
 import requests
-
-import Molette
-import threading
 
 # Charger les configurations depuis .env
 config = dotenv_values(".env")
@@ -141,8 +137,6 @@ cur.execute('''
             ''')
 con.commit()
 
-
-
 cur.execute('''
  CREATE TABLE IF NOT EXISTS days(
             id TEXT PRIMARY KEY,
@@ -225,9 +219,6 @@ if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
 
-
-
-
 # Réinitialiser les valeurs à chaque lancement
 cur.execute("UPDATE musiques SET active = ?", (0,))
 con.commit()
@@ -277,16 +268,12 @@ def handle_disconnect():
     
     for user in connected_users:
         if user["id"] == request.sid:
-            # user["type"] throws a KeyErrror
             if "type" in user:
-
                 socketio.emit('message', {"from": "back", "type": "mobile_status_change", "message": False})
                 connected_users.remove(user)
 
 @socketio.on('message')
 def handle_message(message):
-
-
     who = message["from"]
     msg = message["message"]
    
@@ -308,111 +295,80 @@ def handle_message(message):
         connected_users[len(connected_users)-1]["type"] = "bot"
         socketio.emit('message', {"from": "back", "type": "bot_status_change", "message": True})
     elif who == "mobile" and msg == "music_play":
-       
         socketio.emit("message", {"from": "back", "type": "music_play", "title": message["title"], "duration": message["duration"]})
-    
-
-
- 
-#Setup port name
-GPIO.setmode(GPIO.BOARD)
- 
-#Setup port (pull down = btn)
-GPIO.setup(13,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(15,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-
-    
-
-def run_molette():
-    while True:
-        time.sleep(1)
-        print("trouver")
-        socketio.emit('message', {"from": "mobile", "message": "q", "type": "q"}, namespace='/')
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
- 
-#Setup port (pull down = btn)
-GPIO.setup(11,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(13,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(15,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(36,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 
+#Setup port (pull down = btn)
+GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(36, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 molette_appuyer = False
 action_appuyer = False
 
-def run_molette():
-     
-     while(True):
-          time.sleep(0.001)
-          if not GPIO.input(13) and GPIO.input(15):
-               data = {
-                   "message": "GAUCHE",
-                   "from": "back",
-                   "type": "molette"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               time.sleep(0.5)
-          elif not GPIO.input(15) and GPIO.input(13):
-               data = {
-                   "message": "DROITE",
-                   "from": "back",
-                   "type": "molette"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               time.sleep(0.5)
-def run_bouttons():
-     global molette_appuyer, action_appuyer
-     while(True):
-          time.sleep(0.1)
-          if GPIO.input(36) and not molette_appuyer:
-               print("OOOOOOOOOOOOOOOOOOOOOFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-               data = {
-                   "from": "back",
-                   "message": "APPUI",
-                   "type": "bouton_molette"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               molette_appuyer = True
-          elif not GPIO.input(36) and molette_appuyer:
-               data = {
-                   "message": "RELACHE", 
-                   "from": "back",
-                   "type": "bouton_molette"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               molette_appuyer = False
-          if GPIO.input(11) and not action_appuyer:
-               data = {
-                   "message": "APPUI", 
-                   "type": "bouton_action",
-                   "from": "back"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               action_appuyer = True
-          elif not GPIO.input(11) and action_appuyer:
-               data = {
-                   "from": "back",
-                   "message": "RELACHE",
-                   "type": "bouton_action"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               
-               action_appuyer = False
+def molette_gauche(channel):
+    data = {
+        "message": "GAUCHE",
+        "from": "back",
+        "type": "molette"
+    }
+    requests.post("http://"+host+":5000/api/send_message",json=data)
+    time.sleep(0.5)
 
+def molette_droite(channel):
+    data = {
+        "message": "DROITE",
+        "from": "back",
+        "type": "molette"
+    }
+    requests.post("http://"+host+":5000/api/send_message",json=data)
+    time.sleep(0.5)
 
+def bouton_molette(channel):
+    global molette_appuyer
+    if GPIO.input(36) and not molette_appuyer:
+        data = {
+            "from": "back",
+            "message": "APPUI",
+            "type": "bouton_molette"
+        }
+        requests.post("http://"+host+":5000/api/send_message",json=data)
+        molette_appuyer = True
+    elif not GPIO.input(36) and molette_appuyer:
+        data = {
+            "message": "RELACHE", 
+            "from": "back",
+            "type": "bouton_molette"
+        }
+        requests.post("http://"+host+":5000/api/send_message",json=data)
+        molette_appuyer = False
 
+def bouton_action(channel):
+    global action_appuyer
+    if GPIO.input(11) and not action_appuyer:
+        data = {
+            "message": "APPUI", 
+            "type": "bouton_action",
+            "from": "back"
+        }
+        requests.post("http://"+host+":5000/api/send_message",json=data)
+        action_appuyer = True
+    elif not GPIO.input(11) and action_appuyer:
+        data = {
+            "from": "back",
+            "message": "RELACHE",
+            "type": "bouton_action"
+        }
+        requests.post("http://"+host+":5000/api/send_message",json=data)
+        action_appuyer = False
 
-
-
-
-
-
+GPIO.add_event_detect(13, GPIO.BOTH, callback=molette_gauche, bouncetime=200)
+GPIO.add_event_detect(15, GPIO.BOTH, callback=molette_droite, bouncetime=200)
+GPIO.add_event_detect(36, GPIO.BOTH, callback=bouton_molette, bouncetime=200)
+GPIO.add_event_detect(11, GPIO.BOTH, callback=bouton_action, bouncetime=200)
 
 if __name__ == '__main__':
-    socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
-
-    molette_thread = threading.Thread(target=Molette.run_molette)
-    molette_thread.daemon = True  
-    molette_thread.start()
+    socketio.run(app, host=host, port=5000, debug=True, use_reloader=False, allow_unsafe_werkzeug=True)
