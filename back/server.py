@@ -9,7 +9,9 @@ from flask import request
 
 import Molette
 import threading
-
+import time
+from flask_socketio import emit
+from threading import Thread
 # Charger les configurations depuis .env
 config = dotenv_values(".env")
 
@@ -309,14 +311,27 @@ def handle_message(message):
     
 
 
+ 
+#Setup port name
+GPIO.setmode(GPIO.BOARD)
+ 
+#Setup port (pull down = btn)
+GPIO.setup(13,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(15,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+
     
+
+def run_molette():
+    while True:
+        time.sleep(1)
+        print("trouver")
+        socketio.emit('message', {"from": "mobile", "message": "q", "type": "q"}, namespace='/')
 
 
 
 
 if __name__ == '__main__':
+    Thread(target=run_molette).start()
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
-
-    molette_thread = threading.Thread(target=Molette.run_molette)
-    molette_thread.daemon = True  
-    molette_thread.start()
+    
+    

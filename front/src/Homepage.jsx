@@ -136,6 +136,7 @@ const Homepage = () => {
                 } else if(msg == "DROITE") {
                     setCurrentIndex((prev) => Math.min(prev + 1, cards.length - 1));
             }
+        }
             console.log('Message received: ' + message);
         });
 
