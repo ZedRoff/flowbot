@@ -11,6 +11,49 @@ import RNPickerSelect from 'react-native-picker-select'
 import * as FileSystem from 'expo-file-system';
 import Modal from 'react-native-modal';
 import { Picker } from '@react-native-picker/picker';
+import Draggable from 'react-native-draggable';
+
+
+const Section = ({ data, updateSection, deleteSection, moveSection, index, totalSections }) => {
+  return (
+      <View style={styles.sectionContainer}>
+          <Picker
+              selectedValue={data.type}
+              style={styles.picker}
+              onValueChange={(itemValue) => updateSection(data.id, 'type', itemValue)}
+          >
+              <Picker.Item label="Théorème" value="theoreme" />
+              <Picker.Item label="Définition" value="definition" />
+              <Picker.Item label="Propriété" value="propriete" />
+              <Picker.Item label="Exemple" value="exemple" />
+              <Picker.Item label="Texte" value="texte" />
+          </Picker>
+          <TextInput
+              style={styles.input}
+              value={data.title}
+              onChangeText={(text) => updateSection(data.id, 'title', text)}
+              placeholder="Titre"
+          />
+          <TextInput
+              style={styles.textArea}
+              value={data.content}
+              onChangeText={(text) => updateSection(data.id, 'content', text)}
+              placeholder="Contenu"
+              multiline
+          />
+          <View style={styles.buttonRow}>
+              <Button title="Supprimer" onPress={() => deleteSection(data.id)} />
+              {index > 0 && <Button title="Haut" onPress={() => moveSection(index, index - 1)} />}
+              {index < totalSections - 1 && <Button title="Bas" onPress={() => moveSection(index, index + 1)} />}
+          </View>
+      </View>
+  );
+};
+
+
+
+
+
 const App = () => {
   const [hasFinishedStarter, setHasFinishedStarter] = useState(false);
   const [processFinished, setProcessFinished] = useState(false);
@@ -27,7 +70,23 @@ const [music, setMusic] = useState("");
 const [selectedMinutes, setSelectedMinutes] = useState(0);
   const [selectedSeconds, setSelectedSeconds] = useState(0);
   const [selectedHours, setSelectedHours] = useState(0);
+  const [hierarchy, setHierarchy] = useState([])
+  const [showTabFichiers, setShowTabFichiers] = useState(false);
+const [fichiers, setFichiers] = useState([]);
+const [folder, setFolder] = useState("");
 
+const [isModalVisible, setModalVisible] = useState(false);
+const [folderName, setFolderName] = useState('');
+
+const [showFichiers, setShowFichiers] = useState(false);
+
+const [fileInfo, setFileInfo] = useState(null);
+const [fileContent, setFileContent] = useState('');
+
+const [file, setFile] = useState(null);
+const [showChronometre, setShowChronometre] = useState(false);
+  
+const [showMinuteur, setShowMinuteur] = useState(false);
   const data = [
     { title: "Quel est votre nom ?", type: "text", icon: faUser },
     { title: "Quelle voix préférez-vous ?", type: "radio", options: ["Homme", "Femme"], icon: faVoicemail },
@@ -43,6 +102,9 @@ const [selectedMinutes, setSelectedMinutes] = useState(0);
       }
     });
   }, []);
+
+
+  
 
   useEffect(() => {
     const socket = io(`http://${config.URL}:5000`);
@@ -224,15 +286,6 @@ const handleChangeVolume = (value) => {
 }
 
 
-const [showFichiers, setShowFichiers] = useState(false);
-
-const [fileInfo, setFileInfo] = useState(null);
-const [fileContent, setFileContent] = useState('');
-
-const [file, setFile] = useState(null);
-const [showChronometre, setShowChronometre] = useState(false);
-  
-const [showMinuteur, setShowMinuteur] = useState(false);
 
 const pickFile = async () => {
 
@@ -484,7 +537,7 @@ const handleEditDay = () => {
 const [showEditPPTimeTable, setShowEditPPTimeTable] = useState(false);
 
 
-const [hierarchy, setHierarchy] = useState([])
+
 const fetchHierarchy = async() => {
   axios({
     method: 'get',
@@ -499,12 +552,6 @@ useEffect(() => {
   
 }, [])
 
-const [showTabFichiers, setShowTabFichiers] = useState(false);
-const [fichiers, setFichiers] = useState([]);
-const [folder, setFolder] = useState("");
-
-const [isModalVisible, setModalVisible] = useState(false);
-const [folderName, setFolderName] = useState('');
 
 const handleOpenModal = () => {
   setModalVisible(true);
@@ -547,9 +594,122 @@ const handleSubmit = async () => {
 };
 
 
+const [validatedData, setValidatedData] = useState(null);
 
 
+const [fiche, setFiche] = useState([]);
 
+
+const [ficheMaker, setFicheMaker] = useState(false);
+const [ficheTitle, setFicheTitle] = useState('');
+const [ficheDescription, setFicheDescription] = useState('');
+const addSection = () => {
+  if(fiche.length > 0 && fiche[fiche.length - 1].title === '' && fiche[fiche.length - 1].content === '') {
+    alert("La section précédente ne peut pas être vide");
+    return;
+  }
+  if(fiche.length > 0 && fiche[fiche.length - 1].title === '') {
+    alert("Le titre de la section précédente ne peut pas être vide");
+    return;
+  }
+  if(fiche.length > 0 && fiche[fiche.length - 1].content === '') {
+    alert("Le contenu de la section précédente ne peut pas être vide");
+    return;
+  }
+  if(fiche.length > 0 && fiche[fiche.length - 1].title.length > 50) {
+    alert("Le titre de la section précédente ne peut pas dépasser 50 caractères");
+    return;
+  }
+  if(fiche.length > 0 && fiche[fiche.length - 1].content.length > 500) {
+    alert("Le contenu de la section précédente ne peut pas dépasser 500 caractères");
+    return;
+  }
+  if(fiche.length > 0 && fiche[fiche.length - 1].type === '') {
+    alert("Le type de la section précédente ne peut pas être vide");
+    return;
+  }
+  
+  const newSection = {
+    id: new Date(),
+      type: 'theoreme',
+      title: '',
+      content: ''
+  };
+  setFiche([...fiche, newSection]);
+};
+
+const deleteSection = (id) => {
+  setFiche(fiche.filter(section => section.id !== id));
+};
+
+const updateSection = (id, key, value) => {
+  setFiche(prevFiche => {
+      const updatedFiche = prevFiche.map(section => {
+          if (section.id === id) {
+              return { ...section, [key]: value }; // Effectue une copie profonde de la section modifiée
+          }
+          return section;
+      });
+      return updatedFiche;
+  });
+};
+
+const moveSection = (fromIndex, toIndex) => {
+  const newFiche = [...fiche];
+  const [movedSection] = newFiche.splice(fromIndex, 1);
+  newFiche.splice(toIndex, 0, movedSection);
+  setFiche(newFiche);
+};
+
+const validate = () => {
+  if(ficheTitle === '') {
+    alert("Le titre de la fiche ne peut pas être vide");
+
+    return;
+  }
+  if(ficheDescription === '') {
+    alert("La description de la fiche ne peut pas être vide");
+    return;
+  }
+
+  if(fiche.length === 0) {
+    alert("La fiche ne peut pas être vide");
+return;
+  }
+  if(fiche.some(section => section.title === '' || section.content === '')) {
+    alert("Les sections de la fiche ne peuvent pas être vides");
+    return;
+  }
+  if(fiche.some(section => section.title.length > 50)) {
+    alert("Les titres des sections ne peuvent pas dépasser 50 caractères");
+    return;
+  }
+  if(fiche.some(section => section.content.length > 500)) {
+    alert("Les contenus des sections ne peuvent pas dépasser 500 caractères");
+    return;
+  }
+  if(fiche.some(section => section.type === '')) {
+    alert("Les types des sections ne peuvent pas être vides");
+    return;
+  }
+
+  setValidatedData(fiche);
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/createFiche`,
+    data: {
+      fiche: fiche,
+      ficheTitle: ficheTitle,
+      ficheDescription: ficheDescription,
+    },
+  }).then((res) => {
+    if(res.data.result == "success") {
+      alert("Fiche créee avec succès")
+    } else if(res.data.result == "already") {
+      alert("La fiche existe déjà");
+    }
+  })
+};
 
 
 
@@ -565,7 +725,22 @@ const handleSubmit = async () => {
 
     {hasFinishedStarter || processFinished ? (
       <View style={styles.container}>
-        
+        <Button title="Fiche" onPress={() => {
+          setFicheMaker(true);
+
+          setShowMeteo(false);
+          setShowMusique(false);
+           setShowFichiers(false);
+           setShowTimeTable(false)
+           
+         setShowChronometre(false)
+         
+         setShowMinuteur(false);
+         setShowEditTimeTable(false)
+         
+         setShowEditPPTimeTable(false)
+        }} />
+
         <Button title="Météo" onPress={() => {
            setShowMeteo(true);
            setShowMusique(false);
@@ -573,7 +748,7 @@ const handleSubmit = async () => {
             setShowTimeTable(false)
             
           setShowChronometre(false)
-          
+          setFicheMaker(false);
           setShowMinuteur(false);
           setShowEditTimeTable(false)
           
@@ -584,7 +759,7 @@ const handleSubmit = async () => {
             setShowMeteo(false);
             setShowFichiers(false);
             setShowTimeTable(false)
-            
+            setFicheMaker(false);
           setShowChronometre(false)
           
           setShowMinuteur(false);
@@ -601,7 +776,7 @@ const handleSubmit = async () => {
           setShowTimeTable(false)
           
           setShowChronometre(false)
-          
+          setFicheMaker(false);
           setShowMinuteur(false);
           
           setShowEditTimeTable(false)
@@ -614,7 +789,7 @@ const handleSubmit = async () => {
           setShowMusique(false);
           setShowFichiers(false);
           setShowChronometre(false)
-          
+          setFicheMaker(false);
           setShowMinuteur(false);
           
           setShowEditTimeTable(false)
@@ -626,7 +801,7 @@ const handleSubmit = async () => {
           setShowMusique(false);
           setShowFichiers(false);
           setShowChronometre(false)
-          
+          setFicheMaker(false);
           setShowMinuteur(false);
           
           setShowEditTimeTable(false)
@@ -640,7 +815,7 @@ const handleSubmit = async () => {
           setShowTimeTable(false);
           setShowChronometre(true);
           setShowMinuteur(false);
-          
+          setFicheMaker(false);
           setShowEditTimeTable(false)
           
           setShowEditPPTimeTable(false)
@@ -653,7 +828,7 @@ const handleSubmit = async () => {
           setShowTimeTable(false);
           setShowMinuteur(true);
           setShowChronometre(false);
-          
+          setFicheMaker(false);
           setShowEditTimeTable(false)
           
           setShowEditPPTimeTable(false)
@@ -665,6 +840,49 @@ const handleSubmit = async () => {
 
 
 
+{ficheMaker && (
+  <View style={styles.popupContainer}>
+  <View style={styles.popupHeader}>
+    <Text style={styles.headerText}>Créer une fiche</Text>
+    <Pressable onPress={() => setFicheMaker(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+  </View>
+  <View style={styles.popupMain}>
+  <View style={styles.ficheContainer}>
+    <Text>Titre</Text>
+            <TextInput
+                style={styles.titleInput}
+                value={ficheTitle}
+                onChangeText={setFicheTitle}
+            />
+            <Text>Description</Text>
+              <TextInput
+                style={styles.titleInput}
+                value={ficheDescription}
+                onChangeText={setFicheDescription}
+            />
+            <Button title="Ajouter une section" onPress={addSection} />
+            <ScrollView>
+                {fiche.map((section, index) => (
+                    <Section
+                        key={section.id}
+                        data={section}
+                        updateSection={updateSection}
+                        deleteSection={deleteSection}
+                        moveSection={moveSection}
+                        index={index}
+                        totalSections={fiche.length}
+                    />
+                ))}
+            </ScrollView>
+            <Button title="Ajouter la fiche" onPress={validate} />
+           
+        </View>
+  </View>
+</View>
+
+)}
 
 
 
@@ -1313,6 +1531,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  ficheContainer: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#f5f5f5'
+},
+sectionContainer: {
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: '#ffffff',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd'
+},
+input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5
+},
+textArea: {
+    height: 80,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    textAlignVertical: 'top'
+},
+titleInput: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5
+
+}
   
 });
 

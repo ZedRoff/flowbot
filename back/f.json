@@ -1,0 +1,29 @@
+[
+    {
+        "type": "theoreme",
+        "title": "Théorème de Pythagore",
+        "content": "Dans un triangle rectangle, le carré de l'hypoténuse est égal à la somme des carrés des deux autres côtés."
+
+    },
+    {
+        "type": "definition",
+        "title": "Triangle rectangle",
+        "content": "Un triangle rectangle est un triangle qui possède un angle droit."
+    },
+    {
+        "type": "propriete",
+        "title": "Propriété des triangles rectangles",
+        "content": "Dans un triangle rectangle, l'hypoténuse est le côté opposé à l'angle droit."
+
+    },
+    {
+        "type": "exemple",
+        "title": "Exemple de triangle rectangle",
+        "content": "Dans le triangle ABC rectangle en A, on a AB² + AC² = BC²." 
+    },
+    {
+        "type": "texte",
+        "title": "Historique sur le théorème de Pythagore",
+        "content": "Le théorème de Pythagore est un théorème de géométrie qui énonce que dans un triangle rectangle, le carré de la longueur de l'hypoténuse est égal à la somme des carrés des longueurs des deux autres côtés. Il est souvent formulé ainsi : « Dans un triangle rectangle, le carré de la longueur de l'hypoténuse est égal à la somme des carrés des longueurs des deux autres côtés. »"
+    }
+]

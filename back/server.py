@@ -6,13 +6,14 @@ from flask_cors import CORS
 import sqlite3
 from dotenv import dotenv_values
 from flask import request
-import RPi.GPIO as GPIO
+
 import time
 from threading import Thread
 import requests
 
-import Molette
 import threading
+
+
 
 # Charger les configurations depuis .env
 config = dotenv_values(".env")
@@ -151,6 +152,17 @@ cur.execute('''
             f TEXT,
             t TEXT
  )
+            ''')
+con.commit()
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS fiches(
+            type TEXT,
+            title TEXT,
+            content TEXT,
+            fiche TEXT,
+            description TEXT
+            )
             ''')
 con.commit()
 
@@ -314,20 +326,8 @@ def handle_message(message):
 
 
  
-#Setup port name
-GPIO.setmode(GPIO.BOARD)
- 
-#Setup port (pull down = btn)
-GPIO.setup(13,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(15,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 
-    
-
-def run_molette():
-    while True:
-        time.sleep(1)
-        print("trouver")
-        socketio.emit('message', {"from": "mobile", "message": "q", "type": "q"}, namespace='/')
+'''
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
@@ -407,12 +407,15 @@ def run_bouttons():
 
 
 
-
+'''
 
 
 if __name__ == '__main__':
+    # t1 = threading.Thread(target=run_molette)
+    # t2 = threading.Thread(target=run_bouttons)
+    # t1.start()
+    # t2.start()
+    
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
 
-    molette_thread = threading.Thread(target=Molette.run_molette)
-    molette_thread.daemon = True  
-    molette_thread.start()
+   

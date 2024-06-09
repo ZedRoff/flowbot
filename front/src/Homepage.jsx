@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import { faMapPin, faMicrophoneSlash, faPauseCircle, faPhone, faPlayCircle, faWifi } from "@fortawesome/free-solid-svg-icons";
+import { faMapPin, faMicrophoneSlash, faPauseCircle, faPhone, faPlayCircle, faWifi, faTools, faBook, faPen, faRuler } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Homepage.css";
 import icon from "./images/flo.png";
@@ -47,6 +47,9 @@ const Homepage = () => {
         },
         {
             type: "train"
+        },
+        {
+            type: "fiches"
         }
     ]; 
     const fetchDays = async() => {
@@ -78,6 +81,24 @@ const Homepage = () => {
         setMinuteur(r4.data.temps);
     
     }
+const [fiches, setFiches] = useState([]);
+
+    const fetchFiches = async() => {
+        axios({
+          method: 'get',
+          url: `http://${config.URL}:5000/api/getFiches`,
+        }).then((response) => {
+            
+          setFiches(response.data.result);
+        })
+      
+      }
+   
+      
+
+
+
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -86,6 +107,7 @@ const Homepage = () => {
                 const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
                 setWeather(r2.data.result);
                 fetchDays()
+                fetchFiches()
                 setLoading(false); 
 
             } catch (error) {
@@ -109,7 +131,7 @@ const Homepage = () => {
 
           
 
-            let who = message["from"];
+            //let who = message["from"];
             let type = message["type"];
             let msg = message["message"];
 
@@ -136,16 +158,14 @@ const Homepage = () => {
                 } else if(msg == "DROITE") {
                     setCurrentIndex((prev) => Math.min(prev + 1, cards.length - 1));
             }
-<<<<<<< HEAD
-        }
-=======
         } else if(type == "bouton_action") {
             if(msg == "APPUI") {
                 alert("appui du bouton")
             }
+        } else if(type == "fiches_update") {
+            fetchFiches()
         }
         console.log(type)
->>>>>>> a7b398a99350b4cf6c4ae5dc9e193674250b507f
             console.log('Message received: ' + message);
         });
 
@@ -318,8 +338,70 @@ const [typeTrain, setTypeTrain] = useState("departures");
     }, []);
 
 
+
+    let [fiche, setFiche] = useState({});
+    let [popup, setPopup] = useState(false);
+    const handleShowFiche = (ficheTitle) => {
+        axios({
+            method: 'post',
+            url: `http://${config.URL}:5000/api/getFiche`,
+            data: {
+                fiche: ficheTitle
+            }
+        }).then((response) => {
+            setFiche(response.data.result);
+            console.log(response.data.result)
+            setPopup(true);
+        });
+    }
+
+    
+
     return (
         <div style={{ height: "100vh" }}>
+
+{popup && (
+  <div className="popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
+    <div className="popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
+      <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => setPopup(false)}>Fermer</button>
+    </div>
+
+    <div style={{ marginBottom: "10px" }}>
+      <h2 style={{ background: "#e74c3c", padding: "10px", borderRadius: "5px", marginBottom: "10px", fontSize: "1.2rem" }}>{fiche[0].fiche}</h2>
+      <p style={{ padding: "10px", borderRadius: "5px", background: "#f2f2f2", fontSize: "1rem" }}>{fiche[0].description}</p>
+    </div>
+
+    {fiche.map((section, index) => (
+      <div key={index} style={{ marginBottom: "10px" }}>
+        <div style={{ background: section.type === "propriete" ? "#3498db" : section.type === "texte" ? "#2ecc71" : section.type === "definition" ? "#f39c12" : section.type === "exemple" ? "#76B487" : "#FE7E67", color: "white", padding: "10px", borderRadius: "5px", marginBottom: "10px", display: "flex", alignItems: "center", fontSize: "1.2rem" }}>
+          <div style={{ background: "black", border: "1px solid black", borderRadius: "50%", padding: "15px", marginRight: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)" }}>
+            {section.type === "propriete" && (<FontAwesomeIcon icon={faTools} size="2x" />)}
+            {section.type === "definition" && (<FontAwesomeIcon icon={faBook} size="2x" />)}
+            {section.type === "theoreme" && (<FontAwesomeIcon icon={faRuler} size="2x" />)}
+            {section.type === "exemple" && (<FontAwesomeIcon icon={faMapPin} size="2x" />)}
+            {section.type === "texte" && (<FontAwesomeIcon icon={faPen} size="2x" />)}
+          </div>
+          <div> 
+            {section.type === "propriete" && "Propriété"}
+            {section.type === "definition" && "Définition"}
+            {section.type === "theoreme" && "Théorème"}
+            {section.type === "exemple" && "Exemple"}
+            {section.type === "texte" && "Texte"}
+</div>
+        </div>
+
+        <div style={{ padding: "10px", borderRadius: "5px", background: "#f2f2f2", fontSize: "1rem" }}>
+          <h2 style={{ fontSize: "1.2rem", marginBottom: "10px" }}>{section.title}</h2>
+          <p>{section.content}</p>
+        </div>
+      </div>
+    ))}
+    <div className="paper-background" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1, backgroundImage: "url('https://image.shutterstock.com/image-vector/seamless-school-notebook-paper-background-260nw-1216169775.jpg')", backgroundSize: "cover", borderRadius: "10px" }}></div>
+  </div>
+)}
+
+
+
             {loading ? (
                 <div className="loading-container">
                     <div className="spinner"></div>
@@ -478,9 +560,25 @@ const [typeTrain, setTypeTrain] = useState("departures");
                                                       </div>
 
                                                     ) : (
+                                                        card.type === "fiches" ? (
+                                                            <div className="fiches">
+                                                            <h2>Fiches</h2>
+                                                            <div className="fiches-container" style={{display: "flex", gap: "15px", flexFlow: "row wrap"}}>
+                                                                {fiches.map((fiche, index) => (
+                                                                    <div key={index} className="fiche" style={{padding: "25px", borderRadius: "15px", background: '#FF5733', color: "white", width: "300px"}} onClick={() => handleShowFiche(fiche.title)}>
+                                                                        <h3 style={{borderBottom: "1px solid white"}}>{fiche.title}</h3>
+                                                                        <p>{fiche.description}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        ) : (
+                                                            
+                                                          
 
                                         <div className="blank-card">Blank Card</div>
                                                     )
+                                                )
                                                 )
                                     )
                                 )
