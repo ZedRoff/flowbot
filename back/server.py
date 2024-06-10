@@ -165,6 +165,17 @@ CREATE TABLE IF NOT EXISTS fiches(
             )
             ''')
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS qcm(
+            question TEXT,
+            reponse TEXT,
+            choix TEXT,
+            titre TEXT
+            )
+            ''')
+con.commit()
+
+
 
 # Vérifier si les tables sont vides, si oui, insérer les valeurs par défaut
 res_test = cur.execute("SELECT * FROM positions").fetchone()
@@ -236,6 +247,8 @@ res_test = cur.execute("SELECT * FROM city").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
+
+
 
 
 
@@ -364,7 +377,7 @@ def run_molette():
                time.sleep(0.5)
 def run_bouttons():
      global molette_appuyer, action_appuyer
-     while(True):
+     while(True):                                                                                                                           
           time.sleep(0.1)
           if GPIO.input(36) and not molette_appuyer:
                print("OOOOOOOOOOOOOOOOOOOOOFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
