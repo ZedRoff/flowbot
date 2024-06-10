@@ -28,7 +28,12 @@ const Homepage = () => {
     const [getC, setGetC] = useState(false);
     const [pageC, setPageC] = useState(1);
 
-  
+    const [initialTraduction, setInitialTraduction] = useState("");
+    const [finalTraduction, setFinalTraduction] = useState("");
+
+    const [feeds, setFeeds] = useState([]);
+
+    
     const cards = [
         {
             type: "weather",
@@ -50,6 +55,12 @@ const Homepage = () => {
         },
         {
             type: "fiches"
+        },
+        {
+            type: "traduction"
+        },
+        {
+            type: "feeds"
         }
     ]; 
     const fetchDays = async() => {
@@ -95,7 +106,14 @@ const [fiches, setFiches] = useState([]);
       }
    
       
-
+const fetchFeeds = async() => {
+    axios({
+        method: 'get',
+        url: `http://${config.URL}:5000/api/getFeeds`,
+    }).then((response) => {
+        setFeeds(response.data.result);
+    });
+}
 
 
 
@@ -108,6 +126,7 @@ const [fiches, setFiches] = useState([]);
                 setWeather(r2.data.result);
                 fetchDays()
                 fetchFiches()
+                fetchFeeds()
                 setLoading(false); 
 
             } catch (error) {
@@ -164,7 +183,14 @@ const [fiches, setFiches] = useState([]);
             }
         } else if(type == "fiches_update") {
             fetchFiches()
+        } else if(type == "translation") {
+            setInitialTraduction(message["initialText"])
+            setFinalTraduction(message["translatedText"])
+        } else if(type == "feeds_update") {
+            fetchFeeds()
         }
+
+            
         console.log(type)
             console.log('Message received: ' + message);
         });
@@ -359,6 +385,11 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
     return (
         <div style={{ height: "100vh" }}>
+
+
+
+
+
 
 {popup && (
   <div className="popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
@@ -573,10 +604,46 @@ const [typeTrain, setTypeTrain] = useState("departures");
                                                             </div>
                                                         </div>
                                                         ) : (
-                                                            
-                                                          
+                                                            card.type === "traduction" ? (
+                                                                <div className="traduction">
+                                                                <h2>Traduction</h2>
+                                                                <div className="traduction-container" style={{display: "flex", gap: "15px"}}>
+                                                                    <div style={{display: "flex", flexDirection: "column",flex:1}}>
+                                                                    <h2>Texte d'origine</h2>
+                                                                    <div className="traduction-input">
+                                                                        <p>{initialTraduction}</p>
+                                                                    </div>
+                                                                    </div>
+                                                                    <div>
+                                                                    <h2>Texte traduit</h2>
+                                                                    <div className="traduction-output">
+                                                                        <p>{finalTraduction}</p>
+                                                                    </div>
+                                                                </div>
+                                                                </div>
+                                                            </div>
+
+                                                            ): (
+                                                                card.type === "feeds" ? (
+                                                                    <div className="feeds">
+    <h2>Actualitées</h2>
+    <div className="feeds-container">
+        {feeds.map((feed, index) => (
+            <div key={index} className="feed">
+                <h3>{feed.journal}</h3>
+                <p>{feed.headline}</p>
+            </div>
+        ))}
+    </div>
+</div>
+
+                                                                ) : (
+
+                                                                
 
                                         <div className="blank-card">Blank Card</div>
+                                                            )
+                                                        )
                                                     )
                                                 )
                                                 )

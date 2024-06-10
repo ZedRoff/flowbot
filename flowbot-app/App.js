@@ -87,6 +87,8 @@ const [file, setFile] = useState(null);
 const [showChronometre, setShowChronometre] = useState(false);
   
 const [showMinuteur, setShowMinuteur] = useState(false);
+
+const [showTraducteur, setShowTraducteur] = useState(false);
   const data = [
     { title: "Quel est votre nom ?", type: "text", icon: faUser },
     { title: "Quelle voix préférez-vous ?", type: "radio", options: ["Homme", "Femme"], icon: faVoicemail },
@@ -712,6 +714,62 @@ return;
 };
 
 
+const [text, setText] = useState('');
+const [selectedLanguage, setSelectedLanguage] = useState('en');
+const languages = [
+  { label: 'Anglais', value: 'en' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Espagnol', value: 'es' },
+  { label: 'Allemand', value: 'de' },
+  { label: 'Italien', value: 'it' },
+  { label: 'Portugais', value: 'pt' },
+  { label: 'Néerlandais', value: 'nl' },
+  { label: 'Russe', value: 'ru' },
+  { label: 'Chinois', value: 'zh' },
+  { label: 'Japonais', value: 'ja' },
+  { label: 'Coréen', value: 'ko' },
+  { label: 'Arabe', value: 'ar' },
+  { label: 'Hindi', value: 'hi' },
+  { label: 'Turc', value: 'tr' },
+  { label: 'Grec', value: 'el' },
+  { label: 'Polonais', value: 'pl' },
+  { label: 'Tchèque', value: 'cs' },
+  { label: 'Slovaque', value: 'sk' },
+  { label: 'Hongrois', value: 'hu' },
+  { label: 'Bulgare', value: 'bg' },
+  { label: 'Danois', value: 'da' },
+  { label: 'Finnois', value: 'fi' },
+  { label: 'Norvégien', value: 'no' },
+  { label: 'Suédois', value: 'sv' },
+  { label: 'Roumain', value: 'ro' },
+  { label: 'Catalan', value: 'ca' },
+  { label: 'Basque', value: 'eu' },
+  { label: 'Galicien', value: 'gl' },
+  { label: 'Hébreu', value: 'he' },
+  { label: 'Indonésien', value: 'id' },
+  { label: 'Malais', value: 'ms' },
+  { label: 'Thaï', value: 'th' },
+  { label: 'Vietnamien', value: 'vi' }
+];
+const translateText = () => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/translate`,
+    data: {
+      text: text,
+      language: selectedLanguage,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Text translated successfully");
+      alert("Texte traduit")
+    }
+  });
+
+};
+
+const [feed, setFeed] = useState("");
+const [showFeed, setShowFeed] = useState(false);
 
 
   return (
@@ -734,11 +792,12 @@ return;
            setShowTimeTable(false)
            
          setShowChronometre(false)
-         
+         setShowTraducteur(false);
          setShowMinuteur(false);
          setShowEditTimeTable(false)
          
          setShowEditPPTimeTable(false)
+         setShowFeed(false)
         }} />
 
         <Button title="Météo" onPress={() => {
@@ -746,12 +805,13 @@ return;
            setShowMusique(false);
             setShowFichiers(false);
             setShowTimeTable(false)
-            
+            setShowTraducteur(false);
           setShowChronometre(false)
           setFicheMaker(false);
           setShowMinuteur(false);
           setShowEditTimeTable(false)
           
+         setShowFeed(false)
           setShowEditPPTimeTable(false)
         }} />
  <Button title="Musique" onPress={() => {
@@ -764,8 +824,9 @@ return;
           
           setShowMinuteur(false);
           
+         setShowFeed(false)
           setShowEditTimeTable(false)
-
+          setShowTraducteur(false);
           
           setShowEditPPTimeTable(false)
         }} />
@@ -775,12 +836,13 @@ return;
           setShowMusique(false);
           setShowTimeTable(false)
           
+         setShowFeed(false)
           setShowChronometre(false)
           setFicheMaker(false);
           setShowMinuteur(false);
           
           setShowEditTimeTable(false)
-          
+          setShowTraducteur(false);
           setShowEditPPTimeTable(false)
         }} />
         <Button title="Emploi du temps" onPress={() => {
@@ -791,9 +853,10 @@ return;
           setShowChronometre(false)
           setFicheMaker(false);
           setShowMinuteur(false);
-          
+          setShowTraducteur(false);
           setShowEditTimeTable(false)
           setShowEditPPTimeTable(false)
+          setShowFeed(false)
         }} />
             <Button title="Modifier emploi du temps" onPress={() => {
           setShowTimeTable(false);
@@ -804,8 +867,10 @@ return;
           setFicheMaker(false);
           setShowMinuteur(false);
           
+         setShowFeed(false)
           setShowEditTimeTable(false)
           setShowEditPPTimeTable(true)
+          setShowTraducteur(false);
         }} />
 
         <Button title="Chronometre" onPress={() => {
@@ -818,7 +883,9 @@ return;
           setFicheMaker(false);
           setShowEditTimeTable(false)
           
+         setShowFeed(false)
           setShowEditPPTimeTable(false)
+          setShowTraducteur(false);
         }
         } />
         <Button title="Minuteur" onPress={() => {
@@ -831,12 +898,122 @@ return;
           setFicheMaker(false);
           setShowEditTimeTable(false)
           
+         setShowFeed(false)
           setShowEditPPTimeTable(false)
+          setShowTraducteur(false);
+
         }
         } />
+        <Button title="Traducteur" onPress={() => {
+          setShowFichiers(false);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowTimeTable(false);
+          setShowMinuteur(false);
+          setShowChronometre(false);
+          setShowTraducteur(true);
+          setFicheMaker(false);
+          setShowEditTimeTable(false)
+          
+         setShowFeed(false)
+          setShowEditPPTimeTable(false)
+        }}
+         />
+         <Button title="Feed" onPress={() => {
+          setShowFichiers(false);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowTimeTable(false);
+          setShowFichiers(false);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowTimeTable(false);
+          setShowMinuteur(false);
+          setShowChronometre(false);
+          setShowTraducteur(false);
+          setFicheMaker(false);
+          setShowEditTimeTable(false)
+          
+         setShowFeed(true)
+          setShowEditPPTimeTable(false)
 
 
 
+         }}
+          />
+     {showFeed && (
+        <View style={styles.popupContainer}>
+        <View style={styles.popupHeader}>
+          <Text style={styles.headerText}>Feed</Text>
+          <Pressable onPress={() => setShowFeed(false)}>
+            <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+          </Pressable>
+        </View>
+        <TextInput
+        style={styles.textInput}
+        placeholder="Entrez le feed"
+        onChangeText={setFeed}
+        value={feed}
+      />
+      <Button title="Envoyer" onPress={() => {
+        axios({
+          method: 'post',
+          url: `http://${config.URL}:5000/api/addFeed`,
+          data: {
+            url: feed,
+          },
+        }).then((response) => {
+          if(response.data.result == "success") {
+            console.log("Feed sent successfully");
+            alert("Feed envoyé")
+          } else if(response.data.result == "already") {
+            alert("Vous êtes déjà abonné a ce feed")
+          
+          } else if(response.data.result == "invalid") {
+            alert("Feed invalide")
+          
+          }
+        }
+        )
+      }} />
+      </View>
+     )}
+
+
+{
+
+  showTraducteur && (
+    <View style={styles.popupContainer}>
+    <View style={styles.popupHeader}>
+      <Text style={styles.headerText}>Traduire un texte</Text>
+      <Pressable onPress={() => setShowTraducteur(false)}>
+        <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+      </Pressable>
+    </View>
+    <TextInput
+    style={styles.textInput}
+    placeholder="Entrez le texte à traduire"
+    onChangeText={setText}
+    value={text}
+  />
+  <Picker
+    selectedValue={selectedLanguage}
+    style={styles.picker}
+    onValueChange={(itemValue) => setSelectedLanguage(itemValue)}
+  >
+    {languages.map((language) => (
+      <Picker.Item key={language.value} label={language.label} value={language.value} />
+    ))}
+  </Picker>
+  <Button title="Traduire" onPress={translateText} />
+  
+
+
+  </View>
+  
+
+  )
+}
 
 
 
