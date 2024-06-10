@@ -6,10 +6,13 @@ from flask_cors import CORS
 import sqlite3
 from dotenv import dotenv_values
 from flask import request
-import RPi.GPIO as GPIO
+
 import time
 from threading import Thread
 import requests
+
+import threading
+
 
 
 # Charger les configurations depuis .env
@@ -152,6 +155,28 @@ cur.execute('''
             ''')
 con.commit()
 
+cur.execute('''
+CREATE TABLE IF NOT EXISTS fiches(
+            type TEXT,
+            title TEXT,
+            content TEXT,
+            fiche TEXT,
+            description TEXT
+            )
+            ''')
+con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS qcm(
+            question TEXT,
+            reponse TEXT,
+            choix TEXT,
+            titre TEXT
+            )
+            ''')
+con.commit()
+
+
+
 # Vérifier si les tables sont vides, si oui, insérer les valeurs par défaut
 res_test = cur.execute("SELECT * FROM positions").fetchone()
 if res_test is None:
@@ -222,6 +247,8 @@ res_test = cur.execute("SELECT * FROM city").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
+
+
 
 
 
@@ -311,7 +338,9 @@ def handle_message(message):
     
 
 
-    
+ 
+
+'''
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
@@ -348,7 +377,7 @@ def run_molette():
                time.sleep(0.5)
 def run_bouttons():
      global molette_appuyer, action_appuyer
-     while(True):
+     while(True):                                                                                                                           
           time.sleep(0.1)
           if GPIO.input(36) and not molette_appuyer:
                print("OOOOOOOOOOOOOOOOOOOOOFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
@@ -391,15 +420,15 @@ def run_bouttons():
 
 
 
-
+'''
 
 
 if __name__ == '__main__':
-    t1 = Thread(target=run_molette)
+    '''t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
     t1.start()
-    t2.start()
+    t2.start()''''
 
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=False, allow_unsafe_werkzeug=True)
 
- 
+   
