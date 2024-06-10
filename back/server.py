@@ -400,6 +400,6 @@ if __name__ == '__main__':
     t1.start()
     t2.start()
 
-    socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host=host, port=5000, debug=True, use_reloader=False, allow_unsafe_werkzeug=True)
 
  
