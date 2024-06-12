@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faUser, faMars, faVenus, faVoicemail, faX, faEdit, faFolder, faClock, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faMars, faVenus, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile } from '@fortawesome/free-solid-svg-icons';
 import Slider from '@react-native-community/slider';
 import * as DocumentPicker from 'expo-document-picker';
 import RNPickerSelect from 'react-native-picker-select'
@@ -337,6 +337,9 @@ formData.append('folder', encodeURIComponent(folder))
 
     await axios.post(`http://${config.URL}:5000/api/download`, formData);
    alert("Fichier téléchargé avec succès")
+   setFile(null);
+   setFolder("");
+   
     }
   } catch (error) {
     console.log(error)
@@ -1855,15 +1858,18 @@ setModifyTo(element.endTime)
   
   } }>
     <View style={{display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "grey", padding: "15px", width: "100px"}} key={id_g}>
+      
 <FontAwesomeIcon icon={faFolder} size={50} />
   <Text>
     {element["folder"]}
+
   </Text>
+  
   </View>
  </Pressable>
   
 ))}
- <Button title="Create Folder" onPress={handleOpenModal} />
+ <Button title="Crée un dossier" onPress={handleOpenModal} />
       <Modal isVisible={isModalVisible}>
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Entrez un nom de dossier</Text>
@@ -1888,12 +1894,34 @@ setModifyTo(element.endTime)
 {showTabFichiers && (
   <View>
     {fichiers.map((element, id) => (
-      <View key={id}>
-        <Text>{element}</Text>
-      </View>
+      
+   <View key={id} style={styles.fileContainer}>
+  
+   <FontAwesomeIcon icon={faFile} size={20} style={styles.fileIcon} />
+   <Text style={styles.fileName}>{element}</Text>
+   <TouchableOpacity onPress={() => {
+     axios({
+       method: 'post',
+       url: `http://${config.URL}:5000/api/removeFile`,
+       data: {
+         folder_name: folder,
+         file_name: element,
+       },
+     }).then((response) => {
+       if(response.data.result === "success") {
+         fetchHierarchy();
+         setFichiers(fichiers.filter((file) => file !== element));
+         setFolder("");
+         
+       }
+     });
+   }}>
+     <FontAwesomeIcon icon={faX} size={20} style={styles.removeIcon} />
+   </TouchableOpacity>
+ </View>
     ))}
-   <Button title="Pick File" onPress={pickFile} />
-      {file && <Button title="Upload File" onPress={() => uploadFile(folder)} />}
+   <Button title="Ajouter un fichier" onPress={pickFile} />
+      {file && <Button title="Uploads le fichier" onPress={() => uploadFile(folder)} />}
   </View>
 )}
 
@@ -2247,6 +2275,27 @@ checkbox: {
 checkboxCheck: {
   color: 'white',
   fontSize: 14,
+},
+fileContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingVertical: 10,
+  paddingHorizontal: 15,
+  backgroundColor: '#f0f0f0',
+  marginBottom: 10,
+  borderRadius: 8,
+},
+fileIcon: {
+  marginRight: 10,
+  color: '#333',
+},
+fileName: {
+  fontSize: 16,
+  flex: 1,
+  color: '#333',
+},
+removeIcon: {
+  color: 'red',
 },
   
 });
