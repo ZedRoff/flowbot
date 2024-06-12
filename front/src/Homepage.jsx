@@ -33,6 +33,8 @@ const Homepage = () => {
 
     const [feeds, setFeeds] = useState([]);
 
+    const [qcms, setQcms] = useState([]);
+    
     
     const cards = [
         {
@@ -61,6 +63,12 @@ const Homepage = () => {
         },
         {
             type: "feeds"
+        },
+        {
+            type: "reveil"
+        },
+        {
+            type: "qcm"
         }
     ]; 
     const fetchDays = async() => {
@@ -115,6 +123,39 @@ const fetchFeeds = async() => {
     });
 }
 
+const [alarms, setAlarms] = useState([]);
+const fetchAlarms = async() => {
+    axios({
+        method: 'get',
+        url: `http://${config.URL}:5000/api/getReveil`,
+    }).then((response) => {
+        setAlarms(response.data.result);
+    });
+}
+
+
+const fetchQcms = async() => {
+    axios({
+        method: 'get',
+        url: `http://${config.URL}:5000/api/getQuestions`,
+    }).then((response) => {
+
+
+        let used = []
+
+        response.data.result.forEach((qcm) => {
+            if(used.includes(qcm[2])) {
+                return;
+            }
+            used.push(qcm[2]);
+        
+        })
+        setQcms(used);
+        
+        
+        
+    });
+}
 
 
     useEffect(() => {
@@ -127,6 +168,7 @@ const fetchFeeds = async() => {
                 fetchDays()
                 fetchFiches()
                 fetchFeeds()
+                fetchQcms()
                 setLoading(false); 
 
             } catch (error) {
@@ -188,7 +230,12 @@ const fetchFeeds = async() => {
             setFinalTraduction(message["translatedText"])
         } else if(type == "feeds_update") {
             fetchFeeds()
+        } else if(type == "reveil_update") {
+            fetchAlarms()
+        } else if(type == "qcm_update") {   
+            fetchQcms()
         }
+
 
             
         console.log(type)
@@ -357,10 +404,18 @@ const [typeTrain, setTypeTrain] = useState("departures");
         });
     }
 
+   
+
 
     useEffect(() => {
         fetchPDFs();
         fetchTrain();
+        fetchAlarms()
+        axios({
+            method: "post",
+            url: `http://${config.URL}:5000/api/launch_reveil`,
+
+        })
     }, []);
 
 
@@ -376,17 +431,135 @@ const [typeTrain, setTypeTrain] = useState("departures");
             }
         }).then((response) => {
             setFiche(response.data.result);
-            console.log(response.data.result)
             setPopup(true);
         });
     }
 
-    
+    const [qcmStartup, setQcmStartup] = useState(false);
+    const [selectedAnswers, setSelectedAnswers] = useState({});
+    const [qcm, setQcm] = useState([]);
+    const [indice, setIndice] = useState(0);
+    const [points, setPoints] = useState(0);
+    const [showResults, setShowResults] = useState(false);
+    const [results, setResults] = useState([]);
 
+    const handleGetQcm = (qcmTitle) => {
+        axios({
+            method: 'post',
+            url: `http://${config.URL}:5000/api/getQuestion`,
+            data: { titre: qcmTitle }
+        }).then((response) => {
+            setQcm(response.data.result);
+            setQcmStartup(true);
+            setIndice(0);
+            setPoints(0);
+            setSelectedAnswers({});
+            setShowResults(false);
+            setResults([]);
+        });
+    };
+
+    const handleValidate = () => {
+        const currentQuestion = qcm[indice][0];
+        const correctAnswers = JSON.parse(qcm[indice][1]).filter((answer) => answer.isCorrect).map((answer) => answer.text);
+        const selected = selectedAnswers[currentQuestion] || [];
+        console.log("correctAnswers", correctAnswers);
+        console.log("selected", selected);
+
+        let isCorrect = selected.length === correctAnswers.length && selected.every((answer) => correctAnswers.includes(answer));
+        let resultEntry = {
+            question: currentQuestion,
+            correctAnswers: correctAnswers,
+            selectedAnswers: selected,
+            isCorrect: isCorrect
+        };
+
+        setResults((prevResults) => [...prevResults, resultEntry]);
+
+        if (isCorrect) {
+            setPoints(points + 1);
+        }
+
+        if (indice === qcm.length - 1) {
+            setShowResults(true);
+            setQcmStartup(false);
+            return;
+        }
+
+        setIndice(indice + 1);
+        setSelectedAnswers({});
+    };
     return (
         <div style={{ height: "100vh" }}>
 
 
+{(qcmStartup || showResults) && (
+                <div className="qcm-popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
+                    <div className="qcm-popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
+                        <button style={{ background: "#e74c3c", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
+                            setQcmStartup(false);
+                             setShowResults(false);
+                             setIndice(0);
+                             setPoints(0);
+                             setSelectedAnswers({});
+                             setResults([]);
+                             }}>Fermer</button>
+                    </div>
+                    <div style={{ marginBottom: "10px" }}>
+                        <h2 style={{ background: "#e74c3c", padding: "10px", borderRadius: "5px", marginBottom: "10px", fontSize: "1.2rem" }}>QCM</h2>
+                        <div className="qcm-popup-container" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            <div style={{ background: "#f2f2f2", padding: "10px", borderRadius: "5px", fontSize: "1rem" }}>
+                                {!showResults ? (
+                                    <>
+                                        <h2 style={{ fontSize: "1.2rem", marginBottom: "10px" }}>{qcm[indice][0]}</h2>
+                                        <div className="qcm-answers" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                            {JSON.parse(qcm[indice][1]).map((answer, index) => (
+                                                <div key={index} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        name={answer.text}
+                                                        value={answer.text}
+                                                        checked={(selectedAnswers[qcm[indice][0]] || []).includes(answer.text)}
+                                                        onChange={(e) => {
+                                                            const isChecked = e.target.checked;
+                                                            setSelectedAnswers((prev) => {
+                                                                const currentAnswers = prev[qcm[indice][0]] || [];
+                                                                if (isChecked) {
+                                                                    return { ...prev, [qcm[indice][0]]: [...currentAnswers, e.target.value] };
+                                                                } else {
+                                                                    return { ...prev, [qcm[indice][0]]: currentAnswers.filter((val) => val !== e.target.value) };
+                                                                }
+                                                            });
+                                                        }}
+                                                    />
+                                                    <label>{answer.text}</label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button onClick={handleValidate}>Suivant</button>
+                                    </>
+                                ) : (
+                                    <div className="qcm-results" style={{ marginTop: "20px", padding: "20px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)" }}>
+                                        <h2 style={{ fontSize: "1.5rem", marginBottom: "20px" }}>Résultats</h2>
+                                        <p>Points: {points} sur {qcm.length}</p>
+                                        {results.map((result, index) => (
+                                            <div key={index} style={{ marginBottom: "20px" }}>
+                                                <h3 style={{ fontSize: "1.2rem" }}>{result.question}</h3>
+                                                <p>Vos réponses: {result.selectedAnswers.join(', ')}</p>
+                                                <p>Bonnes réponses: {result.correctAnswers.join(', ')}</p>
+                                                <p style={{ color: result.isCorrect ? 'green' : 'red' }}>
+                                                    {result.isCorrect ? 'Correct' : 'Incorrect'}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+    
 
 
 
@@ -394,7 +567,10 @@ const [typeTrain, setTypeTrain] = useState("departures");
 {popup && (
   <div className="popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
     <div className="popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
-      <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => setPopup(false)}>Fermer</button>
+      <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
+        setPopup(false)
+        set
+      }}>Fermer</button>
     </div>
 
     <div style={{ marginBottom: "10px" }}>
@@ -639,9 +815,39 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
                                                                 ) : (
 
-                                                                
+                                                                card.type === "reveil" ? (
+
+                                                                    <div className="reveil">
+                                                                    <h2>Liste des réveils programmés</h2>
+                                                                    <div className="reveil-container">
+                                                                        {alarms.map((alarm, index) => (
+                                                                            <div key={index} className="alarm">
+                                                                                <h3>{alarm[0]}</h3>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+
+                                                                ) : (
+                                                                    card.type === "qcm" ? (
+                                                                <div className="qcm">
+                                                                <h2>QCM</h2>
+                                                                <div className="qcm-container">
+                                                                    {qcms.map((qcm, index) => (
+                                                                        <div key={index} className="qcm">
+                                                                            <h3>{qcm}</h3>
+                                                                            <button onClick={() => handleGetQcm(qcm)}>
+                                                                                Démarrer le QCM
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                </div>
+                                                                    ) : (
 
                                         <div className="blank-card">Blank Card</div>
+                                                                    )
+                                                                )
                                                             )
                                                         )
                                                     )

@@ -7,10 +7,14 @@ from datetime import datetime
 
 import requests
 from flask import Blueprint, request, jsonify
+import os 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
+#API_KEY = os.environ["API_TRAIN"]
 API_KEY = ''
-
 VAL_DE_FONTENAY = 'SNCF:87758342'
 
 def get_uic_code(station_name):
@@ -77,5 +81,6 @@ def get_train():
                 d['departure_time'] = iso_date_str
                 tab.append(d)
             return jsonify({'result': 'success', 'departures' : tab, 'type': 'RER A'})
+    return jsonify({'result': 'error'})
     
 

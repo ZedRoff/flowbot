@@ -14,6 +14,11 @@ import requests
 import threading
 
 
+from datetime import datetime
+from playsound import playsound
+import pygame
+
+pygame.mixer.init()
 
 # Charger les configurations depuis .env
 config = dotenv_values(".env")
@@ -86,8 +91,7 @@ con.commit()
 
 cur.execute('''
     CREATE TABLE IF NOT EXISTS reveil(
-    time TEXT PRIMARY KEY,
-    active INTEGER
+    time TEXT PRIMARY KEY
     )
 ''')
 con.commit()
@@ -168,7 +172,7 @@ con.commit()
 cur.execute('''
             CREATE TABLE IF NOT EXISTS qcm(
             question TEXT,
-            reponse TEXT,
+           
             choix TEXT,
             titre TEXT
             )
@@ -188,10 +192,7 @@ if res_test is None:
     cur.execute("INSERT INTO minuteur VALUES (?, ?)", ("", 0))
     con.commit()
 
-res_test = cur.execute("SELECT * FROM reveil").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO reveil VALUES (?, ?)", ("", 0))
-    con.commit()
+
 
 res_test = cur.execute("SELECT * FROM background").fetchone()
 if res_test is None:
@@ -263,7 +264,7 @@ con.commit()
 
 # Fermer correctement les connexions
 cur.close()
-con.close()
+
 
 # Initialiser Flask et SocketIO
 app = Flask(__name__)
@@ -333,12 +334,14 @@ def handle_message(message):
         connected_users[len(connected_users)-1]["type"] = "bot"
         socketio.emit('message', {"from": "back", "type": "bot_status_change", "message": True})
     elif who == "mobile" and msg == "music_play":
-       
         socketio.emit("message", {"from": "back", "type": "music_play", "title": message["title"], "duration": message["duration"]})
     
 
 
- 
+
+
+
+
 
 '''
 
@@ -426,9 +429,13 @@ def run_bouttons():
 if __name__ == '__main__':
     '''t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
+    
     t1.start()
     t2.start()'''
-
+ 
+    
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
+
+    
 
    

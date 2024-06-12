@@ -1,7 +1,4 @@
 
-import feedparser
-
-
 
 from flask import Blueprint, request, jsonify
 import sqlite3

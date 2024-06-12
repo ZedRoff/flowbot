@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform, ScrollView, Alert  } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform, ScrollView, Alert, FlatList  } from 'react-native';
 import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faUser, faMars, faVenus, faVoicemail, faX, faEdit, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faMars, faVenus, faVoicemail, faX, faEdit, faFolder, faClock, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Slider from '@react-native-community/slider';
 import * as DocumentPicker from 'expo-document-picker';
 import RNPickerSelect from 'react-native-picker-select'
@@ -105,7 +105,18 @@ const [showTraducteur, setShowTraducteur] = useState(false);
     });
   }, []);
 
+  const [fiches, setFiches] = useState([]);
 
+  const fetchFiches = async() => {
+      axios({
+        method: 'get',
+        url: `http://${config.URL}:5000/api/getFiches`,
+      }).then((response) => {
+          console.log(response.data.result)
+        setFiches(response.data.result);
+      })
+    
+    }
   
 
   useEffect(() => {
@@ -130,7 +141,13 @@ const [showTraducteur, setShowTraducteur] = useState(false);
       }  else if(type == 'files_update') {
           fetchHierarchy()
           
-      }
+      } else if(type == 'qcm_update') {
+        fetchQcms()
+      }  else if(type == 'fiches_update') {
+
+        fetchFiches()
+      } 
+
       console.log('Message received: ' + message);
     });
 
@@ -506,6 +523,7 @@ const fetchDays = async() => {
 }
 useEffect(() => {
   fetchDays();
+  fetchFiches()
 }
 , []);
 
@@ -771,6 +789,195 @@ const translateText = () => {
 const [feed, setFeed] = useState("");
 const [showFeed, setShowFeed] = useState(false);
 
+const [showReveil, setShowReveil] = useState(false);
+
+const [alarmTime, setAlarmTime] = useState('');
+const [alarmType, setAlarmType] = useState('');
+const [alarms, setAlarms] = useState([]);
+
+const addAlarm = async () => {
+  if(alarmHour === '' || alarmMinute === '') {
+    alert("L'heure de l'alarme ne peut pas être vide");
+    return;
+  }
+
+  try {
+    const q = await axios.post(`http://${config.URL}:5000/api/addReveil`, {
+      time: alarmHour+":"+alarmMinute
+    });
+    if(q.data.result == "success") {
+   setAlarmHour('00');
+    setAlarmMinute('00');
+
+    fetchAlarms(); 
+    }
+ else if(q.data.result == "already") {
+
+      alert("Vous avez déjà un reveil a cette heure")
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de l\'alarme :', error);
+  }
+};
+const removeAlarm = async (time) => {
+  try {
+    const q = await axios.post(`http://${config.URL}:5000/api/removeReveil`, {
+      time: time
+    });
+    if(q.data.result == "success") {
+    fetchAlarms();
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'alarme :', error);
+  }
+};
+
+
+const fetchAlarms = async () => {
+  try {
+    const response = await axios.get(`http://${config.URL}:5000/api/getReveil`);
+  
+    setAlarms(response.data.result);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des alarmes :', error);
+  }
+};
+
+useEffect(() => {
+  fetchAlarms();
+}, []);
+
+
+
+
+
+
+
+
+const hours = [...Array(24)].map((_, hour) => hour.toString().padStart(2, '0'));
+const minutes = [...Array(60)].map((_, minute) => minute.toString().padStart(2, '0'));
+
+const [alarmHour, setAlarmHour] = useState('00');
+const [alarmMinute, setAlarmMinute] = useState('00');
+
+
+
+
+const [qcmTitle, setQcmTitle] = useState('');
+  const [qcmQuestions, setQcmQuestions] = useState([]);
+  const [showQcm, setShowQcm] = useState(false);
+
+   const addQuestion = () => {
+    setQcmQuestions([...qcmQuestions, { question: '', options: [{ text: '', isCorrect: false }] }]);
+  };
+
+  const updateQuestion = (index, updatedQuestion) => {
+    const updatedQuestions = [...qcmQuestions];
+    updatedQuestions[index].question = updatedQuestion;
+    setQcmQuestions(updatedQuestions);
+  };
+
+  const addOption = (questionIndex) => {
+    const updatedQuestions = [...qcmQuestions];
+    updatedQuestions[questionIndex].options.push({ text: '', isCorrect: false });
+    setQcmQuestions(updatedQuestions);
+  };
+
+  const updateOption = (questionIndex, optionIndex, updatedOption) => {
+    const updatedQuestions = [...qcmQuestions];
+    updatedQuestions[questionIndex].options[optionIndex].text = updatedOption;
+    setQcmQuestions(updatedQuestions);
+  };
+
+  const toggleCorrectAnswer = (questionIndex, optionIndex) => {
+    const updatedQuestions = [...qcmQuestions];
+    updatedQuestions[questionIndex].options[optionIndex].isCorrect = !updatedQuestions[questionIndex].options[optionIndex].isCorrect;
+    setQcmQuestions(updatedQuestions);
+  };
+
+  const deleteOption = (questionIndex, optionIndex) => {
+    const updatedQuestions = [...qcmQuestions];
+    updatedQuestions[questionIndex].options.splice(optionIndex, 1);
+    setQcmQuestions(updatedQuestions);
+  };
+
+
+
+
+  const fetchQcms = async () => {
+    try {
+      const response = await axios.get(`http://${config.URL}:5000/api/getQuestions`);
+      let used = []
+      response.data.result.map((q) => {
+      
+        if(!used.includes(q[2])) {
+          used.push(q[2])
+        }
+     
+      })
+      setQcms(used);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des QCMs :', error);
+    }
+  }
+
+
+  const validateQ = () => {
+    if(qcmTitle === '') {
+      alert("Le titre du QCM ne peut pas être vide");
+      return;
+    }
+    if(qcmQuestions.length === 0) {
+      alert("Le QCM ne peut pas être vide");
+      return;
+    }
+    if(qcmQuestions.some(q => q.question === '')) {
+
+      alert("Les questions du QCM ne peuvent pas être vides");
+      return;
+    }
+    if(qcmQuestions.some(q => q.options.some(o => o === ''))) {
+      alert("Les options du QCM ne peuvent pas être vides");
+      return;
+    }
+    if(qcmQuestions.some(q => q.options.length < 2)) {
+      alert("Les questions du QCM doivent avoir au moins 2 options");
+      return;
+    }
+    
+    console.log('QCM validé :', { title: qcmTitle, questions: qcmQuestions });
+
+
+
+
+    for(let i = 0; i < qcmQuestions.length; i++) {
+   
+      axios({
+        method: 'post',
+        url: `http://${config.URL}:5000/api/addQuestion`,
+        data: {
+          titre: qcmTitle,
+          question: qcmQuestions[i].question,
+          choix: JSON.stringify(qcmQuestions[i].options)
+        }
+    })
+
+    }
+    fetchQcms();
+  }
+   
+const [qcms, setQcms] = useState([]);
+
+
+
+
+ 
+
+
+
+
+
+
 
   return (
 
@@ -790,14 +997,16 @@ const [showFeed, setShowFeed] = useState(false);
           setShowMusique(false);
            setShowFichiers(false);
            setShowTimeTable(false)
-           
+           setShowQcm(false)
          setShowChronometre(false)
          setShowTraducteur(false);
          setShowMinuteur(false);
          setShowEditTimeTable(false)
-         
+         setShowReveil(false)
          setShowEditPPTimeTable(false)
          setShowFeed(false)
+         
+
         }} />
 
         <Button title="Météo" onPress={() => {
@@ -810,9 +1019,10 @@ const [showFeed, setShowFeed] = useState(false);
           setFicheMaker(false);
           setShowMinuteur(false);
           setShowEditTimeTable(false)
-          
+          setShowReveil(false)
          setShowFeed(false)
           setShowEditPPTimeTable(false)
+          setShowQcm(false)
         }} />
  <Button title="Musique" onPress={() => {
            setShowMusique(true);
@@ -823,11 +1033,11 @@ const [showFeed, setShowFeed] = useState(false);
           setShowChronometre(false)
           
           setShowMinuteur(false);
-          
+          setShowQcm(false)
          setShowFeed(false)
           setShowEditTimeTable(false)
           setShowTraducteur(false);
-          
+          setShowReveil(false)
           setShowEditPPTimeTable(false)
         }} />
         <Button title="Fichiers" onPress={() => {
@@ -840,10 +1050,11 @@ const [showFeed, setShowFeed] = useState(false);
           setShowChronometre(false)
           setFicheMaker(false);
           setShowMinuteur(false);
-          
+          setShowReveil(false)
           setShowEditTimeTable(false)
           setShowTraducteur(false);
           setShowEditPPTimeTable(false)
+          setShowQcm(false)
         }} />
         <Button title="Emploi du temps" onPress={() => {
           setShowTimeTable(true);
@@ -857,6 +1068,8 @@ const [showFeed, setShowFeed] = useState(false);
           setShowEditTimeTable(false)
           setShowEditPPTimeTable(false)
           setShowFeed(false)
+          setShowReveil(false)
+          setShowQcm(false)
         }} />
             <Button title="Modifier emploi du temps" onPress={() => {
           setShowTimeTable(false);
@@ -866,11 +1079,12 @@ const [showFeed, setShowFeed] = useState(false);
           setShowChronometre(false)
           setFicheMaker(false);
           setShowMinuteur(false);
-          
+          setShowReveil(false)
          setShowFeed(false)
           setShowEditTimeTable(false)
           setShowEditPPTimeTable(true)
           setShowTraducteur(false);
+          setShowQcm(false)
         }} />
 
         <Button title="Chronometre" onPress={() => {
@@ -882,10 +1096,11 @@ const [showFeed, setShowFeed] = useState(false);
           setShowMinuteur(false);
           setFicheMaker(false);
           setShowEditTimeTable(false)
-          
+          setShowReveil(false)
          setShowFeed(false)
           setShowEditPPTimeTable(false)
           setShowTraducteur(false);
+          setShowQcm(false)
         }
         } />
         <Button title="Minuteur" onPress={() => {
@@ -897,11 +1112,11 @@ const [showFeed, setShowFeed] = useState(false);
           setShowChronometre(false);
           setFicheMaker(false);
           setShowEditTimeTable(false)
-          
+          setShowReveil(false)
          setShowFeed(false)
           setShowEditPPTimeTable(false)
           setShowTraducteur(false);
-
+          setShowQcm(false)
         }
         } />
         <Button title="Traducteur" onPress={() => {
@@ -914,9 +1129,10 @@ const [showFeed, setShowFeed] = useState(false);
           setShowTraducteur(true);
           setFicheMaker(false);
           setShowEditTimeTable(false)
-          
+          setShowReveil(false)
          setShowFeed(false)
           setShowEditPPTimeTable(false)
+          setShowQcm(false)
         }}
          />
          <Button title="Feed" onPress={() => {
@@ -936,11 +1152,202 @@ const [showFeed, setShowFeed] = useState(false);
           
          setShowFeed(true)
           setShowEditPPTimeTable(false)
-
-
+          setShowQcm(false)
+          setShowReveil(false)
 
          }}
           />
+          <Button title="Reveil" onPress={() => {
+  setShowFichiers(false);
+  setShowMeteo(false);
+  setShowMusique(false);
+  setShowTimeTable(false);
+  setShowFichiers(false);
+  setShowMeteo(false);
+  setShowMusique(false);
+  setShowTimeTable(false);
+  setShowMinuteur(false);
+  setShowChronometre(false);
+  setShowTraducteur(false);
+  setFicheMaker(false);
+  setShowEditTimeTable(false)
+  setShowQcm(false)
+ setShowFeed(false)
+  setShowEditPPTimeTable(false)
+setShowReveil(true)
+
+          }} />
+          <Button title="QCM" onPress={() => {
+             setShowFichiers(false);
+             setShowMeteo(false);
+             setShowMusique(false);
+             setShowTimeTable(false);
+             setShowFichiers(false);
+             setShowMeteo(false);
+             setShowMusique(false);
+             setShowTimeTable(false);
+             setShowMinuteur(false);
+             setShowChronometre(false);
+             setShowTraducteur(false);
+             setFicheMaker(false);
+             setShowEditTimeTable(false)
+             
+            setShowFeed(false)
+             setShowEditPPTimeTable(false)
+           setShowReveil(false)
+           setShowQcm(true)
+           fetchQcms();
+          }} />
+
+          {showQcm && (
+                 <View style={styles.container}>
+                 <View style={styles.header}>
+                   <Text style={styles.headerText}>Créer un QCM</Text>
+                   <Pressable onPress={() => setShowQcm(false)}>
+                     <FontAwesomeIcon style={styles.closeIcon} icon={faX} size={20} />
+                   </Pressable>
+                 </View>
+                 <View style={styles.main}>
+                   <View style={styles.qcmContainer}>
+                     <Text style={styles.label}>Titre du QCM</Text>
+                     <TextInput
+                       style={styles.input}
+                       value={qcmTitle}
+                       onChangeText={setQcmTitle}
+                       placeholder="Entrez le titre du QCM"
+                     />
+                     <Button title="Ajouter une question" onPress={addQuestion} />
+                     <ScrollView style={styles.questionsContainer}>
+                       {qcmQuestions.map((question, questionIndex) => (
+                         <View key={questionIndex} style={styles.questionContainer}>
+                           <Text style={styles.label}>Question {questionIndex + 1}</Text>
+                           <TextInput
+                             style={[styles.input, styles.questionInput]}
+                             value={question.question}
+                             onChangeText={(text) => updateQuestion(questionIndex, text)}
+                             placeholder="Entrez la question"
+                           />
+                           <View style={styles.optionsContainer}>
+                             {question.options.map((option, optionIndex) => (
+                               <View key={optionIndex} style={styles.optionContainer}>
+                                 <TextInput
+                                   style={[styles.input, styles.optionInput]}
+                                   value={option.text}
+                                   onChangeText={(text) => updateOption(questionIndex, optionIndex, text)}
+                                   placeholder="Entrez une option"
+                                 />
+                                 <Pressable onPress={() => toggleCorrectAnswer(questionIndex, optionIndex)}>
+                                   <View style={[styles.checkbox, { backgroundColor: option.isCorrect ? '#4CAF50' : '#eee' }]}>
+                                     {option.isCorrect && <Text style={styles.checkboxCheck}>✓</Text>}
+                                   </View>
+                                 </Pressable>
+                                 <Button title="Supprimer l'option" onPress={() => deleteOption(questionIndex, optionIndex)} />
+                               </View>
+                             ))}
+                             <Button title="Ajouter une option" onPress={() => addOption(questionIndex)} />
+                           </View>
+                           <Button title="Supprimer la question" onPress={() => deleteQuestion(questionIndex)} />
+                         </View>
+                       ))}
+                     </ScrollView>
+                     <Button title="Valider le QCM" onPress={validateQ} />
+                   </View>
+                 </View>
+
+                       <View >
+                        {qcms.map((qcm) => (
+                          <View key={qcm} style={styles.qcm}>
+                            <Text style={styles.qcmTitle}>{qcm}</Text>
+                            <Pressable onPress={() => {
+                              axios({
+                                method: 'post',
+                                url: `http://${config.URL}:5000/api/removeQcm`,
+                                data: {
+                                 
+                                  titre: qcm
+                                },
+                              }).then((response) => {
+                                if(response.data.result == "success") {
+                                  console.log("QCM deleted successfully");
+                                  fetchQcms();
+                                }
+                              }
+                              )
+                            }}>
+                              <FontAwesomeIcon icon={faTrash} size={20} color="red" />
+                            </Pressable>
+                          </View>
+                        ))}
+
+                        </View>
+
+
+               </View>
+          )}
+
+
+{showReveil && (
+  <View style={styles.popupContainer}>
+  <View style={styles.popupHeader}>
+    <Text style={styles.headerText}>Reveil</Text>
+    <Pressable onPress={() => setShowReveil(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+  </View>
+  <View style={styles.popupMain}>
+
+
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+  <Text style={{ fontSize: 18, marginBottom: 10 }}>Ajouter une alarme :</Text>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+  <Picker
+    style={{ height: 50, width: 100, marginRight: 10 }}
+    selectedValue={alarmHour}
+    onValueChange={(itemValue, itemIndex) => setAlarmHour(itemValue)}
+  >
+    {hours.map((hour) => (
+      <Picker.Item key={hour} label={hour} value={hour} />
+    ))}
+  </Picker>
+  <Text>:</Text>
+  <Picker
+    style={{ height: 50, width: 100, marginLeft: 10 }}
+    selectedValue={alarmMinute}
+    onValueChange={(itemValue, itemIndex) => setAlarmMinute(itemValue)}
+  >
+    {minutes.map((minute) => (
+      <Picker.Item key={minute} label={minute} value={minute} />
+    ))}
+  </Picker>
+</View>
+  <Button onPress={addAlarm} title="Ajouter l'alarme" />
+  <Text style={{ fontSize: 18, marginTop: 20 }}>Liste des alarmes :</Text>
+  <FlatList
+    data={alarms}
+    renderItem={({ item }) => (
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, background: "white", borderRadius: "15px", padding: "15px", marginTop: "10px" }}>
+        <Pressable onPress={() => removeAlarm(item[0])}>
+          <FontAwesomeIcon icon={faTrash} size={20} color="red" />
+        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10 }}>
+          <FontAwesomeIcon icon={faClock} size={20}  />
+          <Text style={{ marginLeft: 5 }}>{item[0]}</Text>
+        </View>
+      </View>
+    )}
+    keyExtractor={item => item.time}
+    style={{ width: '100%', display: "flex", gap: "15px", flexDirection: "column" }}
+  />
+  </View>
+
+
+
+
+  </View>
+  </View>
+  )}
+
+
      {showFeed && (
         <View style={styles.popupContainer}>
         <View style={styles.popupHeader}>
@@ -1056,6 +1463,30 @@ const [showFeed, setShowFeed] = useState(false);
             <Button title="Ajouter la fiche" onPress={validate} />
            
         </View>
+        {fiches.map((fiche) => (
+          <View key={fiche} style={{display: "flex", justifyContent: "space-between", padding: "15px", borderRadius: "15px", backgroundColor:"white", marginTop: "15px"}}>
+            <Text style={styles.ficheTitle}>{fiche.title}</Text>
+            <Pressable onPress={() => {
+              axios({
+                method: 'post',
+                url: `http://${config.URL}:5000/api/removeFiche`,
+                data: {
+                  titre: fiche.title
+                },
+              }).then((response) => {
+                if(response.data.result == "success") {
+                  console.log("Fiche deleted successfully");
+
+                  fetchFiches();
+                }
+              }
+              )
+            }}>
+              <FontAwesomeIcon icon={faTrash} size={20} color="red" />
+            </Pressable>
+          </View>
+        ))}
+
   </View>
 </View>
 
@@ -1746,7 +2177,77 @@ titleInput: {
     paddingHorizontal: 10,
     borderRadius: 5
 
-}
+},
+headerText: {
+  color: 'white',
+  fontSize: 18,
+},
+closeIcon: {
+  color: 'black',
+},
+main: {
+  flex: 1,
+  padding: 10,
+},
+qcmContainer: {
+  backgroundColor: 'white',
+  padding: 10,
+  borderRadius: 5,
+  elevation: 3,
+},
+label: {
+  fontWeight: 'bold',
+  marginBottom: 5,
+},
+input: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 5,
+  padding: 8,
+  marginBottom: 10,
+},
+questionsContainer: {
+  maxHeight: 300,
+},
+questionContainer: {
+  marginBottom: 20,
+},
+questionInput: {
+  minHeight: 50,
+},
+optionsContainer: {
+  marginBottom: 10,
+},
+optionContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 5,
+},
+optionInput: {
+  flex: 1,
+  marginRight: 5,
+},
+radio: {
+  width: 20,
+  height: 20,
+  borderRadius: 10,
+  borderWidth: 2,
+  borderColor: '#ddd',
+},
+checkbox: {
+  width: 20,
+  height: 20,
+  borderRadius: 3,
+  borderWidth: 2,
+  borderColor: '#ddd',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: 5,
+},
+checkboxCheck: {
+  color: 'white',
+  fontSize: 14,
+},
   
 });
 

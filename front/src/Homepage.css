@@ -335,3 +335,20 @@ footer {
     margin-bottom: 15px; /* Espacement extérieur en bas du titre */
     font-size: 20px; /* Taille de la police du titre */
 }
+.qcm-popup-answer {
+    padding: 10px;
+    border-radius: 10px;
+    background: #FF5733;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adds space between the radio button and label */
+  }
+  
+  .qcm-popup-answer input[type="radio"] {
+    accent-color: white; /* Changes the radio button color */
+  }
+  
+  .qcm-popup-answer label {
+    flex-grow: 1;
+  }
