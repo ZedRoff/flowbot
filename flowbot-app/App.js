@@ -1118,6 +1118,121 @@ const handleMoveCategory = (concernedTask, fromCategory) => {
   )
 }
 
+const [showLed, setShowLed] = useState(false)
+const [white, setWhite] = useState(false)
+const [blue, setBlue] = useState(false)
+const [blinkWhite, setBlinkWhite] = useState(false)
+const [blinkBlue, setBlinkBlue] = useState(false)
+
+const [alternate, setAlternate] = useState(false)
+
+const [mixed, setMixed] = useState(false)
+const handleWhite = () => {
+  axios({
+    method: "POST",
+    url: `http://${config.URL}:5000/api/manageLeds`,
+    data: {
+      "light": "white",
+      "mode": white ? "off": "on"
+    }
+  })
+setAlternate(false);
+setBlue(false)
+setBlinkBlue(false)
+setBlinkWhite(false)
+setWhite(!white)
+
+  
+}
+const handleBlue = () => {
+  axios({
+    method: "POST",
+    url: `http://${config.URL}:5000/api/manageLeds`,
+    data: {
+      "light": "blue",
+      "mode": blue ? "off": "on"
+    }
+  })
+setAlternate(false);
+setBlue(!blue)
+setBlinkBlue(false)
+setBlinkWhite(false)
+setWhite(false)
+
+  
+}
+
+const handleBlinkWhite = () => {
+  axios({
+    method: "POST",
+    url: `http://${config.URL}:5000/api/manageLeds`,
+    data: {
+      "light": "white",
+      "mode": blinkWhite ? "stop_blink":"blink"
+    }
+  })
+setAlternate(false);
+setBlue(false)
+setBlinkBlue(false)
+setBlinkWhite(!blinkWhite)
+setWhite(false)
+
+  
+}
+const handleBlinkBlue = () => {
+  axios({
+    method: "POST",
+    url: `http://${config.URL}:5000/api/manageLeds`,
+    data: {
+      "light": "blue",
+      "mode": blinkBlue ? "stop_blink": "blink"
+    }
+  })
+setAlternate(false);
+setBlue(false)
+setBlinkBlue(!blinkBlue)
+setBlinkWhite(false)
+setWhite(false)
+
+  
+}
+
+const handleAlternate = () => {
+  axios({
+    method: "POST",
+    url: `http://${config.URL}:5000/api/manageLeds`,
+    data: {
+      "light": "",
+      "mode": alternate ? "stop_alternate":"alternate"
+    }
+  })
+setAlternate(!alternate);
+setBlue(false)
+setBlinkBlue(false)
+setBlinkWhite(false)
+setWhite(false)
+
+  
+}
+
+const handleMixed = () => {
+  axios({
+    method: "POST",
+    url: `http://${config.URL}:5000/api/manageLeds`,
+    data: {
+      "light": "",
+      "mode": mixed ? "stop_mixed":"mixed"
+    }
+  })
+setAlternate(false);
+setBlue(false)
+setBlinkBlue(false)
+setBlinkWhite(false)
+setWhite(false)
+setMixed(!mixed)
+  
+}
+
 
 
   return (
@@ -1131,11 +1246,28 @@ const handleMoveCategory = (concernedTask, fromCategory) => {
 
     {hasFinishedStarter || processFinished ? (
       <View style={styles.container}>
+        <Button title="Leds" onPress={() => {
 
+setFicheMaker(false);
+ setShowMeteo(false);
+ setShowMusique(false);
+  setShowFichiers(false);
+  setShowTimeTable(false)
+  setShowQcm(false)
+setShowChronometre(false)
+setShowTraducteur(false);
+setShowMinuteur(false);
+setShowEditTimeTable(false)
+setShowReveil(false)
+setShowEditPPTimeTable(false)
+setShowFeed(false)
+setShowTaches(false)
+setShowLed(true)
+        }} />
 
         <Button title="Tâches" onPress={() => {
  setFicheMaker(false);
-
+setShowLed(false)
  setShowMeteo(false);
  setShowMusique(false);
   setShowFichiers(false);
@@ -1152,7 +1284,7 @@ setShowTaches(true)
         }} />
         <Button title="Fiche" onPress={() => {
           setFicheMaker(true);
-
+          setShowLed(false)
           setShowTaches(false)
           setShowMeteo(false);
           setShowMusique(false);
@@ -1185,6 +1317,7 @@ setShowTaches(true)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
           setShowTaches(false)
+          setShowLed(false)
         }} />
  <Button title="Musique" onPress={() => {
            setShowMusique(true);
@@ -1201,6 +1334,7 @@ setShowTaches(true)
           setShowTraducteur(false);
           setShowReveil(false)
           setShowEditPPTimeTable(false)
+          setShowLed(false)
         }} />
         <Button title="Fichiers" onPress={() => {
           setShowFichiers(true);
@@ -1217,6 +1351,7 @@ setShowTaches(true)
           setShowTraducteur(false);
           setShowEditPPTimeTable(false)
           setShowQcm(false)
+          setShowLed(false)
         }} />
         <Button title="Emploi du temps" onPress={() => {
           setShowTimeTable(true);
@@ -1233,6 +1368,7 @@ setShowTaches(true)
           setShowReveil(false)
           setShowQcm(false)
           setShowTaches(false)
+          setShowLed(false)
         }} />
             <Button title="Modifier emploi du temps" onPress={() => {
           setShowTimeTable(false);
@@ -1249,6 +1385,7 @@ setShowTaches(true)
           setShowTraducteur(false);
           setShowQcm(false)
           setShowTaches(false)
+          setShowLed(false)
         }} />
 
         <Button title="Chronometre" onPress={() => {
@@ -1266,6 +1403,7 @@ setShowTaches(true)
           setShowTraducteur(false);
           setShowQcm(false)
           setShowTaches(false)
+          setShowLed(false)
         }
         } />
         <Button title="Minuteur" onPress={() => {
@@ -1283,6 +1421,7 @@ setShowTaches(true)
           setShowTraducteur(false);
           setShowQcm(false)
           setShowTaches(false)
+          setShowLed(false)
         }
         } />
         <Button title="Traducteur" onPress={() => {
@@ -1300,6 +1439,7 @@ setShowTaches(true)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
           setShowTaches(false)
+          setShowLed(false)
         }}
          />
          <Button title="Feed" onPress={() => {
@@ -1321,6 +1461,7 @@ setShowTaches(true)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
           setShowReveil(false)
+          setShowLed(false)
 
          }}
           />
@@ -1343,7 +1484,8 @@ setShowTaches(true)
   setShowEditPPTimeTable(false)
 setShowReveil(true)
 setShowTaches(false)
-          }} />
+setShowLed(false)
+}} />
           <Button title="QCM" onPress={() => {
              setShowFichiers(false);
              setShowMeteo(false);
@@ -1364,7 +1506,35 @@ setShowTaches(false)
            setShowReveil(false)
            setShowQcm(true)
            fetchQcms();
+           setShowLed(false)
           }} />
+{
+
+showLed && (
+  <View style={styles.popupContainer}>
+  <View style={styles.popupHeader}>
+    <Text style={styles.headerText}>Gérer les leds</Text>
+    <Pressable onPress={() => setShowLed(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+  </View>
+  
+<Button title={blue ? "Bleu : ON": "Bleu : OFF"} onPress={handleBlue} />
+<Button title={white ? "Blanc : ON": "Blanc : OFF"} onPress={handleWhite} />
+<Button title={blinkBlue ? "Clignotte Bleu : ON": "Clignotte bleu : OFF"} onPress={handleBlinkBlue} />
+<Button title={blinkWhite ? "Clignotte blanc : ON": "Clignotte blanc : OFF"} onPress={handleBlinkWhite} />
+<Button title={alternate ? "Alterné : ON": "Alterné : OFF"} onPress={handleAlternate} />
+<Button title={mixed ? "Mixé : ON": "Mixé : OFF"} onPress={handleMixed} />
+
+</View>
+
+
+)
+}
+
+
+
+
 
 {showTaches && (
   <View style={styles.popupContainer}>

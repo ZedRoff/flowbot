@@ -1,3 +1,5 @@
+import RPi.GPIO as GPIO
+
 import os
 import json
 from flask import Flask
@@ -357,7 +359,7 @@ def handle_message(message):
 
 
 
-'''
+
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
@@ -437,15 +439,15 @@ def run_bouttons():
 
 
 
-'''
+
 
 
 if __name__ == '__main__':
-    '''t1 = Thread(target=run_molette)
+    t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
     
     t1.start()
-    t2.start()'''
+    t2.start()
  
     
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
