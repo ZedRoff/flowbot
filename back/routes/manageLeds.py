@@ -4,14 +4,14 @@ import time
 
 from flask import Blueprint, request, jsonify
 
-bp = Blueprint('manage_lights', __name__)
+bp = Blueprint('manage_leds', __name__)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(16,GPIO.OUT)
 GPIO.setup(18,GPIO.OUT)
 blink_color = ""
 
-@bp.route('/api/manageLights', methods=['POST'])
-def manage_lights():
+@bp.route('/api/manageLeds', methods=['POST'])
+def manage_leds():
     global blink_color
     if request.method == 'POST':
         try:
@@ -58,9 +58,9 @@ def manage_lights():
                     time.sleep(1)
                     GPIO.output(16, GPIO.LOW)
                     time.sleep(1)   
-            elif light == "white" and mode == "stop_blink":
+            elif mode == "stop_blink":
                 blink_color = ""
-            elif light == "blue" and mode == "stop_blink":
+            elif mode == "stop_blink":
                 blink_color = ""
             elif mode == "alternate":
                 blink_color = "alternate"
@@ -75,12 +75,14 @@ def manage_lights():
                     
                     time.sleep(1)
             elif mode == "stop_alternate":
-                blink_mode = ""
+                blink_color = ""
+                GPIO.output(18, GPIO.LOW)
+                GPIO.output(16, GPIO.LOW)
             elif mode == "mixed":
                 GPIO.output(18, GPIO.HIGH)
                 GPIO.output(16, GPIO.HIGH)
             elif mode == "stop_mixed":
-                GPIO.output(18, GPIO.LOW)
+                GPIO.output(16, GPIO.LOW)
                 GPIO.output(18, GPIO.LOW)
             return jsonify({'result': "success"})
 
