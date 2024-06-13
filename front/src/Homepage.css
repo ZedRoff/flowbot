@@ -352,3 +352,45 @@ footer {
   .qcm-popup-answer label {
     flex-grow: 1;
   }
+  .task-manager {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  
+  .columns {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .column {
+    background-color: #f4f5f7;
+    border-radius: 5px;
+    padding: 10px;
+    width: 300px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .column-title {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .task {
+    background-color: #ffffff;
+    border-radius: 3px;
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  

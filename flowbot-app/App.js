@@ -117,6 +117,48 @@ const [showTraducteur, setShowTraducteur] = useState(false);
       })
     
     }
+
+
+
+
+
+
+
+
+
+    const [tasks, setTasks] = useState([]);
+    const fetchCategories = () => {
+      axios({
+        method: 'get',
+        url: `http://${config.URL}:5000/api/getCategories`,
+      }).then((r1) => {
+        setCategories(r1.data.result);
+        if (r1.data.result.length > 0) {
+          setSelectedCategory(r1.data.result[0][0]); // Initialise avec la première catégorie
+        }
+        let newTasks = []; // Créer un nouveau tableau pour les tâches
+    
+        const fetchTasksForCategory = (category) => {
+          return axios({
+            method: 'post',
+            url: `http://${config.URL}:5000/api/getTasks`,
+            data: {
+              category: category[0]
+            }
+          }).then((r2) => {
+            newTasks.push({ category: category[0], tasks: r2.data.result });
+          });
+        };
+    
+        Promise.all(r1.data.result.map(fetchTasksForCategory)).then(() => {
+          setTasks(newTasks); // Mettre à jour les tâches avec les nouvelles données
+        }).catch((error) => {
+          console.error("Error fetching tasks: ", error);
+        });
+      }).catch((error) => {
+        console.error("Error fetching categories: ", error);
+      });
+    };
   
 
   useEffect(() => {
@@ -146,7 +188,10 @@ const [showTraducteur, setShowTraducteur] = useState(false);
       }  else if(type == 'fiches_update') {
 
         fetchFiches()
-      } 
+      } else if(type == "tasks_update") {
+        fetchCategories()
+
+      }
 
       console.log('Message received: ' + message);
     });
@@ -972,13 +1017,106 @@ const [qcmTitle, setQcmTitle] = useState('');
 const [qcms, setQcms] = useState([]);
 
 
+const [showTaches, setShowTaches] = useState(false);
 
 
- 
+const [task, setTask] = useState('');
+
+const [categories, setCategories] = useState([]);
 
 
+const [selectedCategory, setSelectedCategory] = useState('');
 
+const addTask = () => {
+  if(task === '') {
+    alert("La tâche ne peut pas être vide");
+    return;
+  }
+  if(selectedCategory === '') {
+    alert("La catégorie ne peut pas être vide");
+    return;
+  }
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addTask`,
+    data: {
+      name: task,
+      category: selectedCategory,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      console.log("Task added successfully");
+    alert("Tâche ajoutée avec succès") 
+  
+  
+  }
+  }
+  )
 
+}
+
+const removeCategory = (categoryName) => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/removeCategory`,
+    data: { name: categoryName },
+  }).then((response) => {
+    if (response.data.result === 'success') {
+      console.log('Category deleted successfully');
+      
+      fetchCategories();
+    }
+  }).catch((error) => {
+    console.error('Error deleting category: ', error);
+  });
+};
+const [newCategory, setNewCategory] = useState('');
+const createCategory = () => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addCategory`,
+    data: { name: newCategory },
+  }).then((response) => {
+    if (response.data.result === 'success') {
+      console.log('Category created successfully');
+      setNewCategory('');
+    }
+  }).catch((error) => {
+    console.error('Error creating category: ', error);
+  });
+};
+
+useEffect(() => {
+  fetchCategories();
+  
+}, [])
+const [moveCategory, setMoveCategory] = useState('');
+const handleMoveCategory = (concernedTask, fromCategory) => {
+  if(moveCategory === '') {
+    alert("La catégorie ne peut pas être vide");
+    return;
+  }
+  if(fromCategory === '') {
+    alert("La catégorie de destination ne peut pas être vide");
+    return;
+  }
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/moveTask`,
+    data: {
+      name: concernedTask,
+      fromCategory: fromCategory,
+      toCategory: moveCategory,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      handleCloseModal()
+      setMoveCategory('');
+      console.log("Category moved successfully");
+    }
+  }
+  )
+}
 
 
 
@@ -993,9 +1131,29 @@ const [qcms, setQcms] = useState([]);
 
     {hasFinishedStarter || processFinished ? (
       <View style={styles.container}>
+
+
+        <Button title="Tâches" onPress={() => {
+ setFicheMaker(false);
+
+ setShowMeteo(false);
+ setShowMusique(false);
+  setShowFichiers(false);
+  setShowTimeTable(false)
+  setShowQcm(false)
+setShowChronometre(false)
+setShowTraducteur(false);
+setShowMinuteur(false);
+setShowEditTimeTable(false)
+setShowReveil(false)
+setShowEditPPTimeTable(false)
+setShowFeed(false)
+setShowTaches(true)
+        }} />
         <Button title="Fiche" onPress={() => {
           setFicheMaker(true);
 
+          setShowTaches(false)
           setShowMeteo(false);
           setShowMusique(false);
            setShowFichiers(false);
@@ -1026,6 +1184,7 @@ const [qcms, setQcms] = useState([]);
          setShowFeed(false)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
+          setShowTaches(false)
         }} />
  <Button title="Musique" onPress={() => {
            setShowMusique(true);
@@ -1034,7 +1193,7 @@ const [qcms, setQcms] = useState([]);
             setShowTimeTable(false)
             setFicheMaker(false);
           setShowChronometre(false)
-          
+          setShowTaches(false)
           setShowMinuteur(false);
           setShowQcm(false)
          setShowFeed(false)
@@ -1048,7 +1207,7 @@ const [qcms, setQcms] = useState([]);
           setShowMeteo(false);
           setShowMusique(false);
           setShowTimeTable(false)
-          
+          setShowTaches(false)
          setShowFeed(false)
           setShowChronometre(false)
           setFicheMaker(false);
@@ -1073,6 +1232,7 @@ const [qcms, setQcms] = useState([]);
           setShowFeed(false)
           setShowReveil(false)
           setShowQcm(false)
+          setShowTaches(false)
         }} />
             <Button title="Modifier emploi du temps" onPress={() => {
           setShowTimeTable(false);
@@ -1088,6 +1248,7 @@ const [qcms, setQcms] = useState([]);
           setShowEditPPTimeTable(true)
           setShowTraducteur(false);
           setShowQcm(false)
+          setShowTaches(false)
         }} />
 
         <Button title="Chronometre" onPress={() => {
@@ -1104,6 +1265,7 @@ const [qcms, setQcms] = useState([]);
           setShowEditPPTimeTable(false)
           setShowTraducteur(false);
           setShowQcm(false)
+          setShowTaches(false)
         }
         } />
         <Button title="Minuteur" onPress={() => {
@@ -1120,6 +1282,7 @@ const [qcms, setQcms] = useState([]);
           setShowEditPPTimeTable(false)
           setShowTraducteur(false);
           setShowQcm(false)
+          setShowTaches(false)
         }
         } />
         <Button title="Traducteur" onPress={() => {
@@ -1136,6 +1299,7 @@ const [qcms, setQcms] = useState([]);
          setShowFeed(false)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
+          setShowTaches(false)
         }}
          />
          <Button title="Feed" onPress={() => {
@@ -1152,7 +1316,7 @@ const [qcms, setQcms] = useState([]);
           setShowTraducteur(false);
           setFicheMaker(false);
           setShowEditTimeTable(false)
-          
+          setShowTaches(false)
          setShowFeed(true)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
@@ -1178,7 +1342,7 @@ const [qcms, setQcms] = useState([]);
  setShowFeed(false)
   setShowEditPPTimeTable(false)
 setShowReveil(true)
-
+setShowTaches(false)
           }} />
           <Button title="QCM" onPress={() => {
              setShowFichiers(false);
@@ -1194,13 +1358,114 @@ setShowReveil(true)
              setShowTraducteur(false);
              setFicheMaker(false);
              setShowEditTimeTable(false)
-             
+             setShowTaches(false)
             setShowFeed(false)
              setShowEditPPTimeTable(false)
            setShowReveil(false)
            setShowQcm(true)
            fetchQcms();
           }} />
+
+{showTaches && (
+  <View style={styles.popupContainer}>
+    <View style={styles.popupHeader}>
+      <Text style={styles.headerText}>Tâches</Text>
+      <Pressable onPress={() => setShowTaches(false)}>
+        <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+      </Pressable>
+    </View>
+    <View style={styles.popupMain}>
+
+<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+  <Text style={{ fontSize: 18, marginBottom: 10 }}>Ajouter une catégorie :</Text>
+  <TextInput
+
+    style={styles.textInput}
+    value={newCategory}
+    onChangeText={setNewCategory}
+    placeholder="Entrez la catégorie"
+  />
+  <Button onPress={createCategory} title="Ajouter la catégorie" />
+
+  </View>
+
+
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+        <Text style={{ fontSize: 18, marginBottom: 10 }}>Ajouter une tâche :</Text>
+        <TextInput
+          style={styles.textInput}
+          value={task}
+          onChangeText={setTask}
+          placeholder="Entrez la tâche"
+        />
+        <Picker
+          selectedValue={selectedCategory}
+          style={{ height: 50, width: 150, marginBottom:15 }}
+          onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+        >
+          {categories.map((category) => (
+            <Picker.Item key={category[0]} label={category[0]} value={category[0]} />
+          ))}
+        </Picker>
+        <Button onPress={addTask} title="Ajouter la tâche" />
+        <Text style={{ fontSize: 18, marginTop: 20 }}>Liste des tâches :</Text>
+        <View>
+          {categories.map((category) => (
+            <View key={category[0]} style={styles.category}>
+               <View style={styles.categoryHeader}>
+                      <Text style={styles.categoryTitle}>{category[0]}</Text>
+                      <Pressable onPress={() => removeCategory(category[0])}>
+                        <FontAwesomeIcon icon={faTrash} size={20} color="red" />
+                      </Pressable>
+                    </View>
+              {tasks.length > 0 &&
+                tasks.find(t => t.category === category[0])?.tasks.map((t) => (
+                  <View key={t.name} style={styles.task}>
+                    <Text style={styles.taskTitle}>{t.name}</Text>
+                    <Pressable onPress={() => {
+                      axios({
+                        method: 'post',
+                        url: `http://${config.URL}:5000/api/removeTask`,
+                        data: { name: t.name, category: category[0] }
+                      }).then((response) => {
+                        if (response.data.result === "success") {
+                          console.log("Task deleted successfully");
+                          fetchCategories();
+                        }
+                      }).catch((error) => {
+                        console.error("Error deleting task: ", error);
+                      });
+                    }}>
+                   
+                      <FontAwesomeIcon icon={faTrash} size={20} color="red" />
+                    </Pressable>
+                    <Button title="Déplacer" onPress={handleOpenModal} />
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Catégorie vers laquelle vous souhaitez déplacer ?</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom de la catégorie"
+            value={moveCategory}
+            onChangeText={setMoveCategory}
+          />
+          <View style={styles.buttonContainer}>
+            <Button title="Annuler" onPress={handleCloseModal} />
+            <Button title="Déplacer" onPress={() => handleMoveCategory(t.name, category[0])} />
+          </View>
+        </View>
+      </Modal>
+                  </View>
+                ))
+              }
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  </View>
+)}
+
 
           {showQcm && (
                  <View style={styles.container}>
@@ -1257,7 +1522,7 @@ setShowReveil(true)
                    </View>
                  </View>
 
-                       <View >
+                       <View>
                         {qcms.map((qcm) => (
                           <View key={qcm} style={styles.qcm}>
                             <Text style={styles.qcmTitle}>{qcm}</Text>
@@ -2297,6 +2562,38 @@ fileName: {
 removeIcon: {
   color: 'red',
 },
+category: {
+  backgroundColor: 'white',
+  padding: 10,
+  borderRadius: 5,
+  marginBottom: 10,
+},
+categoryTitle: {
+  fontWeight: 'bold',
+  marginBottom: 5,
+},
+task: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 5,
+},
+taskText: {
+  flex: 1,
+},
+qcm: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 5,
+},
+categoryHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+
+
   
 });
 

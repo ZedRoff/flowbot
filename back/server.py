@@ -178,6 +178,20 @@ cur.execute('''
             )
             ''')
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS categories(
+            name TEXT
+            )
+            ''')
+con.commit()
+cur.execute('''
+CREATE TABLE IF NOT EXISTS tasks(
+            name TEXT,
+            category TEXT,
+            status TEXT
+            )
+            ''')
+con.commit()
 
 
 

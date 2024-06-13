@@ -69,6 +69,9 @@ const Homepage = () => {
         },
         {
             type: "qcm"
+        },
+        {
+            type: "taches"
         }
     ]; 
     const fetchDays = async() => {
@@ -158,6 +161,47 @@ const fetchQcms = async() => {
 }
 
 
+const [categories, setCategories] = useState([]);
+const [tasks, setTasks] = useState([]);
+
+useEffect(() => {
+  fetchCategories();
+}, []);
+
+const fetchCategories = () => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getCategories`,
+  }).then((response) => {
+    const categoriesData = response.data.result;
+    setCategories(categoriesData);
+
+    const fetchTasksPromises = categoriesData.map((category) =>
+      axios({
+        method: 'post',
+        url: `http://${config.URL}:5000/api/getTasks`,
+        data: {
+          category: category[0],
+        },
+      }).then((taskResponse) => ({
+        category: category[0],
+        tasks: taskResponse.data.result,
+      }))
+    );
+
+    Promise.all(fetchTasksPromises).then((tasksData) => {
+      setTasks(tasksData);
+    });
+  }).catch((error) => {
+    console.error("Error fetching categories: ", error);
+  });
+};
+
+
+
+
+
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -234,7 +278,10 @@ const fetchQcms = async() => {
             fetchAlarms()
         } else if(type == "qcm_update") {   
             fetchQcms()
+        } else if(type == "tasks_update") {
+            fetchCategories()
         }
+
 
 
             
@@ -844,9 +891,35 @@ const [typeTrain, setTypeTrain] = useState("departures");
                                                                 </div>
                                                                 </div>
                                                                     ) : (
+                                                                        card.type == "taches" ? (
+                                                                            <div className="task-manager">
+                                                                            <h2>Gestionnaire de tâches</h2>
+                                                                            <div className="columns">
+                                                                              {categories.map((category) => (
+                                                                                <div key={category[0]} className="column">
+                                                                                  <h2 className="column-title">{category[0]}</h2>
+                                                                                  <div className="tasks">
+                                                                                    {tasks
+                                                                                      .filter((taskGroup) => taskGroup.category === category[0])
+                                                                                      .flatMap((taskGroup) => taskGroup.tasks)
+                                                                                      .map((task) => (
+                                                                                        <div key={task.name} className="task">
+                                                                                          <span>{task.name}</span>
+                                                                                         
+                                                                                        </div>
+                                                                                      ))}
+                                                                                  </div>
+                                                                                </div>
+                                                                              ))}
+                                                                            </div>
+                                                                          </div>
+                                                                      
+   
+                                                                        ) : (
 
                                         <div className="blank-card">Blank Card</div>
                                                                     )
+                                                                )
                                                                 )
                                                             )
                                                         )
