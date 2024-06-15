@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform, ScrollView, Alert, FlatList  } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform, ScrollView, Alert, FlatList, Switch  } from 'react-native';
 import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
@@ -12,6 +12,32 @@ import * as FileSystem from 'expo-file-system';
 import Modal from 'react-native-modal';
 import { Picker } from '@react-native-picker/picker';
 import Draggable from 'react-native-draggable';
+import { Table, TableWrapper, Row, Cell } from 'react-native-table-component';
+
+import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+import {LocaleConfig} from 'react-native-calendars';
+
+LocaleConfig.locales['fr'] = {
+  monthNames: [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre'
+  ],
+  monthNamesShort: ['Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'],
+  dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+  dayNamesShort: ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'],
+  today: "Aujourd'hui"
+};
+LocaleConfig.defaultLocale = 'fr';
 
 
 const Section = ({ data, updateSection, deleteSection, moveSection, index, totalSections }) => {
@@ -55,6 +81,138 @@ const Section = ({ data, updateSection, deleteSection, moveSection, index, total
 
 
 const App = () => {
+const [showFileInfo, setShowFileInfo] = useState(false);
+
+const [showCorrecteur, setShowCorrecteur] = useState(false);
+
+  const initialGrades = [
+    { id: '1', matiere: 'Électronique', grade: 15, coefficient: 3, locked: true },
+    { id: '2', matiere: 'Physique', grade: 15, coefficient: 2, locked: true },
+    { id: '3', matiere: 'Mathématiques', grade: 12, coefficient: 3, locked: false },
+  ];
+
+  const [grades, setGrades] = useState(initialGrades);
+  const [desiredAverage, setDesiredAverage] = useState('');
+  const [newMatiere, setNewMatiere] = useState('');
+  const [newCoefficient, setNewCoefficient] = useState('');
+  const [newGrade, setNewGrade] = useState('');
+  const [isDesiredAverageAttainable, setIsDesiredAverageAttainable] = useState(true);
+
+  useEffect(() => {
+    checkDesiredAverageAttainability();
+  }, [desiredAverage, grades]);
+
+  useEffect(() => {
+    updateMinimumGrades();
+  }, [desiredAverage]);
+
+  const calculateGeneralAverage = () => {
+    let totalGrades = 0;
+    let totalCoefficients = 0;
+
+    grades.forEach(item => {
+      totalGrades += (item.grade || 0) * item.coefficient;
+      totalCoefficients += item.coefficient;
+    });
+
+    return totalCoefficients === 0 ? 'N/A' : (totalGrades / totalCoefficients).toFixed(2);
+  };
+
+  const calculateLockedAverage = () => {
+    let totalGrades = 0;
+    let totalCoefficients = 0;
+
+    grades.forEach(item => {
+      if (item.locked) {
+        totalGrades += (item.grade || 0) * item.coefficient;
+        totalCoefficients += item.coefficient;
+      }
+    });
+
+    return totalCoefficients === 0 ? 0 : totalGrades / totalCoefficients;
+  };
+
+  const calculateMinimumGrade = (item) => {
+    if (desiredAverage === '') return 'N/A';
+
+    let totalGrades = 0;
+    let totalCoefficients = 0;
+
+    grades.forEach(i => {
+      if (i.id !== item.id) {
+        totalGrades += (i.grade || 0) * i.coefficient;
+        totalCoefficients += i.coefficient;
+      }
+    });
+
+    const requiredGrade = (desiredAverage * (totalCoefficients + item.coefficient) - totalGrades) / item.coefficient;
+    if (requiredGrade > 20) {
+      return 'Non atteignable';
+    } else if (requiredGrade < 0) {
+      return '0.00';
+    } else {
+      return requiredGrade.toFixed(2);
+    }
+  };
+
+  const handleGradeChange = (id, value) => {
+    const newGrades = grades.map(item =>
+      item.id === id ? { ...item, grade: parseFloat(value) || 0 } : item
+    );
+    setGrades(newGrades);
+  };
+
+  const handleLockedChange = (id, value) => {
+    const newGrades = grades.map(item =>
+      item.id === id ? { ...item, locked: value } : item
+    );
+    setGrades(newGrades);
+    updateMinimumGrades();
+  };
+
+  const addMatiere = () => {
+    if (newMatiere === '' || newCoefficient === '' || newGrade === '') return;
+
+    const newId = (grades.length + 1).toString();
+    const newGradeItem = {
+      id: newId,
+      matiere: newMatiere,
+      grade: parseFloat(newGrade) || 0,
+      coefficient: parseInt(newCoefficient) || 1,
+      locked: false
+    };
+
+    setGrades([...grades, newGradeItem]);
+    setNewMatiere('');
+    setNewCoefficient('');
+    setNewGrade('');
+    updateMinimumGrades();
+  };
+
+  const removeMatiere = (id) => {
+    const newGrades = grades.filter(item => item.id !== id);
+    setGrades(newGrades);
+    updateMinimumGrades();
+  };
+
+  const updateMinimumGrades = () => {
+    setGrades(prevGrades => prevGrades.map(item => ({
+      ...item,
+      minGrade: calculateMinimumGrade(item)
+    })));
+  };
+
+  const checkDesiredAverageAttainability = () => {
+    const lockedAverage = calculateLockedAverage();
+    setIsDesiredAverageAttainable(
+      desiredAverage === '' || lockedAverage >= parseFloat(desiredAverage)
+    );
+  };
+const [showCustom, setShowCustom] = useState(false);
+
+
+
+
   const [hasFinishedStarter, setHasFinishedStarter] = useState(false);
   const [processFinished, setProcessFinished] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -80,7 +238,7 @@ const [folderName, setFolderName] = useState('');
 
 const [showFichiers, setShowFichiers] = useState(false);
 
-const [fileInfo, setFileInfo] = useState(null);
+const [fileInfo, setFileInfo] = useState({});
 const [fileContent, setFileContent] = useState('');
 
 const [file, setFile] = useState(null);
@@ -161,6 +319,22 @@ const [showTraducteur, setShowTraducteur] = useState(false);
     };
   
 
+
+
+    const [infosFiles, setInfosFiles] = useState([]);
+const fetchInfosFiles = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getInfosFiles`,
+  }).then((response) => {
+    setInfosFiles(response.data.result);
+  });
+}
+useEffect(() => {
+  fetchInfosFiles();
+}
+, []);
+
   useEffect(() => {
     const socket = io(`http://${config.URL}:5000`);
 
@@ -181,8 +355,8 @@ const [showTraducteur, setShowTraducteur] = useState(false);
   if(type == 'timetable_update') {
           fetchDays()
       }  else if(type == 'files_update') {
-          fetchHierarchy()
-          
+          fetchHierarchy();
+          fetchInfosFiles();          
       } else if(type == 'qcm_update') {
         fetchQcms()
       }  else if(type == 'fiches_update') {
@@ -1233,7 +1407,187 @@ setMixed(!mixed)
   
 }
 
+const [showNotes, setShowNotes] = useState(false);
 
+
+
+
+
+const [tradText, setTradText] = useState('');
+const [correctedText, setCorrectedText] = useState('');
+const [corrections, setCorrections] = useState({});
+const correctText = () => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/correctText`,
+    data: {
+      text: tradText,
+      lang: "fr-FR"
+    },
+  }).then((response) => {
+   
+    setCorrectedText(response.data.corrected_text);
+    setCorrections(response.data.corrections);
+  
+
+  });
+}
+const [showAddCommand, setShowAddCommand] = useState(false); 
+
+const [command, setCommand] = useState('');
+const [response, setResponse] = useState('');
+
+const [commands, setCommands] = useState([]);
+
+
+const fetchCommands = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getCommands`,
+  }).then((response) => {
+    setCommands(response.data.result);
+  });
+}
+
+
+
+const createCommand = () => {
+  if(command === '') {
+    alert("La commande ne peut pas être vide");
+    return;
+  }
+  if(response === '') {
+    alert("La réponse ne peut pas être vide");
+    return;
+  }
+
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addCommand`,
+    data: {
+      name: command,
+      reply: response,
+    },
+  }).then((r1) => {
+    
+if(r1.data.result == "success") {
+
+      setCommands([...commands, { name: command, reply: response, uuid: r1.data.uuid }]);
+      setCommand('');
+      setResponse('');
+}
+  }
+  )
+}
+const deleteCommand = (commandUuid) => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/deleteCommand`,
+    data: { uuid: commandUuid },
+  }).then((response) => {
+    if (response.data.result === 'success') {
+      console.log('Command deleted successfully');
+      setCommands(commands.filter(c => c.uuid !== commandUuid));
+    }
+  }).catch((error) => {
+    console.error('Error deleting command: ', error);
+  });
+}
+useEffect(() => {
+  fetchCommands();
+}
+, []);
+
+
+
+
+const fetchFileInfo = async(f) => {
+
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/fileInfo`,
+    data: {
+      file_path: `./uploads/info/${f}`
+    }
+  }).then((response) => {
+
+    setFileInfo(response.data);
+  });
+}
+
+
+
+
+const [showCalendrier, setShowCalendrier] = useState(false);
+const [markedDates, setMarkedDates] = useState({});
+
+const getRappels = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getEvents`,
+  }).then((response) => {
+
+    let d = {}
+    for(let i = 0; i < response.data.result.length; i++) {
+      d[response.data.result[i][1]] = {marked: true, dotColor: response.data.result[i][2]};
+    }
+  
+    setMarkedDates(d)
+
+    
+   
+  });
+}
+const removeRappel = async(text, date) => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/removeRappel`,
+    data: {
+      text: text,
+      date: date
+    }
+  }).then((response) => {
+    if(response.data.result == "success") {
+      getRappels();
+      window.location.reload()
+    }
+  });
+}
+const [currentDayDate, setCurrentDayDate] = useState('');
+
+const addRappel = async() => {
+  if(currentDay === '' || rappelText === '') {
+    alert("Le texte du rappel ne peut pas être vide");
+    return;
+  }
+
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addRappel`,
+    data: {
+      text: rappelText,
+      date: currentDayDate,
+      color: colorDay
+    }
+  }).then((response) => {
+    if(response.data.result == "success") {
+     let cpy = {...currentDay}
+     console.log(currentDay)
+      setColorDay('');
+      setRappelText('');
+      window.location.reload()
+    }
+  });
+}
+const [rappelText, setRappelText] = useState('');
+const [colorDay, setColorDay] = useState('');
+useEffect(() => {
+  getRappels()
+}, [])
+
+const [showPopupDate, setShowPopupDate] = useState(false);
+
+const [currentDay, setCurrentDay] = useState({});
 
   return (
 
@@ -1246,8 +1600,127 @@ setMixed(!mixed)
 
     {hasFinishedStarter || processFinished ? (
       <View style={styles.container}>
-        <Button title="Leds" onPress={() => {
 
+      <Button title="Calendrier" onPress={() => {
+ setShowFileInfo(false)
+
+ setFicheMaker(false);
+ setShowMeteo(false);
+ setShowMusique(false);
+ setShowFichiers(false);
+ setShowTimeTable(false)
+ setShowQcm(false)
+ setShowChronometre(false)
+ setShowTraducteur(false);
+ setShowMinuteur(false);
+ setShowEditTimeTable(false)
+ setShowReveil(false)
+ setShowEditPPTimeTable(false)
+ setShowFeed(false)
+ setShowTaches(false)
+ setShowLed(false)
+ setShowNotes(false)
+ setShowCorrecteur(false)
+ setShowAddCommand(false)
+ setShowCalendrier(true)
+      }} />
+        
+      <Button title="Informations fichier" onPress={() => {
+        setShowFileInfo(true)
+        setShowCalendrier(false)
+setFicheMaker(false);
+setShowMeteo(false);
+setShowMusique(false);
+setShowFichiers(false);
+setShowTimeTable(false)
+setShowQcm(false)
+setShowChronometre(false)
+setShowTraducteur(false);
+setShowMinuteur(false);
+setShowEditTimeTable(false)
+setShowReveil(false)
+setShowEditPPTimeTable(false)
+setShowFeed(false)
+setShowTaches(false)
+setShowLed(false)
+setShowNotes(false)
+setShowCorrecteur(false)
+setShowAddCommand(false)
+      }} />
+
+
+        <Button title="Commandes" onPress={() => {
+setFicheMaker(false);
+setShowMeteo(false);
+setShowMusique(false);
+setShowFichiers(false);
+setShowTimeTable(false)
+setShowQcm(false)
+setShowChronometre(false)
+setShowTraducteur(false);
+setShowMinuteur(false);
+setShowEditTimeTable(false)
+setShowReveil(false)
+setShowEditPPTimeTable(false)
+setShowFeed(false)
+setShowTaches(false)
+setShowLed(false)
+setShowNotes(false)
+setShowCorrecteur(false)
+setShowAddCommand(true)
+setShowFileInfo(false)
+setShowCalendrier(false)
+        }} />
+        <Button title="Correcteur" onPress={() => {
+           setFicheMaker(false);
+           setShowMeteo(false);
+           setShowMusique(false);
+           setShowFichiers(false);
+           setShowTimeTable(false)
+           setShowQcm(false)
+           setShowChronometre(false)
+           setShowTraducteur(false);
+           setShowMinuteur(false);
+           setShowEditTimeTable(false)
+           setShowReveil(false)
+           setShowEditPPTimeTable(false)
+           setShowFeed(false)
+           setShowTaches(false)
+           setShowLed(false)
+           setShowNotes(false)
+           setShowCorrecteur(true)
+           setShowFileInfo(false)
+           setShowCalendrier(false)
+setShowAddCommand(false)
+        }} /> 
+        
+                <Button title="Notes" onPress={() => {
+          setFicheMaker(false);
+          setShowMeteo(false);
+          setShowMusique(false);
+          setShowFichiers(false);
+          setShowTimeTable(false)
+          setShowQcm(false)
+          setShowChronometre(false)
+          setShowTraducteur(false);
+          setShowMinuteur(false);
+          setShowEditTimeTable(false)
+          setShowReveil(false)
+          setShowEditPPTimeTable(false)
+          setShowFeed(false)
+          setShowTaches(false)
+          setShowLed(false)
+          setShowNotes(true)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
+        }
+        } />
+
+        <Button title="Leds" onPress={() => {
+ setShowFileInfo(false)
+ setShowCalendrier(false)
 setFicheMaker(false);
  setShowMeteo(false);
  setShowMusique(false);
@@ -1263,6 +1736,9 @@ setShowEditPPTimeTable(false)
 setShowFeed(false)
 setShowTaches(false)
 setShowLed(true)
+setShowNotes(false)
+setShowCorrecteur(false)
+setShowAddCommand(false)
         }} />
 
         <Button title="Tâches" onPress={() => {
@@ -1281,6 +1757,11 @@ setShowReveil(false)
 setShowEditPPTimeTable(false)
 setShowFeed(false)
 setShowTaches(true)
+setShowCorrecteur(false)
+setShowNotes(false)
+setShowAddCommand(false)
+setShowFileInfo(false)
+setShowCalendrier(false)
         }} />
         <Button title="Fiche" onPress={() => {
           setFicheMaker(true);
@@ -1298,7 +1779,11 @@ setShowTaches(true)
          setShowReveil(false)
          setShowEditPPTimeTable(false)
          setShowFeed(false)
-         
+         setShowNotes(false)
+         setShowCorrecteur(false)
+         setShowAddCommand(false)
+         setShowFileInfo(false)
+         setShowCalendrier(false)
 
         }} />
 
@@ -1318,6 +1803,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowTaches(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }} />
  <Button title="Musique" onPress={() => {
            setShowMusique(true);
@@ -1335,6 +1825,11 @@ setShowTaches(true)
           setShowReveil(false)
           setShowEditPPTimeTable(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }} />
         <Button title="Fichiers" onPress={() => {
           setShowFichiers(true);
@@ -1352,6 +1847,11 @@ setShowTaches(true)
           setShowEditPPTimeTable(false)
           setShowQcm(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }} />
         <Button title="Emploi du temps" onPress={() => {
           setShowTimeTable(true);
@@ -1369,6 +1869,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowTaches(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }} />
             <Button title="Modifier emploi du temps" onPress={() => {
           setShowTimeTable(false);
@@ -1386,6 +1891,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowTaches(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }} />
 
         <Button title="Chronometre" onPress={() => {
@@ -1404,6 +1914,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowTaches(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }
         } />
         <Button title="Minuteur" onPress={() => {
@@ -1422,6 +1937,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowTaches(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }
         } />
         <Button title="Traducteur" onPress={() => {
@@ -1440,6 +1960,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowTaches(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
         }}
          />
          <Button title="Feed" onPress={() => {
@@ -1462,6 +1987,11 @@ setShowTaches(true)
           setShowQcm(false)
           setShowReveil(false)
           setShowLed(false)
+          setShowNotes(false)
+          setShowCorrecteur(false)
+          setShowAddCommand(false)
+          setShowFileInfo(false)
+          setShowCalendrier(false)
 
          }}
           />
@@ -1485,6 +2015,11 @@ setShowTaches(true)
 setShowReveil(true)
 setShowTaches(false)
 setShowLed(false)
+setShowNotes(false)
+setShowCorrecteur(false)
+setShowAddCommand(false)
+setShowFileInfo(false)
+setShowCalendrier(false)
 }} />
           <Button title="QCM" onPress={() => {
              setShowFichiers(false);
@@ -1507,7 +2042,326 @@ setShowLed(false)
            setShowQcm(true)
            fetchQcms();
            setShowLed(false)
-          }} />
+           setShowNotes(false)
+           setShowCorrecteur(false)
+           setShowAddCommand(false)
+           setShowFileInfo(false)
+           setShowCalendrier(false)
+           
+           
+           }} />
+
+
+
+
+
+
+
+           {showCalendrier && (
+            <View style={styles.popupContainer}>
+              <View style={styles.popupHeader}>
+<Text style={styles.headerText}>
+Calendrier
+  </Text>
+  <Pressable onPress={() => setShowCalendrier(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+                </View>
+                <View style={styles.popupMain}>
+<Calendar 
+onDayPress={(day) => {
+  
+  
+  setShowPopupDate(true); 
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/getRappels`,
+    data: {
+      date: day.dateString
+    }
+  }).then((res) => {
+    setCurrentDay(res.data.result)
+  })
+
+setCurrentDayDate(day.dateString)
+}} 
+markedDates={markedDates}
+
+/>
+      
+                  </View>
+
+
+                  {showPopupDate && (
+  <ScrollView style={{background: "black", position: "absolute", zIndex:99, left: 0, right: 0, top: 0, bottom: 0}}>
+      <View style={{display: "flex", padding: "15px", borderTopRightRadius: "15px", borderTopLeftRadius: "15px", alignItems: "center"}}>
+        <Pressable style={{alignSelf: "flex-end", background: "red"}} onPress={() => setShowPopupDate(false)}>
+<FontAwesomeIcon icon={faX} size={20} style={{color: "white"}} />
+</Pressable>
+        </View>
+
+        <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
+                          <Text style={styles.text}>Ajouter un rappel :</Text>
+                           <TextInput
+                            style={styles.textInput}
+                            value={rappelText}
+                            onChangeText={setRappelText}
+                            placeholder="Texte du rappel"
+                          />
+                          <TextInput
+                            style={styles.textInput}
+                            value={colorDay}
+                            onChangeText={setColorDay}
+                            placeholder="Couleur du rappel"
+                          />
+
+                          <Button title="Ajouter" onPress={addRappel} />
+
+                        </View>
+  
+
+
+                  {currentDay.length > 0 && (
+                    <View style={styles.popupMain}>
+                      <Text style={{ fontSize: 18, marginBottom: 10 }}>Rappels :</Text>
+                      <FlatList
+                        data={currentDay}
+                        keyExtractor={item => item[0]}
+                        renderItem={({ item }) => (
+                          <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
+                            <Text style={styles.text}>Rappel : {item[0]}</Text>
+                            <Text style={styles.text}>Heure : {item[1]}</Text>
+                            <Text style={styles.text}>Couleur : {item[2]}</Text>
+                            <TouchableOpacity onPress={() => removeRappel(item[0], item[1])}>
+                              <Text style={styles.removeButton}>Supprimer</Text>
+                            </TouchableOpacity>
+                          
+                       
+                          </View>
+                        )}
+                        
+                      />
+                      
+                    </View>
+                  )}
+    
+
+    </ScrollView>
+)}
+
+              </View>
+           )
+           
+           
+           
+           }
+
+{showFileInfo && (
+  <View style={styles.popupContainer}>
+  <View style={styles.popupHeader}>
+    <Text style={styles.headerText}>Informations fichier</Text>
+    <Pressable onPress={() => setShowFileInfo(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+  </View>
+  <View style={styles.popupMain}>
+
+  {infosFiles.length > 0 && (
+    <View style={styles.popupMain}>
+      <Text style={{ fontSize: 18, marginBottom: 10 }}>Fichiers existants :</Text>
+      <FlatList
+        data={infosFiles}
+        keyExtractor={item => item.file}
+        renderItem={({ item }) => (
+          <Pressable onPress={() => fetchFileInfo(item.file)}>
+          <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
+            <Text style={styles.text}>Nom : {item.file}</Text>
+        
+          </View>
+          </Pressable>
+          
+        )}
+      />
+      {Object.values(fileInfo).length > 0 && (
+        <View style={styles.popupMain}>
+          <Text style={{ fontSize: 18, marginBottom: 10 }}>Informations :</Text>
+          <Text style={styles.text}>Nombre de caractères : {fileInfo.nbChars}</Text>
+          <Text style={styles.text}>Nombre de mots : {fileInfo.nbWords}</Text>
+          <Text style={styles.text}>Nombre de phrases : {fileInfo.nbSentences}</Text>
+          <Text style={styles.text}>Temps de lecture nécessaire : </Text>
+          <Text style={styles.text}>Lent : {fileInfo.timeFormat[0]}</Text>
+          <Text style={styles.text}>Elocution : {fileInfo.timeFormat[1]}</Text>
+          <Text style={styles.text}>Rapide : {fileInfo.timeFormat[2]}</Text>
+
+          </View>
+      )}
+
+      </View>
+  )}
+
+
+      
+    </View>
+    </View>
+
+
+)}
+
+{showAddCommand && (
+  <View style={styles.popupContainer}>
+  <View style={styles.popupHeader}>
+    <Text style={styles.headerText}>Ajouter une commande</Text>
+    <Pressable onPress={() => setShowAddCommand(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+  </View>
+  <View style={styles.popupMain}>
+    <TextInput
+      style={styles.textInput}
+      value={command}
+      onChangeText={setCommand}
+      placeholder="Commande"
+    />
+    <TextInput
+      style={styles.textInput}
+      value={response}
+      onChangeText={setResponse}
+      placeholder="Réponse"
+    />
+    <Button title="Ajouter" onPress={createCommand} />
+  </View>
+  {commands.length > 0 && (
+    <View style={styles.popupMain}>
+      <Text style={{ fontSize: 18, marginBottom: 10 }}>Commandes existantes :</Text>
+      <FlatList
+        data={commands}
+        keyExtractor={item => item.uuid}
+        renderItem={({ item }) => (
+          <View style={{display: "flex", flexDirection: "column", gap: "15px"}}>
+            <Text style={styles.text}>Nom : {item.name}</Text>
+            <Text style={styles.text}>Réponse : {item.reply}</Text>
+            <TouchableOpacity onPress={() => deleteCommand(item.uuid)}>
+              <Text style={styles.removeButton}>Supprimer</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
+  )}
+
+</View>
+)}
+
+
+{showCorrecteur && (
+  <View style={styles.popupContainer}>
+  <View style={styles.popupHeader}>
+    <Text style={styles.headerText}>Correcteur</Text>
+    <Pressable onPress={() => setShowCorrecteur(false)}>
+      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    </Pressable>
+  </View>
+  <View style={styles.popupMain}>
+    <Text style={{ fontSize: 18, marginBottom: 10 }}>Entrez le texte à corriger :</Text>
+    <TextInput
+      style={styles.textInput}
+      value={tradText}
+      onChangeText={setTradText}
+      placeholder="Entrez le texte"
+    />
+  
+    <Button title="Corriger" onPress={correctText} />
+
+  </View>
+  {correctedText !== '' && (
+    <View style={styles.popupMain}>
+      <Text style={{ fontSize: 18, marginBottom: 10 }}>Texte corrigé :</Text>
+      <Text style={styles.text}>{correctedText}</Text>
+      <Text style={{ fontSize: 18, marginBottom: 10 }}>Corrections :</Text>
+      <Text style={styles.text}>{JSON.stringify(corrections)}</Text>
+      </View>
+  )}
+
+</View>
+
+)}
+          {showNotes && (
+          <View style={styles.containerTable}>
+          <Text style={styles.titleTable}>Notes des Matières</Text>
+          <FlatList
+            data={grades}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.row}>
+                <Text style={styles.matiere}>{item.matiere}</Text>
+                <TextInput
+                  style={styles.inputTable}
+                  value={String(item.grade)}
+                  editable={!item.locked}
+                  onChangeText={(value) => handleGradeChange(item.id, value)}
+                  keyboardType="numeric"
+                />
+                <Text style={styles.coefficient}>Coefficient: {item.coefficient}</Text>
+                <Switch
+                  value={item.locked}
+                  onValueChange={(value) => {
+                    handleLockedChange(item.id, value);
+                  }}
+                />
+                {!item.locked && (
+                  <Text style={styles.minimumGrade}>
+                    Note min: {calculateMinimumGrade(item)}
+                  </Text>
+                )}
+                <TouchableOpacity onPress={() => removeMatiere(item.id)}>
+                  <Text style={styles.removeButton}>Supprimer</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+          <Text style={styles.average}>Moyenne Générale: {calculateGeneralAverage()}</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.label}>Moyenne Voulue:</Text>
+            <TextInput
+              style={styles.inputTable}
+              value={desiredAverage}
+              onChangeText={(value) => {
+                setDesiredAverage(value);
+                checkDesiredAverageAttainability();
+                updateMinimumGrades();
+              }}
+              keyboardType="numeric"
+            />
+          </View>
+          {!isDesiredAverageAttainable && (
+            <Text style={styles.warning}>Moyenne souhaitée non atteignable avec les résultats verrouillés actuels</Text>
+          )}
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.inputTable}
+              placeholder="Nouvelle Matière"
+              value={newMatiere}
+              onChangeText={setNewMatiere}
+            />
+            <TextInput
+              style={styles.inputTable}
+              placeholder="Coefficient"
+              value={newCoefficient}
+              onChangeText={setNewCoefficient}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.inputTable}
+              placeholder="Note"
+              value={newGrade}
+              onChangeText={setNewGrade}
+              keyboardType="numeric"
+            />
+            <Button title="Ajouter" onPress={addMatiere} />
+          </View>
+        </View>
+        
+          )}
 {
 
 showLed && (
@@ -1531,6 +2385,13 @@ showLed && (
 
 )
 }
+
+
+
+
+
+
+
 
 
 
@@ -2494,7 +3355,7 @@ const styles = StyleSheet.create({
   },
   popupContainer: {
     position: 'absolute',
-    top: '50%',
+    top: '0%',
     left: '50%',
     transform: [{ translateX: -150 }, { translateY: 150 }],
     width: 300,
@@ -2763,8 +3624,66 @@ categoryHeader: {
   justifyContent: 'space-between',
 },
 
+containerTable: {
+  flex: 1,
+  padding: 20,
+  backgroundColor: '#fff',
+},
+titleTable: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  marginBottom: 20,
+},
+row: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 10,
+},
+matiere: {
+  flex: 1,
+  fontSize: 16,
+},
+inputTable: {
+  width: 50,
+  height: 40,
+  borderColor: '#000',
+  borderWidth: 1,
+  textAlign: 'center',
+  marginRight: 10,
+},
+coefficient: {
+  fontSize: 16,
+  marginRight: 10,
+},
+minimumGrade: {
+  fontSize: 16,
+  color: 'red',
+},
+removeButton: {
+  fontSize: 16,
+  color: 'blue',
+},
+average: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginTop: 20,
+},
+inputRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 20,
+},
+label: {
+  fontSize: 16,
+  marginRight: 10,
+},
+warning: {
+  fontSize: 16,
+  color: 'red',
+  marginTop: 10,
+},
 
-  
-});
+}
+);
 
 export default App;

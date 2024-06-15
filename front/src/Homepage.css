@@ -394,3 +394,65 @@ footer {
     align-items: center;
   }
   
+  .clock {
+    width: 200px; /* Ajuste la taille selon tes besoins */
+    height: 200px;
+    border: none;
+    position: relative;
+    margin: 20px auto;
+    background: linear-gradient(135deg, #222, #444); /* Dégradé de fond pour un effet robotique */
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Ombre douce pour un effet 3D */
+    overflow: hidden; /* Pour cacher les débordements des aiguilles */
+  }
+  
+  .hand {
+    position: absolute;
+    background: #ddd; /* Couleur gris clair pour les aiguilles */
+    transform-origin: 50% 100%;
+    transition: transform 0.5s ease-in-out; /* Animation douce pour les transitions d'aiguilles */
+  }
+  
+  .hour {
+    height: 30%;
+    width: 6px;
+    top: 20%;
+    left: 47%;
+    background: #FF5F5F; /* Rouge vif pour l'aiguille des heures */
+  }
+  
+  .minute {
+    height: 45%;
+    width: 5px;
+    top: 5%;
+    left: 48%;
+    background: #5FAEFF; /* Bleu clair pour l'aiguille des minutes */
+  }
+  
+  .second {
+    height: 48%;
+    width: 2px;
+    top: 3%;
+    left: 49%;
+    background: white; /* Or pour l'aiguille des secondes */
+  }
+
+
+
+  .digital-clock {
+    text-align: center;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .digital-clock h2 {
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .digital-clock .time {
+    font-size: 36px;
+    color: #FF5F5F; /* Rouge vif pour le texte de l'heure */
+  }
+
+  

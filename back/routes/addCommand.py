@@ -22,7 +22,7 @@ def add_command():
         cur.execute("INSERT INTO commandes(uuid, name, reply) VALUES(?, ?, ?)", (uuid_code, name, reply))
         con.commit()
         con.close()
-        response = jsonify({'result': 'success'})
+        response = jsonify({'result': 'success', 'uuid': uuid_code})
         return response
     
 

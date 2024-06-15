@@ -1,4 +1,4 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 
 import os
 import json
@@ -100,8 +100,10 @@ con.commit()
 
 cur.execute('''
     CREATE TABLE IF NOT EXISTS rappels(
-    liste TEXT
-    )
+    text TEXT,
+    date TEXT,
+    color TEXT    
+            )
 ''')
 con.commit()
 
@@ -195,13 +197,20 @@ CREATE TABLE IF NOT EXISTS tasks(
             ''')
 con.commit()
 
+cur.execute('''
+CREATE TABLE IF NOT EXISTS notes(
+    matiere TEXT,
+    note INTEGER,
+    coefficient INTEGER,
+    locked INTEGER
+)
+''')
+con.commit()
+
 
 
 # Vérifier si les tables sont vides, si oui, insérer les valeurs par défaut
-res_test = cur.execute("SELECT * FROM positions").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO positions VALUES (?)", ("chronometre|rappels|minuteur|fiches",))
-    con.commit()
+
 
 res_test = cur.execute("SELECT * FROM minuteur").fetchone()
 if res_test is None:
@@ -235,10 +244,7 @@ if res_test is None:
     cur.execute("INSERT INTO devoirs VALUES (?, ?, ?, ?, ?, ?, ?)", ("", "", "", "", "", "", ""))
     con.commit()
 
-res_test = cur.execute("SELECT * FROM rappels").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO rappels VALUES (?)", ("",))
-    con.commit()
+
 
 res_test = cur.execute("SELECT * FROM son").fetchone()
 if res_test is None:
@@ -264,6 +270,7 @@ res_test = cur.execute("SELECT * FROM city").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
+
 
 
 
@@ -359,7 +366,7 @@ def handle_message(message):
 
 
 
-
+'''
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
@@ -399,7 +406,6 @@ def run_bouttons():
      while(True):                                                                                                                           
           time.sleep(0.1)
           if GPIO.input(36) and not molette_appuyer:
-               print("OOOOOOOOOOOOOOOOOOOOOFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
                data = {
                    "from": "back",
                    "message": "APPUI",
@@ -437,17 +443,17 @@ def run_bouttons():
 
 
 
-
+'''
 
 
 
 
 if __name__ == '__main__':
-    t1 = Thread(target=run_molette)
+    '''t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
     
     t1.start()
-    t2.start()
+    t2.start()'''
  
     
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)

@@ -13,8 +13,55 @@ import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import { useRef } from 'react';
 import image from "./images/rerA.png"
-
+import moment from 'moment';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+
+
+const ClockAnalog = () => {
+    const [time, setTime] = useState(moment());
+  
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setTime(moment());
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
+  
+    const secondsDegrees = (time.seconds() / 60) * 360;
+    const minutesDegrees = (time.minutes() / 60) * 360 + (time.seconds() / 60) * 6;
+    const hoursDegrees = (time.hours() % 12) / 12 * 360 + (time.minutes() / 60) * 30;
+  
+  
+    return (
+      <div className="clock">
+        <div className="hand hour" style={{ transform: `rotate(${hoursDegrees}deg)` }} />
+        <div className="hand minute" style={{ transform: `rotate(${minutesDegrees}deg)` }} />
+        <div className="hand second" style={{ transform: `rotate(${secondsDegrees}deg)` }} />
+      </div>
+    );
+  };
+
+  const ClockDigital = () => {
+    const [time, setTime] = useState(moment());
+  
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setTime(moment());
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
+  
+    const formattedTime = time.format('HH:mm:ss');
+  
+    return (
+        <div className="digital-clock">
+        <h2>Horloge</h2>
+        <p className="time">{formattedTime}</p>
+      </div>
+    );
+  };
+
 
 
 const Homepage = () => {
@@ -72,6 +119,9 @@ const Homepage = () => {
         },
         {
             type: "taches"
+        },
+        {
+            type: "horloge"
         }
     ]; 
     const fetchDays = async() => {
@@ -440,13 +490,15 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
     const fetchTrain = async() => {
         axios({
-            method: 'get',
+            method: 'post',
             url: `http://${config.URL}:5000/api/getTrain`,
-        }).then((response) => {
-            if(response.data.result == "success") {
-                setTrain(response.data.departures);
-                setTypeTrain(response.data.type)
+            data: {
+                "location": "La Défense Grande Arche",
             }
+        }).then((response) => {
+           
+                setTrain(response.data.result);
+            
           
         });
     }
@@ -806,9 +858,8 @@ const [typeTrain, setTypeTrain] = useState("departures");
                                                         <h2>Prochains départs du <i className="fas fa-train train-icon"></i> RER A <img src={image} alt="RER A Logo" className="rer-a-logo" /></h2>
                                                         {train.map((departure, index) => (
                                                           <div key={index} className="departure">
-                                                            <div>{departure.destination}</div>
-                                                           {console.log(departure.departure_time)}
-                                                            <div>Dans : {Math.floor( (new Date(departure.departure_time) - new Date()) / (1000*60))} minutes </div>
+                                                            <div>{departure.direction}</div>
+                                                            <div>Dans : {departure.time} minutes </div>
                                                           </div>
                                                         ))}
                                                       </div>
@@ -916,8 +967,15 @@ const [typeTrain, setTypeTrain] = useState("departures");
                                                                       
    
                                                                         ) : (
+                                                                            card.type == "horloge" ? (
+                                                                                <div className="horloge">
+                                                                                    <ClockAnalog />
+                                                                                    <ClockDigital />
+                                                                                </div>
+                                                                            ) : (
 
                                         <div className="blank-card">Blank Card</div>
+                                                                            )
                                                                     )
                                                                 )
                                                                 )

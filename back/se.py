@@ -1,37 +1,20 @@
-import requests
-from bs4 import BeautifulSoup
+import sympy as sp
 
-def recherche_wikipedia(sujet):
-    # Formater le sujet pour l'URL de Wikipédia
-    sujet_formatte = sujet.replace(' ', '_')
-    url = f"https://fr.wikipedia.org/wiki/{sujet_formatte}"
+def solve_expression(expression):
+    # Convertir l'expression en un objet SymPy
+    expr = sp.sympify(expression)
     
-    # Faire une requête HTTP pour obtenir le contenu de la page
-    response = requests.get(url)
+    # Résoudre l'expression
+    result = sp.solve(expr)
     
-    if response.status_code == 200:
-        # Parser le contenu HTML de la page
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Extraire le titre de la page
-        titre = soup.find('h1', {'id': 'firstHeading'}).text
-        
-        # Extraire le premier paragraphe de la page
-        paragraphe = soup.find('div', {'class': 'mw-parser-output'}).find_all('p')[0].text
-        
-        return {
-            'titre': titre,
-            'introduction': paragraphe
-        }
-    else:
-        return None
+    return result
 
-# Exemple d'utilisation
-sujet = "Marie Curie"
-resultat = recherche_wikipedia(sujet)
-
-if resultat:
-    print(f"Titre: {resultat['titre']}\n")
-    print(f"Introduction: {resultat['introduction']}\n")
-else:
-    print("La page n'a pas été trouvée.")
+if __name__ == "__main__":
+    # Prendre l'expression mathématique de l'utilisateur
+    expression = input("Entrez une expression mathématique à résoudre : ")
+    
+    # Résoudre l'expression
+    solution = solve_expression(expression)
+    
+    # Afficher la solution
+    print(f"La solution de l'expression '{expression}' est : {solution}")

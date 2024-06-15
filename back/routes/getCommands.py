@@ -11,8 +11,12 @@ def get_commands():
             cur = con.cursor()
             cur.execute("SELECT * FROM commandes")
             rows = cur.fetchall()
+            d = []
+            for row in rows:
+                d.append({"uuid": row[0], "name": row[1], "reply": row[2]})
+
             cur.close()
-            response = jsonify({'result': rows})
+            response = jsonify({'result': d})
             return response
     except Exception as e:
         return jsonify({'error': str(e)})
