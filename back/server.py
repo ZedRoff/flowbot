@@ -382,25 +382,66 @@ molette_appuyer = False
 action_appuyer = False
 
 def run_molette():
-     
-     while(True):
-          time.sleep(0.001)
-          if not GPIO.input(13) and GPIO.input(15):
-               data = {
-                   "message": "GAUCHE",
-                   "from": "back",
-                   "type": "molette"
-               }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               time.sleep(0.5)
-          elif not GPIO.input(15) and GPIO.input(13):
-               data = {
+    hasCh = 0
+    dir = 0
+    prevPVal = 0
+    prevVal = 0
+
+    while(True):
+        if(hasCh == 0 and (not  GPIO.input(13) or not GPIO.input(15))):
+            hasCh = 1
+            dir = run_Encoder()
+        elif(GPIO.input(13) and GPIO.input(15)):
+            hasCh = 0
+        
+        if (dir != 0) :
+            if (dir == 1) :
+                prevPVal = prevVal
+                prevVal = 1
+            elif (dir == 2) :
+                prevPVal = prevVal
+                prevVal = 2
+        
+        if(prevPVal == prevVal and prevVal == 1):
+            data = {
                    "message": "DROITE",
                    "from": "back",
                    "type": "molette"
                }
-               requests.post("http://"+host+":5000/api/send_message",json=data)
-               time.sleep(0.5)
+            requests.post("http://"+host+":5000/api/send_message",json=data)
+        elif(prevPVal == prevVal and prevVal == 2):
+            data = {
+                   "message": "GAUCHE",
+                   "from": "back",
+                   "type": "molette"
+               }
+            requests.post("http://"+host+":5000/api/send_message",json=data)
+        
+        
+        time.sleep(0.001)
+        dir = 0
+
+
+def run_Encoder():
+    MSB = GPIO.input(13) // Most significant bit
+    LSB = GPIO.input(15) // Least significant bit
+    encoderValue = 0
+    direction = 0
+    if(MSB and not LSB):
+        encoderValue--
+    elif (not MSB and LSB):
+        encoderValue++
+    if(encoderValue == 0):
+        return direction
+    else:
+        if(encoderValue > 0):
+            direction = 1
+        else:
+            direction = 2
+    return direction
+
+
+
 def run_bouttons():
      global molette_appuyer, action_appuyer
      while(True):                                                                                                                           
