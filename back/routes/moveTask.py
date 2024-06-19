@@ -13,7 +13,7 @@ def move_task():
         name = data['name']
         from_category = data['fromCategory']
         to_category = data['toCategory']
-
+        print(name, from_category, to_category)
         cur = con.cursor()
 
         cur.execute("SELECT * FROM tasks WHERE name = ? AND category = ?", (name, from_category))
@@ -27,7 +27,13 @@ def move_task():
         if category is None:
             response = jsonify({'result': 'destinationcategorynotfound'})
             return response
-
+        # check if the task already exists in this category
+        cur.execute("SELECT * FROM tasks WHERE name = ? AND category = ?", (name, to_category))
+        task = cur.fetchone()
+        if task is not None:
+            response = jsonify({'result': 'already'})
+            return response
+        
         cur.execute("UPDATE tasks SET category = ? WHERE name = ? AND category = ?", (to_category, name, from_category))
         con.commit()
         cur.close()

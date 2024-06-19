@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Test from './Test/Test';
+
 import Starter from './Starter';
 import Homepage from './Homepage'; 
 import axios from 'axios';
@@ -33,7 +33,7 @@ const App = () => {
                     path="/accueil" 
                     element={hasFinishedStarter ? <Homepage /> : <Navigate to="/" />} 
                 />
-                <Route path="/test" element={<Test />} />
+                
             </Routes>
         </Router>
     );

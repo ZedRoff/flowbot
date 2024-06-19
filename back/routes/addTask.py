@@ -18,6 +18,14 @@ def add_task():
         if category is None:
             response = jsonify({'result': 'categorydoesnotexists'})
             return response
+        # check if the task already exists in this category
+        cur.execute("SELECT * FROM tasks WHERE name = ? AND category = ?", (name, category[0]))
+        task = cur.fetchone()
+        if task is not None:
+            response = jsonify({'result': 'already'})
+            return response
+        
+        
         cur.execute("INSERT INTO tasks(name, category, status) VALUES(?, ?, ?)", (name, category[0], "attente"))
         con.commit()
         cur.close()

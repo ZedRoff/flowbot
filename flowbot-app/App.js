@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform, ScrollView, Alert, FlatList, Switch  } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Pressable, SafeAreaView, Platform, ScrollView, Alert, FlatList, Switch, Image, Touchable,  Clipboard
+
+   } from 'react-native';
+
 import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faUser, faMars, faVenus, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile, faCalendar, faTerminal, faTasks, faLightbulb, faHome, faCog, faExchange, faPlus, faArrowUp, faArrowDown, faPlay, faStop, faPause, faPlayCircle, faCopy, faUpload, faUndo, faCalendarCheck, faSpellCheck, faLanguage, faClose, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import Slider from '@react-native-community/slider';
 import * as DocumentPicker from 'expo-document-picker';
 import RNPickerSelect from 'react-native-picker-select'
-import * as FileSystem from 'expo-file-system';
 import Modal from 'react-native-modal';
 import { Picker } from '@react-native-picker/picker';
-import Draggable from 'react-native-draggable';
-import { Table, TableWrapper, Row, Cell } from 'react-native-table-component';
-
-import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+import Toast from 'react-native-toast-message';
+import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
 
 LocaleConfig.locales['fr'] = {
@@ -42,38 +42,100 @@ LocaleConfig.defaultLocale = 'fr';
 
 const Section = ({ data, updateSection, deleteSection, moveSection, index, totalSections }) => {
   return (
-      <View style={styles.sectionContainer}>
-          <Picker
-              selectedValue={data.type}
-              style={styles.picker}
-              onValueChange={(itemValue) => updateSection(data.id, 'type', itemValue)}
-          >
-              <Picker.Item label="Théorème" value="theoreme" />
-              <Picker.Item label="Définition" value="definition" />
-              <Picker.Item label="Propriété" value="propriete" />
-              <Picker.Item label="Exemple" value="exemple" />
-              <Picker.Item label="Texte" value="texte" />
-          </Picker>
-          <TextInput
-              style={styles.input}
-              value={data.title}
-              onChangeText={(text) => updateSection(data.id, 'title', text)}
-              placeholder="Titre"
-          />
-          <TextInput
-              style={styles.textArea}
-              value={data.content}
-              onChangeText={(text) => updateSection(data.id, 'content', text)}
-              placeholder="Contenu"
-              multiline
-          />
-          <View style={styles.buttonRow}>
-              <Button title="Supprimer" onPress={() => deleteSection(data.id)} />
-              {index > 0 && <Button title="Haut" onPress={() => moveSection(index, index - 1)} />}
-              {index < totalSections - 1 && <Button title="Bas" onPress={() => moveSection(index, index + 1)} />}
-          </View>
+    
+      <View style={{
+        backgroundColor: '#ECEFF1',
+        padding: 20,
+        borderRadius: 10,
+        marginBottom: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        display:"flex",
+        flexDirection:"column",
+        gap:15
+      }}>
+
+<Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>Section {index + 1}</Text>
+
+<Text style={{fontSize: 16, marginBottom: 5}}>Type</Text>
+
+        <RNPickerSelect
+
+          style={styles}
+          value={data.type}
+          onValueChange={(value) => updateSection(data.id, 'type', value)}
+          items={[
+            { label: 'Théorème', value: 'theoreme' },
+            { label: 'Définition', value: 'definition' },
+            { label: 'Exemple', value: 'exemple' },
+            { label: 'Propriété', value: 'propriete'},
+            { label: 'Texte', value: 'texte'}
+
+          ]}
+        />
+
+<Text style={{fontSize: 16, marginBottom: 5}}>Titre</Text>
+
+        <TextInput
+          style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 15,
+          }}
+          value={data.title}
+          onChangeText={(text) => updateSection(data.id, 'title', text)}
+          placeholder="La trigonométrie"
+        />
+  <Text style={{fontSize: 16, marginBottom: 5}}>Contenu</Text>
+
+        <TextInput
+          style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 15,
+            height: 100,
+            textAlignVertical: 'top', // for multiline input
+          }}
+          value={data.content}
+          onChangeText={(text) => updateSection(data.id, 'content', text)}
+          placeholder="cos²(x) + sin²(x) = 1"
+          multiline
+        />
+  
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+
+        <Pressable onPress={() => deleteSection(data.id)} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5}}>
+          <FontAwesomeIcon icon={faTrash} size={24} style={{color: "#FF6254"}} />
+        </Pressable>
+
+
+          {index > 0 && (
+            <Pressable onPress={() => moveSection(index, index - 1)} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5}}>
+              <FontAwesomeIcon icon={faArrowUp} size={24} style={{color: "#6FDDE8"}} />
+
+            </Pressable>
+
+          )}
+          {index < totalSections - 1 && (
+            <Pressable onPress={() => moveSection(index, index + 1)} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5}}>
+              <FontAwesomeIcon icon={faArrowDown} size={24} style={{color: "#6FDDE8"}}/>
+            </Pressable>
+
+          )}
+        </View>
       </View>
-  );
+    )
 };
 
 
@@ -81,17 +143,15 @@ const Section = ({ data, updateSection, deleteSection, moveSection, index, total
 
 
 const App = () => {
+
+
+
 const [showFileInfo, setShowFileInfo] = useState(false);
 
 const [showCorrecteur, setShowCorrecteur] = useState(false);
 
-  const initialGrades = [
-    { id: '1', matiere: 'Électronique', grade: 15, coefficient: 3, locked: true },
-    { id: '2', matiere: 'Physique', grade: 15, coefficient: 2, locked: true },
-    { id: '3', matiere: 'Mathématiques', grade: 12, coefficient: 3, locked: false },
-  ];
 
-  const [grades, setGrades] = useState(initialGrades);
+  const [grades, setGrades] = useState([]);
   const [desiredAverage, setDesiredAverage] = useState('');
   const [newMatiere, setNewMatiere] = useState('');
   const [newCoefficient, setNewCoefficient] = useState('');
@@ -208,21 +268,16 @@ const [showCorrecteur, setShowCorrecteur] = useState(false);
       desiredAverage === '' || lockedAverage >= parseFloat(desiredAverage)
     );
   };
-const [showCustom, setShowCustom] = useState(false);
-
 
 
 
   const [hasFinishedStarter, setHasFinishedStarter] = useState(false);
-  const [processFinished, setProcessFinished] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [name, setName] = useState("");
   const [voicePreference, setVoicePreference] = useState("");
-  const [showToast, setShowToast] = useState(false);
 
   const [showMeteo, setShowMeteo] = useState(false);
   const [city, setCity] = useState("");
-  const [introduction, setIntroduction] = useState(false);
 const [showMusique, setShowMusique] = useState(false);
 const [music, setMusic] = useState("");
 const [selectedMinutes, setSelectedMinutes] = useState(0);
@@ -239,7 +294,6 @@ const [folderName, setFolderName] = useState('');
 const [showFichiers, setShowFichiers] = useState(false);
 
 const [fileInfo, setFileInfo] = useState({});
-const [fileContent, setFileContent] = useState('');
 
 const [file, setFile] = useState(null);
 const [showChronometre, setShowChronometre] = useState(false);
@@ -270,7 +324,6 @@ const [showTraducteur, setShowTraducteur] = useState(false);
         method: 'get',
         url: `http://${config.URL}:5000/api/getFiches`,
       }).then((response) => {
-          console.log(response.data.result)
         setFiches(response.data.result);
       })
     
@@ -280,8 +333,21 @@ const [showTraducteur, setShowTraducteur] = useState(false);
 
 
 
+const [currentCity, setCurrentCity] = useState("");
+const fetchCity = () => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getCity`,
+  }).then((response) => {
+    setCurrentCity(response.data.result);
+  });
 
+  
+}
 
+useEffect(() => {
+fetchCity()
+}, [])
 
 
     const [tasks, setTasks] = useState([]);
@@ -319,7 +385,11 @@ const [showTraducteur, setShowTraducteur] = useState(false);
     };
   
 
-
+const [translation, setTranslation] = useState({
+  intialText: "",
+  translatedText: "",
+  
+});
 
     const [infosFiles, setInfosFiles] = useState([]);
 const fetchInfosFiles = async() => {
@@ -339,7 +409,7 @@ useEffect(() => {
     const socket = io(`http://${config.URL}:5000`);
 
     socket.on('connect', () => {
-      console.log('Connected to WebSocket server');
+      showToastI("success", "Bienvenue", "Bonjour, bienvenue sur FlowBot !")
       socket.emit('message', {from: "mobile", message: "mobile_connected"});
     });
 
@@ -348,9 +418,7 @@ useEffect(() => {
     });
 
     socket.on('message', (message) => {
-      let who = message["from"];
       let type = message["type"];
-      let msg = message["message"];
 
   if(type == 'timetable_update') {
           fetchDays()
@@ -365,6 +433,10 @@ useEffect(() => {
       } else if(type == "tasks_update") {
         fetchCategories()
 
+      } else if(type == "feeds_update") {
+        fetchFeeds()
+      } else if(type == "translation") {
+        setTranslation({initialText: message["initialText"], translatedText: message["translatedText"]})
       }
 
       console.log('Message received: ' + message);
@@ -373,24 +445,21 @@ useEffect(() => {
     return () => {
       socket.disconnect();
     };
-  }, [hierarchy, fichiers, folder]);
-  const onChangeTime = (event, selectedTime) => {
-    const currentTime = selectedTime || time;
-    setTime(currentTime);
-  };
+  }, []);
+
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex === 0 && !name) {
-      setShowToast(true);
+      showToastI("error", "Nom vide", "Le nom ne peut pas être vide")
+      return;
     } else if (currentQuestionIndex === 1 && !voicePreference) {
-      setShowToast(true);
+      showToastI("error", "Voix vide", "La voix ne peut pas être vide")
+     return;
     } else {
-      setShowToast(false);
+   
       if (currentQuestionIndex < data.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
-        console.log("Nom:", name);
-        console.log("Préférence vocale:", voicePreference);
         axios({
           method: 'post',
           url: `http://${config.URL}:5000/api/setFinishedStarter`,
@@ -429,6 +498,10 @@ useEffect(() => {
   };
 
   const handleChangeCity = () => {
+    if(city === "") {
+      showToastI("error", "Ville vide", "La ville ne peut pas être vide")
+      return;
+    }
     axios({
       method: 'post',
       url: `http://${config.URL}:5000/api/changeCity`,
@@ -438,9 +511,10 @@ useEffect(() => {
 
     }).then((response) => {
       if(response.data.result == "success") {
-        console.log("City changed successfully");
         const socket = io(`http://${config.URL}:5000`);
         socket.emit('message', {from: "mobile", message: "city_changed", city: city});
+        showToastI("success", "Ville changée",  "La ville a été changée avec succès")
+        setCurrentCity([city])
       }
     
     
@@ -450,6 +524,11 @@ useEffect(() => {
     setShowMeteo(false);
   };
   const handleChangeMusic = () => {
+    if(!music) {
+      showToastI("error", "Musique vide", "Le nom de la musique ne peut pas être vide")
+      return;
+    }
+    
     axios({
       method: 'post',
       url: `http://${config.URL}:5000/api/playAudio`,
@@ -458,7 +537,7 @@ useEffect(() => {
       },
     }).then((response) => {
       if(response.data.result == "success") {
-        console.log("Music played successfully");
+        showToastI("success", "Musique jouée", "La musique a été jouée avec succès")
         const socket = io(`http://${config.URL}:5000`);
         socket.emit('message', {from: "mobile", message: "music_changed", music: music});
       }
@@ -471,7 +550,7 @@ useEffect(() => {
       url: `http://${config.URL}:5000/api/pauseAudio`,
     }).then((response) => {
       if(response.data.result == "success") {
-        console.log("Music paused successfully");
+        showToastI("success", "Musique en pause", "La musique a été mise en pause avec succès")
         const socket = io(`http://${config.URL}:5000`);
         socket.emit('message', {from: "mobile", message: "music_paused"});
       }
@@ -484,7 +563,7 @@ useEffect(() => {
       url: `http://${config.URL}:5000/api/resumeAudio`,
     }).then((response) => {
       if(response.data.result == "success") {
-        console.log("Music resumed successfully");
+        showToastI("success", "Musique reprise", "La musique a été reprise avec succès")
         const socket = io(`http://${config.URL}:5000`);
         socket.emit('message', {from: "mobile", message: "music_resumed"});
       }
@@ -497,7 +576,7 @@ useEffect(() => {
       url: `http://${config.URL}:5000/api/stopAudio`,
     }).then((response) => {
       if(response.data.result == "success") {
-        console.log("Music stopped successfully");
+        showToastI("success", "Musique arrêtée", "La musique a été arrêtée avec succès")
         const socket = io(`http://${config.URL}:5000`);
         socket.emit('message', {from: "mobile", message: "music_stopped"});
       }
@@ -515,7 +594,7 @@ const handleChangeVolume = (value) => {
     },
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Volume changed successfully");
+      showToastI("success", "Volume changé", "Le volume a été changé avec succès")
       const socket = io(`http://${config.URL}:5000`);
       socket.emit('message', {from: "mobile", message: "volume_changed", volume: value});
     }
@@ -547,32 +626,69 @@ const uploadFile = async () => {
       type: file["assets"][0]["mimeType"] || 'application/octet-stream',
     });
     if(folder.includes("/") || folder.includes("\\") || folder.includes(" ")) {
-      alert("Le nom du dossier ne doit pas contenir d'espaces ou de caractères spéciaux")
+      showToastI("error", "Nom de dossier invalide", "Le nom du dossier ne doit pas contenir d'espaces ou de caractères spéciaux")
+    
     } else if(file["assets"][0]["name"].includes("/") || file["assets"][0]["name"].includes("\\") || file["assets"][0]["name"].includes(" ")) {
-      alert("Le nom du fichier ne doit pas contenir d'espaces ou de caractères spéciaux")
+      showToastI("error", "Nom de fichier invalide", "Le nom du fichier ne doit pas contenir d'espaces ou de caractères spéciaux")
+  
     } else {
 
 formData.append('folder', encodeURIComponent(folder))
 
     await axios.post(`http://${config.URL}:5000/api/download`, formData);
-   alert("Fichier téléchargé avec succès")
+    showToastI("success", "Fichier téléchargé", "Le fichier a été téléchargé avec succès")
+
    setFile(null);
    setFolder("");
    
     }
   } catch (error) {
-    console.log(error)
-    alert("Erreur lors du téléchargement du fichier")
+    showToastI("error", "Erreur", "Erreur lors du téléchargement du fichier")
   }
 };
 
+
+const deleteFolder = async(f) => {
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/deleteFolder`,
+    data: {
+      folder:f
+    }
+  }).then((res) => {
+    if(res.data.result == "success") {
+      showToastI("success", "Dossier supprimé", "Le dossier a été supprimé avec succès")
+
+    } else if(res.data.result == "reserved") {
+      showToastI("error", "Dossier réservé", "Vous ne pouvez pas supprimer ce dossier")
+
+    }
+  })
+}
+
 const [showTimeTable, setShowTimeTable] = useState(false);
 let [nomDay, setNomDay] = useState("");
-let [from, setFrom] = useState("");
-let [to, setTo] = useState("");
+let [from, setFrom] = useState("0:00");
+let [to, setTo] = useState("0:00");
 let [day, setDay] = useState("");
 
 const handleAddDay = () => {
+  if(nomDay === "" || from === "" || to === "" || day === "") {
+   showToastI("error", "Champs vides", "Tous les champs doivent être remplis")
+    
+    return;
+  }
+  if(parseInt(from.split(":")[0]) > parseInt(to.split(":")[0])) {
+    showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
+    return;
+  }
+  if(parseInt(from.split(":")[0]) == parseInt(to.split(":")[0]) && parseInt(from.split(":")[1]) >= parseInt(to.split(":")[1])) {
+
+    showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
+    return;
+  }
+
+
   axios({
     method: 'post',
     url: `http://${config.URL}:5000/api/addDays`,
@@ -584,20 +700,24 @@ const handleAddDay = () => {
     },
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Day added successfully");
-      setShowTimeTable(false);
+      showToastI("success", "Jour ajouté", "Le jour a été ajouté avec succès")
+      
     }
   }
   )
 }
 const handleStartChronometre = () => {
+  
   axios({
     method: 'get',
     url: `http://${config.URL}:5000/api/startChronometre`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Chronometre started successfully");
+      showToastI("success", "Chronomètre démarré", "Le chronomètre a été démarré avec succès")
 
+    } else {
+      showToastI("error", "Problème", "Un chronomètre est déjà en cours")
+    
     }
   }
   )
@@ -608,8 +728,10 @@ const handleStopChronometre = () => {
     url: `http://${config.URL}:5000/api/stopChronometre`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Chronometre stopped successfully");
+      showToastI("success", "Chronomètre arrêté", "Le chronomètre a été arrêté avec succès")
 
+    } else {
+      showToastI("error", "Problème", "Aucun chronomètre n'est en cours")
     }
   }
   )
@@ -620,8 +742,10 @@ const handlePauseChronometre = () => {
     url: `http://${config.URL}:5000/api/pauseChronometre`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Chronometre paused successfully");
+      showToastI("success", "Chronomètre en pause", "Le chronomètre a été mis en pause avec succès")
 
+    } else {
+      showToastI("error", "Problème", "Aucun chronomètre n'est en cours")
     }
   }
   )
@@ -632,8 +756,11 @@ const handleResumeChronometre = () => {
     url: `http://${config.URL}:5000/api/continueChronometre`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Chronometre resumed successfully");
+      showToastI("success", "Chronomètre repris", "Le chronomètre a été repris avec succès")
 
+    } else {
+      showToastI("error", "Problème", "Aucun chronomètre n'est en pause")
+    
     }
   }
   )
@@ -648,7 +775,7 @@ const handleStartMinuteur = () => {
     },
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Minuteur started successfully");
+      showToastI("success", "Minuteur démarré", "Le minuteur a été démarré avec succès")
 
     }
   }
@@ -660,7 +787,7 @@ const handleStopMinuteur = () => {
     url: `http://${config.URL}:5000/api/stopMinuteur`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Minuteur stopped successfully");
+      showToastI("success", "Minuteur arrêté", "Le minuteur a été arrêté avec succès")
 
     }
   }
@@ -673,7 +800,7 @@ const handlePauseMinuteur = () => {
     url: `http://${config.URL}:5000/api/pauseMinuteur`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Minuteur paused successfully");
+      showToastI("success", "Minuteur en pause", "Le minuteur a été mis en pause avec succès")
 
     }
   }
@@ -685,7 +812,7 @@ const handleResumeMinuteur = () => {
     url: `http://${config.URL}:5000/api/continueMinuteur`,
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Minuteur resumed successfully");
+      showToastI("success", "Minuteur repris", "Le minuteur a été repris avec succès")
 
     }
   }
@@ -758,6 +885,20 @@ let [modifyTo, setModifyTo] = useState("");
 let [modifyId, setModifyId] = useState("");
 
 const handleEditDay = () => {
+  if(modifyNomDay === "" || modifyDay === "" || modifyFrom === "" || modifyTo === "") {
+    showToastI("error", "Champs vides", "Tous les champs doivent être remplis")
+    return;
+  }
+  if(parseInt(modifyFrom.split(":")[0]) > parseInt(modifyTo.split(":")[0])) {
+    showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
+    return;
+  }
+  if(parseInt(modifyFrom.split(":")[0]) == parseInt(modifyTo.split(":")[0]) && parseInt(modifyFrom.split(":")[1]) >= parseInt(modifyTo.split(":")[1])) {
+    showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
+    return;
+  }
+
+
   axios({
     method: 'post',
     url: `http://${config.URL}:5000/api/modifyDay`,
@@ -770,8 +911,7 @@ const handleEditDay = () => {
     },
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Day edited successfully");
-      setShowEditTimeTable(false);
+     showToastI("success", "Jour modifié", "Le jour a été modifié avec succès")
     }
   }
   )
@@ -808,11 +948,11 @@ const validateFolderName = (name) => {
 };
 const handleSubmit = async () => {
   if (folderName.trim() === '') {
-    Alert.alert('Erreur', 'Le nom du dossier ne peut pas être vide');
+    showToastI("error", "Erreur", "Le nom du dossier ne peut pas être vide")
     return;
   }
   if (!validateFolderName(folderName)) {
-    Alert.alert('Erreur', 'Format du nom erroné');
+    showToastI("error", "Erreur", "Format du nom erroné")
     return;
   }
 
@@ -822,13 +962,13 @@ const handleSubmit = async () => {
     });
 
     if (response.status === 200) {
-      Alert.alert('Success', `Dossier "${folderName}" a été crée`);
+      showToastI("success", "Dossier créé", `Le dossier "${folderName}" a été créé avec succès`)
     } else {
-      Alert.alert('Error', `Pas réussi a crée le dossier: ${response.data.error}`);
+      showToastI("error", "Erreur", `Impossible de créer le dossier: ${response.data.error}`)
     }
   } catch (error) {
     console.error(error);
-    Alert.alert('Error', `Pas réussi a crée le dossier: ${error.message}`);
+    showToastI("error", "Erreur", `Impossible de créer le dossier`)
   }
 
   setFolderName(''); 
@@ -836,7 +976,6 @@ const handleSubmit = async () => {
 };
 
 
-const [validatedData, setValidatedData] = useState(null);
 
 
 const [fiche, setFiche] = useState([]);
@@ -847,27 +986,32 @@ const [ficheTitle, setFicheTitle] = useState('');
 const [ficheDescription, setFicheDescription] = useState('');
 const addSection = () => {
   if(fiche.length > 0 && fiche[fiche.length - 1].title === '' && fiche[fiche.length - 1].content === '') {
-    alert("La section précédente ne peut pas être vide");
+    showToastI("error", "Erreur", "La section précédente ne peut pas être vide")
     return;
   }
   if(fiche.length > 0 && fiche[fiche.length - 1].title === '') {
-    alert("Le titre de la section précédente ne peut pas être vide");
+    showToastI("error", "Erreur", "Le titre de la section précédente ne peut pas être vide")
+   
     return;
   }
   if(fiche.length > 0 && fiche[fiche.length - 1].content === '') {
-    alert("Le contenu de la section précédente ne peut pas être vide");
+    showToastI("error", "Erreur", "Le contenu de la section précédente ne peut pas être vide")
+   
     return;
   }
   if(fiche.length > 0 && fiche[fiche.length - 1].title.length > 50) {
-    alert("Le titre de la section précédente ne peut pas dépasser 50 caractères");
+    showToastI("error", "Erreur", "Le titre de la section précédente ne peut pas dépasser 50 caractères")
+  
     return;
   }
   if(fiche.length > 0 && fiche[fiche.length - 1].content.length > 500) {
-    alert("Le contenu de la section précédente ne peut pas dépasser 500 caractères");
+    showToastI("error", "Erreur", "Le contenu de la section précédente ne peut pas dépasser 500 caractères")
+   
     return;
   }
   if(fiche.length > 0 && fiche[fiche.length - 1].type === '') {
-    alert("Le type de la section précédente ne peut pas être vide");
+    showToastI("error", "Erreur", "Le type de la section précédente ne peut pas être vide")
+
     return;
   }
   
@@ -905,37 +1049,43 @@ const moveSection = (fromIndex, toIndex) => {
 
 const validate = () => {
   if(ficheTitle === '') {
-    alert("Le titre de la fiche ne peut pas être vide");
+    showToastI("error", "Erreur", "Le titre de la fiche ne peut pas être vide")
+
 
     return;
   }
   if(ficheDescription === '') {
-    alert("La description de la fiche ne peut pas être vide");
+    showToastI("error", "Erreur", "La description de la fiche ne peut pas être vide")
+ 
     return;
   }
 
   if(fiche.length === 0) {
-    alert("La fiche ne peut pas être vide");
+    showToastI("error", "Erreur", "La fiche ne peut pas être vide")
+   
 return;
   }
   if(fiche.some(section => section.title === '' || section.content === '')) {
-    alert("Les sections de la fiche ne peuvent pas être vides");
+    showToastI("error", "Erreur", "Les sections de la fiche ne peuvent pas être vides")
+   
     return;
   }
   if(fiche.some(section => section.title.length > 50)) {
-    alert("Les titres des sections ne peuvent pas dépasser 50 caractères");
+    showToastI("error", "Erreur", "Les titres des sections ne peuvent pas dépasser 50 caractères")
+  
     return;
   }
   if(fiche.some(section => section.content.length > 500)) {
-    alert("Les contenus des sections ne peuvent pas dépasser 500 caractères");
+    showToastI("error", "Erreur", "Les contenus des sections ne peuvent pas dépasser 500 caractères")
+ 
     return;
   }
   if(fiche.some(section => section.type === '')) {
-    alert("Les types des sections ne peuvent pas être vides");
+    showToastI("error", "Erreur", "Les types des sections ne peuvent pas être vides")
+  
     return;
   }
 
-  setValidatedData(fiche);
   axios({
     method: 'post',
     url: `http://${config.URL}:5000/api/createFiche`,
@@ -946,9 +1096,10 @@ return;
     },
   }).then((res) => {
     if(res.data.result == "success") {
-      alert("Fiche créee avec succès")
+      showToastI("success", "Fiche créée", "La fiche a été créée avec succès")
+
     } else if(res.data.result == "already") {
-      alert("La fiche existe déjà");
+      showToastI("error", "Erreur", "La fiche existe déjà")
     }
   })
 };
@@ -1001,8 +1152,7 @@ const translateText = () => {
     },
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Text translated successfully");
-      alert("Texte traduit")
+      showToastI("success", "Texte traduit", "Le texte a été traduit avec succès")
     }
   });
 
@@ -1013,13 +1163,11 @@ const [showFeed, setShowFeed] = useState(false);
 
 const [showReveil, setShowReveil] = useState(false);
 
-const [alarmTime, setAlarmTime] = useState('');
-const [alarmType, setAlarmType] = useState('');
 const [alarms, setAlarms] = useState([]);
 
 const addAlarm = async () => {
   if(alarmHour === '' || alarmMinute === '') {
-    alert("L'heure de l'alarme ne peut pas être vide");
+    showToastI("error", "Erreur", "L'heure de l'alarme ne peut pas être vide")
     return;
   }
 
@@ -1030,12 +1178,11 @@ const addAlarm = async () => {
     if(q.data.result == "success") {
    setAlarmHour('00');
     setAlarmMinute('00');
-
+      showToastI("success", "Alarme ajoutée", "L'alarme a été ajoutée avec succès")
     fetchAlarms(); 
     }
  else if(q.data.result == "already") {
-
-      alert("Vous avez déjà un reveil a cette heure")
+showToastI("error", "Erreur", "Vous avez déjà un reveil a cette heure")
     }
   } catch (error) {
     console.error('Erreur lors de l\'ajout de l\'alarme :', error);
@@ -1048,6 +1195,7 @@ const removeAlarm = async (time) => {
     });
     if(q.data.result == "success") {
     fetchAlarms();
+    showToastI("success", "Alarme supprimée", "L'alarme a été supprimée avec succès")
     }
   } catch (error) {
     console.error('Erreur lors de la suppression de l\'alarme :', error);
@@ -1142,33 +1290,39 @@ const [qcmTitle, setQcmTitle] = useState('');
       console.error('Erreur lors de la récupération des QCMs :', error);
     }
   }
+  useEffect(() => {
+    fetchQcms()
+  }, [])
 
 
   const validateQ = () => {
     if(qcmTitle === '') {
-      alert("Le titre du QCM ne peut pas être vide");
+      showToastI("error", "Erreur", "Le titre du QCM ne peut pas être vide")
       return;
     }
     if(qcmQuestions.length === 0) {
-      alert("Le QCM ne peut pas être vide");
+      showToastI("error", "Erreur", "Le QCM ne peut pas être vide")
       return;
     }
     if(qcmQuestions.some(q => q.question === '')) {
+      showToastI("error", "Erreur", "Les questions du QCM ne peuvent pas être vides")
 
-      alert("Les questions du QCM ne peuvent pas être vides");
       return;
     }
     if(qcmQuestions.some(q => q.options.some(o => o === ''))) {
-      alert("Les options du QCM ne peuvent pas être vides");
+      showToastI("error", "Erreur", "Les options du QCM ne peuvent pas être vides")
       return;
     }
     if(qcmQuestions.some(q => q.options.length < 2)) {
-      alert("Les questions du QCM doivent avoir au moins 2 options");
+      showToastI("error", "Erreur", "Les questions du QCM doivent avoir au moins 2 options")
       return;
     }
-    
-    console.log('QCM validé :', { title: qcmTitle, questions: qcmQuestions });
+    if(qcmQuestions.some(q => q.options.every(o => !o.isCorrect))) {
+      showToastI("error", "Erreur", "Chaque question doit avoir au moins une réponse correcte")
+      return;
+    }
 
+    showToastI("success", "QCM validé", "Le QCM a été validé avec succès")
 
 
 
@@ -1203,11 +1357,11 @@ const [selectedCategory, setSelectedCategory] = useState('');
 
 const addTask = () => {
   if(task === '') {
-    alert("La tâche ne peut pas être vide");
+    showToastI("error", "Tâche vide", "La tâche ne peut pas être vide")
     return;
   }
   if(selectedCategory === '') {
-    alert("La catégorie ne peut pas être vide");
+    showToastI("error", "Catégorie vide", "La catégorie ne peut pas être vide")
     return;
   }
   axios({
@@ -1219,12 +1373,13 @@ const addTask = () => {
     },
   }).then((response) => {
     if(response.data.result == "success") {
-      console.log("Task added successfully");
-    alert("Tâche ajoutée avec succès") 
-  
-  
+      showToastI("success", "Tâche ajoutée", "La tâche a été ajoutée avec succès")
+      setTask('');
+      setSelectedCategory('');  
+  } else if(response.data.result == "already") {
+    showToastI("error", "Tâche déjà existante", "La tâche existe déjà")
   }
-  }
+}
   )
 
 }
@@ -1236,7 +1391,7 @@ const removeCategory = (categoryName) => {
     data: { name: categoryName },
   }).then((response) => {
     if (response.data.result === 'success') {
-      console.log('Category deleted successfully');
+      showToastI("success", "Catégorie supprimée", "La catégorie a été supprimée avec succès")
       
       fetchCategories();
     }
@@ -1246,14 +1401,22 @@ const removeCategory = (categoryName) => {
 };
 const [newCategory, setNewCategory] = useState('');
 const createCategory = () => {
+  if(!newCategory) {
+    showToastI("error", "Catégorie vide", "La catégorie ne peut pas être vide")
+    return;
+  }
+
   axios({
     method: 'post',
     url: `http://${config.URL}:5000/api/addCategory`,
     data: { name: newCategory },
   }).then((response) => {
     if (response.data.result === 'success') {
-      console.log('Category created successfully');
+      showToastI("success", "Catégorie ajoutée", "La catégorie a été ajoutée avec succès")
       setNewCategory('');
+    } else if(response.data.result === "alreadyexists") {
+      showToastI("error", "Catégorie déjà existante", "La catégorie existe déjà")
+
     }
   }).catch((error) => {
     console.error('Error creating category: ', error);
@@ -1267,11 +1430,11 @@ useEffect(() => {
 const [moveCategory, setMoveCategory] = useState('');
 const handleMoveCategory = (concernedTask, fromCategory) => {
   if(moveCategory === '') {
-    alert("La catégorie ne peut pas être vide");
+   showToastI("error", "Catégorie vide", "La catégorie de destination ne peut pas être vide")
     return;
   }
   if(fromCategory === '') {
-    alert("La catégorie de destination ne peut pas être vide");
+   showToastI("error", "Catégorie vide", "La catégorie de départ ne peut pas être vide")
     return;
   }
   axios({
@@ -1286,7 +1449,13 @@ const handleMoveCategory = (concernedTask, fromCategory) => {
     if(response.data.result == "success") {
       handleCloseModal()
       setMoveCategory('');
-      console.log("Category moved successfully");
+      showToastI("success", "Tâche déplacée", "La tâche a été déplacée avec succès")
+    } else if(response.data.result == "destinationcategorynotfound") {
+      showToastI("error", "Catégorie inexistante", "La catégorie de destination n'existe pas")
+      
+    } else if(response.data.result == "already") {
+      showToastI("error", "Tâche déjà existante", "La tâche existe déjà dans la catégorie de destination")
+    
     }
   }
   )
@@ -1315,7 +1484,7 @@ setBlue(false)
 setBlinkBlue(false)
 setBlinkWhite(false)
 setWhite(!white)
-
+setMixed(false)
   
 }
 const handleBlue = () => {
@@ -1332,7 +1501,7 @@ setBlue(!blue)
 setBlinkBlue(false)
 setBlinkWhite(false)
 setWhite(false)
-
+setMixed(false)
   
 }
 
@@ -1350,7 +1519,7 @@ setBlue(false)
 setBlinkBlue(false)
 setBlinkWhite(!blinkWhite)
 setWhite(false)
-
+setMixed(false)
   
 }
 const handleBlinkBlue = () => {
@@ -1367,7 +1536,7 @@ setBlue(false)
 setBlinkBlue(!blinkBlue)
 setBlinkWhite(false)
 setWhite(false)
-
+setMixed(false)
   
 }
 
@@ -1385,6 +1554,7 @@ setBlue(false)
 setBlinkBlue(false)
 setBlinkWhite(false)
 setWhite(false)
+setMixed(false)
 
   
 }
@@ -1417,6 +1587,10 @@ const [tradText, setTradText] = useState('');
 const [correctedText, setCorrectedText] = useState('');
 const [corrections, setCorrections] = useState({});
 const correctText = () => {
+  if(!tradText) {
+    showToastI("error", "Texte vide", "Le texte ne peut pas être vide")
+    return;
+  }
   axios({
     method: 'post',
     url: `http://${config.URL}:5000/api/correctText`,
@@ -1428,6 +1602,7 @@ const correctText = () => {
    
     setCorrectedText(response.data.corrected_text);
     setCorrections(response.data.corrections);
+    showToastI("success", "Texte corrigé", "Le texte a été corrigé avec succès")
   
 
   });
@@ -1453,11 +1628,11 @@ const fetchCommands = async() => {
 
 const createCommand = () => {
   if(command === '') {
-    alert("La commande ne peut pas être vide");
+    showToastI("error", "Commande vide", "La commande ne peut pas être vide")
     return;
   }
   if(response === '') {
-    alert("La réponse ne peut pas être vide");
+    showToastI("error", "Réponse vide", "La réponse ne peut pas être vide")
     return;
   }
 
@@ -1475,6 +1650,10 @@ if(r1.data.result == "success") {
       setCommands([...commands, { name: command, reply: response, uuid: r1.data.uuid }]);
       setCommand('');
       setResponse('');
+} else if(r1.data.result == "alreadyexists") {
+  showToastI("error", "Commande déjà existante", "La commande existe déjà")
+
+  
 }
   }
   )
@@ -1486,7 +1665,8 @@ const deleteCommand = (commandUuid) => {
     data: { uuid: commandUuid },
   }).then((response) => {
     if (response.data.result === 'success') {
-      console.log('Command deleted successfully');
+      showToastI("success", "Commande supprimée", "La commande a été supprimée avec succès")
+     
       setCommands(commands.filter(c => c.uuid !== commandUuid));
     }
   }).catch((error) => {
@@ -1521,23 +1701,29 @@ const fetchFileInfo = async(f) => {
 const [showCalendrier, setShowCalendrier] = useState(false);
 const [markedDates, setMarkedDates] = useState({});
 
-const getRappels = async() => {
-  axios({
-    method: 'get',
-    url: `http://${config.URL}:5000/api/getEvents`,
-  }).then((response) => {
+const getRappels = async () => {
+  try {
+    const response = await axios.get(`http://${config.URL}:5000/api/getEvents`);
+    const result = response.data.result;
+    let d = {};
 
-    let d = {}
-    for(let i = 0; i < response.data.result.length; i++) {
-      d[response.data.result[i][1]] = {marked: true, dotColor: response.data.result[i][2]};
-    }
-  
-    setMarkedDates(d)
+    result.forEach(event => {
+      const date = event[1];
+      const dotColor = event[2];
 
-    
-   
-  });
-}
+      if (!d[date]) {
+        d[date] = { dots: [] };
+      }
+      
+      d[date].dots.push({ key: date + dotColor, color: dotColor, selectedDotColor: dotColor });
+    });
+
+    setMarkedDates(d);
+  } catch (error) {
+    console.error("There was an error fetching the events!", error);
+  }
+};
+
 const removeRappel = async(text, date) => {
   axios({
     method: 'post',
@@ -1557,7 +1743,11 @@ const [currentDayDate, setCurrentDayDate] = useState('');
 
 const addRappel = async() => {
   if(currentDay === '' || rappelText === '') {
-    alert("Le texte du rappel ne peut pas être vide");
+    showToastI("error", "Erreur", "Le texte du rappel ne peut pas être vide")
+    return;
+  }
+  if(colorDay === '') {
+    showToastI("error", "Erreur", "La couleur du rappel ne peut pas être vide")
     return;
   }
 
@@ -1571,11 +1761,13 @@ const addRappel = async() => {
     }
   }).then((response) => {
     if(response.data.result == "success") {
-     let cpy = {...currentDay}
-     console.log(currentDay)
+
       setColorDay('');
       setRappelText('');
       window.location.reload()
+    } else if(response.data.result == "already") {
+      showToastI("error", "Erreur", "Le rappel existe déjà")
+      
     }
   });
 }
@@ -1589,467 +1781,177 @@ const [showPopupDate, setShowPopupDate] = useState(false);
 
 const [currentDay, setCurrentDay] = useState({});
 
+
+const showToastI = (type, title, description) => {
+  Toast.show({
+    type: type,
+    text1: title,
+    text2: description,
+    position: 'bottom',
+    visibilityTime: 2000,
+    autoHide: true,
+    bottomOffset: 100,
+  });
+};
+
+
+
+const handleDeleteTime = (id) => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/deleteDay`,
+    data: {
+      id: id,
+    },
+  }).then((response) => {
+    if (response.data.result === 'success') {
+      showToastI("success", "Jour supprimé", "Le jour a été supprimé avec succès")
+      setElements(elements.filter((el) => el.id !== id));
+    }
+  });
+};
+ 
+const handleChangeFeed = () => {
+  if(!feed) {
+    showToastI("error", "Feed vide", "Le feed ne peut pas être vide")
+    return;
+  }
+
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addFeed`,
+    data: {
+      url: feed,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      showToastI("success", "Feed ajouté", "Le feed a été ajouté avec succès")
+    } else if(response.data.result == "already") {
+      showToastI("error", "Feed déjà existant", "Le feed existe déjà")
+    
+    } else if(response.data.result == "invalid") {
+     showToastI("error", "Feed invalide", "Le feed est invalide")
+    
+    }
+  }
+  )
+}
+
+const [feeds, setFeeds] = useState([]);
+
+const fetchFeeds = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getFeedsUrl`,
+  }).then((response) => {
+    setFeeds(response.data.result);
+    console.log(response.data.result)
+  });
+}
+
+const removeFeed = (url) => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/removeFeed`,
+    data: {
+      url: url,
+    },
+  }).then((response) => {
+    if (response.data.result === 'success') {
+      showToastI("success", "Feed supprimé", "Le feed a été supprimé avec succès")
+      fetchFeeds();
+    }
+  });
+}
+
+
+
+useEffect(() => {
+  fetchFeeds()
+}, [])
+const [page, setPage] = useState("settings")
+
+
+const [globalVolume, setGlobalVolume] = useState(0.5);
+const [effectsVolume, setEffectsVolume] = useState(0.5);
+
+
+
+
+
+
   return (
 
 
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-    {Platform.OS === 'ios' && <View style={styles.banner}></View>} 
+
+
+    hasFinishedStarter ? (
+   
+     
+    <SafeAreaView>
 
 
 
-    {hasFinishedStarter || processFinished ? (
-      <View style={styles.container}>
-
-      <Button title="Calendrier" onPress={() => {
- setShowFileInfo(false)
-
- setFicheMaker(false);
- setShowMeteo(false);
- setShowMusique(false);
- setShowFichiers(false);
- setShowTimeTable(false)
- setShowQcm(false)
- setShowChronometre(false)
- setShowTraducteur(false);
- setShowMinuteur(false);
- setShowEditTimeTable(false)
- setShowReveil(false)
- setShowEditPPTimeTable(false)
- setShowFeed(false)
- setShowTaches(false)
- setShowLed(false)
- setShowNotes(false)
- setShowCorrecteur(false)
- setShowAddCommand(false)
- setShowCalendrier(true)
-      }} />
-        
-      <Button title="Informations fichier" onPress={() => {
-        setShowFileInfo(true)
-        setShowCalendrier(false)
-setFicheMaker(false);
-setShowMeteo(false);
-setShowMusique(false);
-setShowFichiers(false);
-setShowTimeTable(false)
-setShowQcm(false)
-setShowChronometre(false)
-setShowTraducteur(false);
-setShowMinuteur(false);
-setShowEditTimeTable(false)
-setShowReveil(false)
-setShowEditPPTimeTable(false)
-setShowFeed(false)
-setShowTaches(false)
-setShowLed(false)
-setShowNotes(false)
-setShowCorrecteur(false)
-setShowAddCommand(false)
-      }} />
 
 
-        <Button title="Commandes" onPress={() => {
-setFicheMaker(false);
-setShowMeteo(false);
-setShowMusique(false);
-setShowFichiers(false);
-setShowTimeTable(false)
-setShowQcm(false)
-setShowChronometre(false)
-setShowTraducteur(false);
-setShowMinuteur(false);
-setShowEditTimeTable(false)
-setShowReveil(false)
-setShowEditPPTimeTable(false)
-setShowFeed(false)
-setShowTaches(false)
-setShowLed(false)
-setShowNotes(false)
-setShowCorrecteur(false)
-setShowAddCommand(true)
-setShowFileInfo(false)
-setShowCalendrier(false)
-        }} />
-        <Button title="Correcteur" onPress={() => {
-           setFicheMaker(false);
-           setShowMeteo(false);
-           setShowMusique(false);
-           setShowFichiers(false);
-           setShowTimeTable(false)
-           setShowQcm(false)
-           setShowChronometre(false)
-           setShowTraducteur(false);
-           setShowMinuteur(false);
-           setShowEditTimeTable(false)
-           setShowReveil(false)
-           setShowEditPPTimeTable(false)
-           setShowFeed(false)
-           setShowTaches(false)
-           setShowLed(false)
-           setShowNotes(false)
-           setShowCorrecteur(true)
-           setShowFileInfo(false)
-           setShowCalendrier(false)
-setShowAddCommand(false)
-        }} /> 
-        
-                <Button title="Notes" onPress={() => {
-          setFicheMaker(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowFichiers(false);
-          setShowTimeTable(false)
-          setShowQcm(false)
-          setShowChronometre(false)
-          setShowTraducteur(false);
-          setShowMinuteur(false);
-          setShowEditTimeTable(false)
-          setShowReveil(false)
-          setShowEditPPTimeTable(false)
-          setShowFeed(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(true)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }
-        } />
+      
+      {Platform.OS === 'ios' && <View style={styles.banner}></View>}
 
-        <Button title="Leds" onPress={() => {
- setShowFileInfo(false)
- setShowCalendrier(false)
-setFicheMaker(false);
- setShowMeteo(false);
- setShowMusique(false);
-  setShowFichiers(false);
-  setShowTimeTable(false)
-  setShowQcm(false)
-setShowChronometre(false)
-setShowTraducteur(false);
-setShowMinuteur(false);
-setShowEditTimeTable(false)
-setShowReveil(false)
-setShowEditPPTimeTable(false)
-setShowFeed(false)
-setShowTaches(false)
-setShowLed(true)
-setShowNotes(false)
-setShowCorrecteur(false)
-setShowAddCommand(false)
-        }} />
 
-        <Button title="Tâches" onPress={() => {
- setFicheMaker(false);
-setShowLed(false)
- setShowMeteo(false);
- setShowMusique(false);
-  setShowFichiers(false);
-  setShowTimeTable(false)
-  setShowQcm(false)
-setShowChronometre(false)
-setShowTraducteur(false);
-setShowMinuteur(false);
-setShowEditTimeTable(false)
-setShowReveil(false)
-setShowEditPPTimeTable(false)
-setShowFeed(false)
-setShowTaches(true)
-setShowCorrecteur(false)
-setShowNotes(false)
-setShowAddCommand(false)
-setShowFileInfo(false)
-setShowCalendrier(false)
-        }} />
-        <Button title="Fiche" onPress={() => {
-          setFicheMaker(true);
-          setShowLed(false)
-          setShowTaches(false)
-          setShowMeteo(false);
-          setShowMusique(false);
-           setShowFichiers(false);
-           setShowTimeTable(false)
-           setShowQcm(false)
-         setShowChronometre(false)
-         setShowTraducteur(false);
-         setShowMinuteur(false);
-         setShowEditTimeTable(false)
-         setShowReveil(false)
-         setShowEditPPTimeTable(false)
-         setShowFeed(false)
-         setShowNotes(false)
-         setShowCorrecteur(false)
-         setShowAddCommand(false)
-         setShowFileInfo(false)
-         setShowCalendrier(false)
 
-        }} />
+      
 
-        <Button title="Météo" onPress={() => {
-           setShowMeteo(true);
-           setShowMusique(false);
-            setShowFichiers(false);
-            setShowTimeTable(false)
-            setShowTraducteur(false);
-          setShowChronometre(false)
-          setFicheMaker(false);
-          setShowMinuteur(false);
-          setShowEditTimeTable(false)
-          setShowReveil(false)
-         setShowFeed(false)
-          setShowEditPPTimeTable(false)
-          setShowQcm(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }} />
- <Button title="Musique" onPress={() => {
-           setShowMusique(true);
-            setShowMeteo(false);
-            setShowFichiers(false);
-            setShowTimeTable(false)
-            setFicheMaker(false);
-          setShowChronometre(false)
-          setShowTaches(false)
-          setShowMinuteur(false);
-          setShowQcm(false)
-         setShowFeed(false)
-          setShowEditTimeTable(false)
-          setShowTraducteur(false);
-          setShowReveil(false)
-          setShowEditPPTimeTable(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }} />
-        <Button title="Fichiers" onPress={() => {
-          setShowFichiers(true);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowTimeTable(false)
-          setShowTaches(false)
-         setShowFeed(false)
-          setShowChronometre(false)
-          setFicheMaker(false);
-          setShowMinuteur(false);
-          setShowReveil(false)
-          setShowEditTimeTable(false)
-          setShowTraducteur(false);
-          setShowEditPPTimeTable(false)
-          setShowQcm(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }} />
-        <Button title="Emploi du temps" onPress={() => {
-          setShowTimeTable(true);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowFichiers(false);
-          setShowChronometre(false)
-          setFicheMaker(false);
-          setShowMinuteur(false);
-          setShowTraducteur(false);
-          setShowEditTimeTable(false)
-          setShowEditPPTimeTable(false)
-          setShowFeed(false)
-          setShowReveil(false)
-          setShowQcm(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }} />
-            <Button title="Modifier emploi du temps" onPress={() => {
-          setShowTimeTable(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowFichiers(false);
-          setShowChronometre(false)
-          setFicheMaker(false);
-          setShowMinuteur(false);
-          setShowReveil(false)
-         setShowFeed(false)
-          setShowEditTimeTable(false)
-          setShowEditPPTimeTable(true)
-          setShowTraducteur(false);
-          setShowQcm(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }} />
 
-        <Button title="Chronometre" onPress={() => {
-          setShowFichiers(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowTimeTable(false);
-          setShowChronometre(true);
-          setShowMinuteur(false);
-          setFicheMaker(false);
-          setShowEditTimeTable(false)
-          setShowReveil(false)
-         setShowFeed(false)
-          setShowEditPPTimeTable(false)
-          setShowTraducteur(false);
-          setShowQcm(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }
-        } />
-        <Button title="Minuteur" onPress={() => {
-          setShowFichiers(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowTimeTable(false);
-          setShowMinuteur(true);
-          setShowChronometre(false);
-          setFicheMaker(false);
-          setShowEditTimeTable(false)
-          setShowReveil(false)
-         setShowFeed(false)
-          setShowEditPPTimeTable(false)
-          setShowTraducteur(false);
-          setShowQcm(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }
-        } />
-        <Button title="Traducteur" onPress={() => {
-          setShowFichiers(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowTimeTable(false);
-          setShowMinuteur(false);
-          setShowChronometre(false);
-          setShowTraducteur(true);
-          setFicheMaker(false);
-          setShowEditTimeTable(false)
-          setShowReveil(false)
-         setShowFeed(false)
-          setShowEditPPTimeTable(false)
-          setShowQcm(false)
-          setShowTaches(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
-        }}
-         />
-         <Button title="Feed" onPress={() => {
-          setShowFichiers(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowTimeTable(false);
-          setShowFichiers(false);
-          setShowMeteo(false);
-          setShowMusique(false);
-          setShowTimeTable(false);
-          setShowMinuteur(false);
-          setShowChronometre(false);
-          setShowTraducteur(false);
-          setFicheMaker(false);
-          setShowEditTimeTable(false)
-          setShowTaches(false)
-         setShowFeed(true)
-          setShowEditPPTimeTable(false)
-          setShowQcm(false)
-          setShowReveil(false)
-          setShowLed(false)
-          setShowNotes(false)
-          setShowCorrecteur(false)
-          setShowAddCommand(false)
-          setShowFileInfo(false)
-          setShowCalendrier(false)
 
-         }}
-          />
-          <Button title="Reveil" onPress={() => {
-  setShowFichiers(false);
-  setShowMeteo(false);
-  setShowMusique(false);
-  setShowTimeTable(false);
-  setShowFichiers(false);
-  setShowMeteo(false);
-  setShowMusique(false);
-  setShowTimeTable(false);
-  setShowMinuteur(false);
-  setShowChronometre(false);
-  setShowTraducteur(false);
-  setFicheMaker(false);
-  setShowEditTimeTable(false)
-  setShowQcm(false)
- setShowFeed(false)
-  setShowEditPPTimeTable(false)
-setShowReveil(true)
-setShowTaches(false)
-setShowLed(false)
-setShowNotes(false)
-setShowCorrecteur(false)
-setShowAddCommand(false)
-setShowFileInfo(false)
-setShowCalendrier(false)
-}} />
-          <Button title="QCM" onPress={() => {
-             setShowFichiers(false);
-             setShowMeteo(false);
-             setShowMusique(false);
-             setShowTimeTable(false);
-             setShowFichiers(false);
-             setShowMeteo(false);
-             setShowMusique(false);
-             setShowTimeTable(false);
-             setShowMinuteur(false);
-             setShowChronometre(false);
-             setShowTraducteur(false);
-             setFicheMaker(false);
-             setShowEditTimeTable(false)
-             setShowTaches(false)
-            setShowFeed(false)
-             setShowEditPPTimeTable(false)
-           setShowReveil(false)
-           setShowQcm(true)
-           fetchQcms();
-           setShowLed(false)
-           setShowNotes(false)
-           setShowCorrecteur(false)
-           setShowAddCommand(false)
-           setShowFileInfo(false)
-           setShowCalendrier(false)
-           
-           
-           }} />
+      <ScrollView style={{display: "flex", flexDirection: "column",  height:"95%"}}>
+
+
+<Image 
+source={require('./assets/Logo.png')}
+style={styles.image}
+/>
+
+
+{ page == "home" ? (
+
+<View>
+
+<View style={{padding: 10}}>
+
+
+
+  <View style={styles.titleCategory}>
+<Text style={{fontSize: 15}}>
+  Organisation
+</Text>
+</View>
+
+<View style={styles.flexer}>
+
+
+
+  <Pressable onPress={() => setShowTimeTable(true)} style={styles.item}>
+
+    <Image source={require('./assets/edt.png')} style={styles.icon} />
+    <Text>Emploi du temps</Text>
+  </Pressable>
+
+  <Pressable onPress={() => setShowTaches(true)} style={styles.item}>
+
+<Image source={require('./assets/taches.png')}style={styles.icon} />
+<Text>Tâches</Text>
+</Pressable>
+  
+<Pressable onPress={() => setShowCalendrier(true)} style={styles.item}>
+
+<Image source={require('./assets/rappels.png')}style={styles.icon} />
+<Text>Rappels</Text>
+</Pressable>
+  
+
+
+ 
+</View>
 
 
 
@@ -2057,17 +1959,1140 @@ setShowCalendrier(false)
 
 
 
-           {showCalendrier && (
-            <View style={styles.popupContainer}>
-              <View style={styles.popupHeader}>
-<Text style={styles.headerText}>
-Calendrier
-  </Text>
-  <Pressable onPress={() => setShowCalendrier(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-    </Pressable>
+
+
+</View>
+
+
+
+
+<View style={{padding: 10}}>
+
+
+
+  <View style={styles.titleCategory}>
+<Text style={{fontSize: 15}}>
+  Révisions
+</Text>
+</View>
+
+<View style={styles.flexer}>
+
+
+
+<Pressable onPress={() => setFicheMaker(true)}style={styles.item}>
+    <Image source={require('./assets/fiche.png')} style={styles.icon}/>
+    <Text>
+      Fiche
+    </Text>
+  </Pressable>
+
+
+  <Pressable onPress={() => setShowQcm(true)}style={styles.item}>
+    <Image source={require('./assets/quizz.png')} style={styles.icon}/>
+    <Text>
+      Quizz
+    </Text>
+  </Pressable>
+ 
+ 
+</View>
+
+
+
+
+
+
+</View>
+
+
+<View style={{padding: 10}}>
+
+
+
+  <View style={styles.titleCategory}>
+<Text style={{fontSize: 15}}>
+  Temps
+</Text>
+</View>
+
+<View style={styles.flexer}>
+
+
+
+<Pressable onPress={() => setShowChronometre(true)}style={styles.item}>
+    <Image source={require('./assets/chronometre.png')} style={styles.icon}/>
+    <Text>
+      Chronometre
+    </Text>
+  </Pressable>
+
+
+  <Pressable onPress={() => setShowMinuteur(true)}style={styles.item}>
+    <Image source={require('./assets/minuteur.png')} style={styles.icon}/>
+    <Text>
+      Minuteur
+    </Text>
+  </Pressable>
+  <Pressable onPress={() => setShowReveil(true)}style={styles.item}>
+    <Image source={require('./assets/reveil.png')} style={styles.icon}/>
+    <Text>
+      Réveil
+    </Text>
+  </Pressable>
+ 
+</View>
+
+
+
+
+
+
+</View>
+
+
+<View style={{padding: 10}}>
+
+
+
+  <View style={styles.titleCategory}>
+<Text style={{fontSize: 15}}>
+  Général
+</Text>
+</View>
+
+<View style={styles.flexer}>
+
+
+<Pressable onPress={() => setShowAddCommand(true)}style={styles.item}>
+<Image source={require('./assets/commandes.png')}style={styles.icon} />
+    <Text>
+      Commandes
+    </Text>
+  </Pressable>
+
+<Pressable onPress={() => setShowMusique(true)}style={styles.item}>
+    <Image source={require('./assets/musique.png')} style={styles.icon}/>
+    <Text>
+      Musique
+    </Text>
+  </Pressable>
+
+
+  <Pressable onPress={() => setShowMeteo(true)}style={styles.item}>
+    <Image source={require('./assets/meteo.png')} style={styles.icon}/>
+    <Text>
+      Météo
+    </Text>
+  </Pressable>
+  <Pressable onPress={() => setShowFeed(true)}style={styles.item}>
+    <Image source={require('./assets/news.png')} style={styles.icon}/>
+    <Text>
+      Feed
+    </Text>
+  </Pressable>
+
+
+  <Pressable onPress={() => setShowTraducteur(true)}style={styles.item}>
+    <Image source={require('./assets/traducteur.png')} style={styles.icon}/>
+    <Text>
+      Traducteur
+    </Text>
+  </Pressable>
+
+  <Pressable onPress={() => setShowCorrecteur(true)}style={styles.item}>
+  <Image source={require('./assets/correcteur.png')}style={styles.icon} />
+    <Text>
+      Correcteur
+    </Text>
+  </Pressable>
+
+
+  <Pressable onPress={() => setShowLed(true)}style={styles.item}>
+    <Image source={require('./assets/leds.png')}style={styles.icon} />
+    <Text>
+      Leds
+    </Text>
+  </Pressable>
+</View>
+
+
+
+
+
+
+</View>
+
+
+
+<View style={{padding: 10}}>
+
+
+
+  <View style={styles.titleCategory}>
+<Text style={{fontSize: 15}}>
+Fichiers
+</Text>
+</View>
+
+<View style={styles.flexer}>
+
+
+
+<Pressable onPress={() => setShowFichiers(true)}style={styles.item}>
+    <Image source={require('./assets/fiche.png')} style={styles.icon}/>
+    <Text>
+      Fichiers
+    </Text>
+  </Pressable>
+
+
+ 
+ 
+ 
+</View>
+
+
+
+
+</View>
+
+
+
+</View>
+
+
+
+) : (
+  <View style={{padding:15}}>
+     <View style={styles.subtitlePage}>
+                <Text style={styles.sizeSubtitlePage}>Paramètres</Text>
                 </View>
-                <View style={styles.popupMain}>
+
+                
+              <View style={{...styles.labelInputBox, marginTop:15}}>
+
+<Text style={styles.labelText}>Sélectionner un réseau</Text>
+<RNPickerSelect
+      style={styles}
+      placeholder={{label: "Sélectionner le réseau", value: null}}
+      onValueChange={(value) => value}
+      items={[
+        {label: "eduroam",value: "eduroam"},
+        {label:"ESIEE", value: "ESIEE"}
+      ]}
+    />
+      <View style={{display: "flex", flexDirection: "row"}}>
+    <TextInput
+                style={{borderColor: '#ccc', 
+                  borderWidth: 1,
+                  borderTopLeftRadius: 5,
+                  borderBottomLeftRadius: 5,
+                  paddingLeft: 10, 
+                  backgroundColor: '#fff', 
+                  fontSize: 16,
+                  color: '#333',
+                  alignSelf: "center",
+                  padding:10,width:"80%"}}
+                placeholder="Saisir le code"
+               
+              />
+ <Pressable onPress={() => {}} style={styles.ctaInput}>
+                <FontAwesomeIcon icon={faExchange} size={20} style={{color:"white"}}  />
+              </Pressable>
+
+              </View>
+
+</View>
+<View style={{...styles.labelInputBox, marginTop:15}}>
+
+<Text style={styles.labelText}>Mélangeur de volume</Text>
+
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Global:</Text>
+<Slider
+    style={{ width: '100%', marginTop: 10 }}
+    minimumValue={0}
+    maximumValue={1}
+    minimumTrackTintColor="#142A4D"
+    maximumTrackTintColor="#FFFFFF"
+    thumbTintColor="#142A4D"
+    value={globalVolume}
+    onValueChange={(value) => setGlobalVolume(value)}
+  />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Musique:</Text>
+<Slider
+    style={{ width: '100%', marginTop: 10 }}
+    minimumValue={0}
+    maximumValue={1}
+    minimumTrackTintColor="#142A4D"
+    maximumTrackTintColor="#FFFFFF"
+    thumbTintColor="#142A4D"
+    value={effectsVolume}
+    onValueChange={(value) => handleChangeVolume(value)}
+  />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Effets:</Text>
+<Slider
+    style={{ width: '100%', marginTop: 10 }}
+    minimumValue={0}
+    maximumValue={1}
+    minimumTrackTintColor="#142A4D"
+    maximumTrackTintColor="#FFFFFF"
+    thumbTintColor="#142A4D"
+    value={effectsVolume}
+    onValueChange={(value) => setEffectsVolume(value)}
+  />
+</View>
+ </View>
+    </View>
+)}
+
+        </ScrollView>
+
+
+        {showFichiers && (
+    
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+<View style={styles.header}>
+
+  <Text style={{fontSize: 20}}>Fichiers</Text>
+  <Pressable onPress={() => setShowFichiers(false)}>
+    <FontAwesomeIcon icon={faX} size={20} />
+  </Pressable>
+
+</View>
+
+<View style={styles.insidePage}>
+
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Explorateur de fichiers</Text>
+</View>
+
+<View style={{display: "flex", flexDirection: "row", gap: 10, alignItems: "center"}}>
+{folder.length == 0 && hierarchy.map((element, id_g) => (
+ <Pressable key={id_g} onPress={() => {
+  
+  setFichiers(element["files"])
+  setFolder(element["folder"])
+
+  
+  } } style={{...styles.shadowBox, display: "flex", flexDirection: "column", alignItems: "center", padding: 15}}  >
+   
+   
+      
+<FontAwesomeIcon icon={faFolder} size={50} />
+  <Text>
+    {element["folder"]}
+
+  </Text>
+  
+
+ </Pressable>
+  
+))}
+ </View>
+
+
+{folder.length == 0 && (
+  <Pressable onPress={handleOpenModal} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+  <FontAwesomeIcon icon={faFolder} size={20} style={{color:"#6FDDE8"}} />
+  <Text style={{color:"#6FDDE8", fontSize:20}}>Créer un dossier</Text>
+</Pressable>
+
+)}
+
+
+
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContainer}>
+          <Text>Entrez un nom de dossier</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom du dossier"
+            value={folderName}
+            onChangeText={setFolderName}
+          />
+          <View style={styles.buttonContainer}>
+            <Button title="Annuler" onPress={handleCloseModal} />
+            <Button title="Créer" onPress={handleSubmit} />
+          </View>
+        </View>
+      </Modal>
+
+
+   
+      
+
+      
+{folder.length > 0 && (
+  <View>
+
+    <View style={{display:"flex",width:"100%", alignItems:"center",flexDirection:"row",justifyContent:"flex-end",marginBottom:25}}>
+    <Pressable onPress={() => {
+      setFolder("")
+      setFichiers([])
+      fetchHierarchy()
+    
+
+    }}
+    
+    style={{backgroundColor:"#142A4D", borderRadius:5,padding:10,display:"flex",flexDirection:"row",alignItems:"center",justifyContent:"center"}}
+    
+    >
+      <FontAwesomeIcon icon={faUndo} size={20} style={{...styles.fileIcon, color:"#6FDDE8"}} />
+      <Text style={{color:"#6FDDE8", fontSize:20}}>Retour</Text>
+      </Pressable>
+
+</View>
+    {folder.length > 0 && fichiers.length == 0 && (
+      <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Ce dossier est vide</Text>
+    
+    )}
+    {fichiers.map((element, id) => (
+      
+   <View key={id} style={styles.fileContainer}>
+    
+
+   <FontAwesomeIcon icon={faFile} size={20} style={styles.fileIcon} />
+   <Text style={styles.fileName}>{element}</Text>
+   <TouchableOpacity onPress={() => {
+     axios({
+       method: 'post',
+       url: `http://${config.URL}:5000/api/removeFile`,
+       data: {
+         folder_name: folder,
+         file_name: element,
+       },
+     }).then((response) => {
+       if(response.data.result === "success") {
+         fetchHierarchy();
+         setFichiers(fichiers.filter((file) => file !== element));
+         setFolder("");
+         showToastI("success", "Fichier supprimé", "Le fichier a été supprimé avec succès")
+         
+       }
+     });
+   }}>
+     <FontAwesomeIcon icon={faX} size={20} style={styles.removeIcon} />
+   </TouchableOpacity>
+ </View>
+    ))}
+
+
+<Pressable onPress={pickFile} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+  <FontAwesomeIcon icon={faFile} size={20} style={{color:"#6FDDE8"}} />
+  <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter un fichier</Text>
+</Pressable>
+<Pressable onPress={() => deleteFolder(folder)} style={{backgroundColor: "#142A4D", alignSelf: "flex-end",marginTop:15, padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+  <FontAwesomeIcon icon={faFolder} size={20} style={{color:"#6FDDE8"}} />
+  <Text style={{color:"#6FDDE8", fontSize:20}}>Supprimer le dossier</Text>
+</Pressable>
+
+
+      {file && !file.canceled && 
+<Pressable onPress={() => uploadFile(folder)} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+
+ 
+  <FontAwesomeIcon icon={faUpload} size={20} style={{color:"#6FDDE8"}} />
+  <Text style={{color:"#6FDDE8", fontSize:20}}>Uploads le fichier</Text>
+</Pressable>
+
+      }
+  </View>
+)}
+
+</View>
+   
+     </ScrollView>
+     </SafeAreaView>
+    )}
+
+
+        {showTimeTable && ( 
+         
+<SafeAreaView style={styles.page}>
+  <ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Emploi du temps</Text>
+    </View>
+    <Pressable onPress={() => setShowTimeTable(false)}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+  </View>
+  
+  
+     
+            
+              <View style={styles.insidePage}>
+  
+  
+                <View style={styles.subtitlePage}>
+                <Text style={styles.sizeSubtitlePage}>Ajouter un élément</Text>
+                </View>
+
+              <View style={styles.labelInputBox}>
+
+                <Text style={styles.labelText}>Contenu</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Exemple : Coder un truc cool"
+                value={nomDay}
+                onChangeText={setNomDay}
+              />
+
+</View>
+<View style={styles.labelInputBox}>
+
+              <Text style={styles.labelText}>Jour</Text>
+              <RNPickerSelect
+                style={styles}
+                placeholder={{ label: 'Choisir un jour', value: null 
+                }}
+                onValueChange={(value) => setDay(value)}
+                items={[
+                  { label: 'Lundi', value: 'Lundi' },
+                  { label: 'Mardi', value: 'Mardi' },
+                  { label: 'Mercredi', value: 'Mercredi' },
+                  { label: 'Jeudi', value: 'Jeudi' },
+                  { label: 'Vendredi', value: 'Vendredi' },
+                  { label: 'Samedi', value: 'Samedi' },
+                  { label: 'Dimanche', value: 'Dimanche' },
+                ]}
+              />
+              </View>
+
+          <View style={{display:"flex",flexDirection:"row",gap:5,alignItems:"center", marginLeft:10}}>
+
+      
+              <Text style={styles.labelText}>De</Text>
+
+<View style={{width:100}}>
+              <RNPickerSelect
+                placeholder={{}}
+                style={styles}
+                onValueChange={(value) => setFrom(value)}
+                items={timeSlots.map((time) => ({
+                  label: time - 1 + ":00",
+                  value: time-1,
+                }))}
+              />
+</View>
+           
+              
+
+
+<Text style={styles.labelText}>à</Text>
+
+<View style={{width:100}}>
+
+              <RNPickerSelect
+  placeholder={{}}
+                style={styles}
+                onValueChange={(value) => setTo(value)}
+                items={timeSlots.map((time) => ({
+                  label: time - 1 + ":00",
+                  value: time-1,
+                }))}
+              />
+              </View>
+        
+
+</View>
+             
+             <Pressable onPress={handleAddDay} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+              </Pressable>
+              
+              <View style={{display:"flex", flexDirection:"column", gap:15}}>
+              <View style={styles.subtitlePage}>
+   <Text style={styles.sizeSubtitlePage}>Liste des jours planifiés</Text>
+
+   </View>
+   {elements.length == 0 && (
+      <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucun jour n'a été ajouté</Text>
+    
+   )}
+        {elements.map((element) => (
+          <View key={element.id} style={{...styles.block}}>
+            <View style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+              <Text style={{color:"white"}}>{element.name}</Text>
+
+            <View style={{display: "flex", flexDirection: "row", gap:5}}>
+
+            <Pressable onPress={() => {
+setShowEditTimeTable(true)
+setModifyId(element.id)
+setModifyNomDay(element.name)
+setModifyDay(reverse_corr[element.day])
+setModifyFrom(element.startTime)
+setModifyTo(element.endTime)
+}
+}>
+          <FontAwesomeIcon icon={faEdit} size={20} style={{color:"#FF8754"}} />
+</Pressable>
+
+              <Pressable onPress={() => handleDeleteTime(element.id)}>
+                <FontAwesomeIcon icon={faTrash} size={20} style={{color:"#FF6254"}} />
+              </Pressable>
+            
+</View>
+            </View>
+            <View style={{ display: "flex", width: "100%"}}>
+
+<View style={{alignSelf: "flex-start",borderBottomWidth:2, borderBottomColor: "white"}}>
+
+            <Text style={{color: "white"}}>
+              Le {reverse_corr[element.day]}. De {element.startTime}:00 à {element.endTime}:00
+            </Text>
+            </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+        
+
+
+            
+
+
+
+
+</ScrollView>
+          </SafeAreaView>
+        
+        )}
+
+
+
+
+
+
+{ficheMaker && (
+      
+<SafeAreaView style={styles.page}>
+  <ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+ 
+    <Text style={styles.sizeTitlePage}>Fiches</Text>
+ 
+    <Pressable onPress={() => setFicheMaker(false)}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+  </View>
+  <View style={styles.insidePage}>
+  <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Ajouter une fiche</Text>
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Titre</Text>
+<TextInput
+          style={styles.input}
+          value={ficheTitle}
+          onChangeText={setFicheTitle}
+          placeholder="Entrez le titre de la fiche"
+        />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Description</Text>
+<TextInput
+          style={styles.input}
+          value={ficheDescription}
+          onChangeText={setFicheDescription}
+          placeholder="Entrez la description de la fiche"
+        />
+</View>
+
+
+              <ScrollView>
+                {fiche.map((section, index) => (
+                    <Section
+                        key={section.id}
+                        data={section}
+                        updateSection={updateSection}
+                        deleteSection={deleteSection}
+                        moveSection={moveSection}
+                        index={index}
+                        totalSections={fiche.length}
+                    />
+                ))}
+            </ScrollView>
+            <Pressable onPress={addSection} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter une section</Text>
+              </Pressable>
+
+            <Pressable onPress={validate} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter la fiche</Text>
+              </Pressable>
+
+              <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Liste des fiches</Text>
+
+</View>
+
+{fiches.length == 0 && (
+  <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucune fiche n'a été créée</Text>
+)}
+{fiches.map((fiche) => (
+          <View key={fiche} style={{display: "flex", justifyContent: "space-between", padding: 10, borderRadius: 5, backgroundColor:"white", marginTop: 15, flexDirection: "row", backgroundColor:"#142A4D"}}>
+            <Text style={{color:"white"}}>{fiche.title}</Text>
+            <Pressable onPress={() => {
+              axios({
+                method: 'post',
+                url: `http://${config.URL}:5000/api/removeFiche`,
+                data: {
+                  titre: fiche.title
+                },
+              }).then((response) => {
+                if(response.data.result == "success") {
+                  showToastI("success", "Fiche supprimée", "La fiche a été supprimée avec succès")
+               
+
+                  fetchFiches();
+                }
+              }
+              )
+            }}>
+              <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+            </Pressable>
+          </View>
+        ))}
+</View>
+
+
+
+  
+     <View>
+   
+           
+         
+           
+           
+           
+        </View>
+        
+
+  </ScrollView>
+</SafeAreaView>
+
+)}
+
+
+
+
+
+
+
+
+        {showTaches && (
+
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+<View style={styles.header}>
+
+  <Text style={{fontSize: 20}}>Tâches</Text>
+  <Pressable onPress={() => setShowTaches(false)}>
+    <FontAwesomeIcon icon={faX} size={20} />
+  </Pressable>
+
+</View>
+
+<View style={styles.insidePage}>
+
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Ajouter une catégorie :</Text>
+
+</View>
+<View>
+  <TextInput
+
+    style={{...styles.input, marginLeft:10}}
+    value={newCategory}
+    onChangeText={setNewCategory}
+    placeholder="Entrez la catégorie"
+  />
+
+<Pressable onPress={createCategory} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+              </Pressable>
+
+  </View>
+  <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Ajouter une tâche :</Text>
+
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Tâche</Text>
+
+<TextInput
+          style={styles.input}
+          value={task}
+          onChangeText={setTask}
+          placeholder="Entrez la tâche"
+        />
+
+        </View>
+        <View style={styles.labelInputBox}>
+        <Text style={styles.labelText}>Catégorie</Text>
+
+        <RNPickerSelect
+          style={styles}
+          placeholder={{ label: 'Choisir une catégorie', value: null }}
+          onValueChange={(value) => setSelectedCategory(value)}
+          items={categories.map((category) => ({
+            label: category[0],
+            value: category[0],
+          }))}
+        />
+
+        
+
+         
+
+
+
+
+</View>
+
+<Pressable onPress={addTask} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+              </Pressable>
+
+              <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Liste des tâches</Text>
+
+</View>
+
+
+   
+<View style={{display:"flex",flexDirection:"column", gap:25}}>
+  {categories.length == 0 && (
+    <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucune catégorie n'a été créée</Text>
+  )}
+
+          {categories.map((category) => (
+            <View key={category[0]} style={{ display: "flex", flexDirection: "column", gap: 10}}>
+               <View style={{flexDirection: "row", display: "flex", backgroundColor: "#142A4D",padding: 20, borderRadius:5, alignItems: "center"}}>
+               <FontAwesomeIcon icon={faFile} style={{color:"#6FDDE8"}}/>  
+               <Text style={{color:"white"}}> {category[0]}</Text>
+
+                      <Pressable onPress={() => removeCategory(category[0])} style={{marginLeft: "auto"}}>
+                        <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+                      </Pressable>
+                    </View>
+              {tasks.length > 0 &&
+                tasks.find(t => t.category === category[0])?.tasks.map((t) => (
+                  <View key={t.name} style={{backgroundColor: "#142A4D",marginLeft:20,borderRadius:5,padding:10, display: "flex", flexDirection: "row", alignItems: "center"}}>
+               
+               
+               <FontAwesomeIcon icon={faTasks} style={{color: "#6FDDE8"}}/>     
+               <Text style={{color: "white"}}> {t.name}</Text>
+
+
+                  <View style={{marginLeft: "auto",  display:"flex",flexDirection:"row", gap: 5}}>
+
+                
+
+                    <Pressable onPress={handleOpenModal}>
+                      <FontAwesomeIcon icon={faEdit} size={20} color="#FF8754" />
+                    </Pressable>
+
+
+                    <Pressable onPress={() => {
+                      axios({
+                        method: 'post',
+                        url: `http://${config.URL}:5000/api/removeTask`,
+                        data: { name: t.name, category: category[0] }
+                      }).then((response) => {
+                        if (response.data.result === "success") {
+                          showToastI("success", "Tâche supprimée", "La tâche a été supprimée avec succès")
+                          fetchCategories();
+                        }
+                      }).catch((error) => {
+                        showToastI("error", "Erreur", "Une erreur est survenue lors de la suppression de la tâche")
+                        console.error("Error deleting task: ", error);
+                      });
+                    }}>
+                   
+                      <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+                    </Pressable>
+                    </View>
+                    
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContainer}>
+          <Text>Catégorie vers laquelle vous souhaitez déplacer ?</Text>
+          <RNPickerSelect
+            style={styles}
+            placeholder={{ label: 'Choisir une catégorie', value: null }}
+            onValueChange={(value) => setMoveCategory(value)}
+            items={categories.map((category) => ({
+              label: category[0],
+              value: category[0],
+            }))}
+          />
+
+          <View style={styles.buttonContainer}>
+            <Button title="Annuler" onPress={handleCloseModal} />
+            <Button title="Déplacer" onPress={() => handleMoveCategory(t.name, category[0])} />
+          </View>
+        </View>
+      </Modal>
+                  </View>
+                ))
+              }
+            </View>
+          ))}
+        </View>
+
+      </View>
+    
+ 
+</ScrollView>
+</SafeAreaView>
+        )}
+
+
+
+{showQcm && (
+  <SafeAreaView style={styles.page}>
+    <ScrollView style={{marginBottom:100}}>
+
+
+    <View style={styles.header}>
+
+<Text style={{fontSize: 20}}>QCM</Text>
+<Pressable onPress={() => setShowQcm(false)}>
+  <FontAwesomeIcon icon={faX} size={20} />
+</Pressable>
+
+</View>
+
+
+
+
+
+<View style={styles.insidePage}>
+
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Créer un QCM :</Text>
+
+</View>
+
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Titre</Text>
+<TextInput
+          style={styles.input}
+          value={qcmTitle}
+          onChangeText={setQcmTitle}
+          placeholder="Entrez le titre du QCM"
+        />
+
+        <Pressable onPress={addQuestion} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter une question</Text>
+              </Pressable>
+
+</View>
+
+
+
+
+
+      <View style={{display: "flex", flexDirection: "column",  justifyContent: "center", gap: 15}}>
+        
+       
+        {qcmQuestions.map((question, questionIndex) => (
+          <View key={questionIndex} style={{ backgroundColor: '#ECEFF1',
+            padding: 20,
+            borderRadius: 10,
+            marginBottom: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+            display:"flex",
+            flexDirection:"column",
+            gap:15}}>
+            <TextInput
+              style={styles.input}
+              value={question.question}
+              onChangeText={(text) => updateQuestion(questionIndex, text)}
+              placeholder="Entrez la question"
+            />
+  <Pressable onPress={() => addOption(questionIndex)} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter une option</Text>
+              </Pressable>
+
+
+
+           
+            {question.options.map((option, optionIndex) => (
+              <View key={optionIndex} style={{display: "flex",flexDirection: "row", gap: 5, alignItems: "center"}}>
+
+                <TextInput
+                  style={styles.input}
+                  value={option.text}
+                  onChangeText={(text) => updateOption(questionIndex, optionIndex, text)}
+                  placeholder="Entrez l'option"
+                />
+
+<View style={{display: "flex", flexDirection: "row", gap: 5, alignItems: "center"}}>
+               
+                <Switch 
+                
+                  value={option.isCorrect}
+                  onValueChange={() => toggleCorrectAnswer(questionIndex, optionIndex)}
+                />
+              
+                <Pressable onPress={() => deleteOption(questionIndex, optionIndex)}>
+                  <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+                </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        ))}
+        <Pressable onPress={validateQ} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} /> 
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Créer le QCM</Text>
+              </Pressable>
+              
+      </View>
+
+      <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Liste des QCM</Text>
+</View>
+<View>
+  {qcms.length == 0 && (
+    <Text style={{fontSize: 20, textAlign: "center", marginBottom: 20}}>Aucun QCM</Text>
+  
+  )}
+                        {qcms.map((qcm) => (
+                         
+                          <View key={qcm} style={{display: "flex", justifyContent: "space-between", padding: 10, borderRadius: 5, backgroundColor:"white", marginTop: 15, flexDirection: "row", backgroundColor:"#142A4D"}}>
+                            
+                            <Text style={{color:"white"}}>{qcm}</Text>
+                            <Pressable onPress={() => {
+                              axios({
+                                method: 'post',
+                                url: `http://${config.URL}:5000/api/removeQcm`,
+                                data: {
+                                 
+                                  titre: qcm
+                                },
+                              }).then((response) => {
+                                if(response.data.result == "success") {
+                                  showToastI("success", "QCM supprimé", "Le QCM a été supprimé avec succès")
+                                  fetchQcms();
+                                }
+                              }
+                              )
+                            }}>
+                              <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+                            </Pressable>
+                          </View>
+                        ))}
+
+                        </View>
+      </View>
+
+  
+    </ScrollView>
+  </SafeAreaView>
+
+)}
+
+{showFileInfo && (
+  <SafeAreaView style={{backgroundColor: "white", position: "absolute", right: 0, left: 0, bottom: 0,top: 45
+  }}>
+    <View style={{display: "flex", justifyContent: "space-between", padding: 25, flexDirection: "row"}}>
+      <Text style={{fontSize: 20}}>Fichiers</Text>
+      <Pressable onPress={() => setShowFileInfo(false)}>
+        <FontAwesomeIcon icon={faX} size={20} />
+      </Pressable>
+    </View>
+    <View style={styles.popupMain}>
+
+{infosFiles.length > 0 && (
+  <View style={styles.popupMain}>
+    <Text style={{ fontSize: 18, marginBottom: 10 }}>Fichiers existants :</Text>
+    <FlatList
+      data={infosFiles}
+      keyExtractor={item => item.file}
+      renderItem={({ item }) => (
+        <Pressable onPress={() => fetchFileInfo(item.file)}>
+        <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
+          <Text style={styles.text}>Nom : {item.file}</Text>
+      
+        </View>
+        </Pressable>
+        
+      )}
+    />
+    {Object.values(fileInfo).length > 0 && (
+      <View style={styles.popupMain}>
+        <Text style={{ fontSize: 18, marginBottom: 10 }}>Informations :</Text>
+        <Text style={styles.text}>Nombre de caractères : {fileInfo.nbChars}</Text>
+        <Text style={styles.text}>Nombre de mots : {fileInfo.nbWords}</Text>
+        <Text style={styles.text}>Nombre de phrases : {fileInfo.nbSentences}</Text>
+        <Text style={styles.text}>Temps de lecture nécessaire : </Text>
+        <Text style={styles.text}>Lent : {fileInfo.timeFormat[0]}</Text>
+        <Text style={styles.text}>Elocution : {fileInfo.timeFormat[1]}</Text>
+        <Text style={styles.text}>Rapide : {fileInfo.timeFormat[2]}</Text>
+
+        </View>
+    )}
+  </View>
+
+)}
+</View>
+  </SafeAreaView>
+)}
+
+
+
+
+
+{showCalendrier && (
+              
+<SafeAreaView style={styles.page}>
+  <ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+ 
+    <Text style={styles.sizeTitlePage}>Rappels</Text>
+ 
+    <Pressable onPress={() => setShowCalendrier(false)}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+                </View>
+                <View style={styles.insidePage}>
+
+                <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Calendrier</Text>
+
+</View>
+
 <Calendar 
 onDayPress={(day) => {
   
@@ -2086,55 +3111,103 @@ onDayPress={(day) => {
 setCurrentDayDate(day.dateString)
 }} 
 markedDates={markedDates}
-
+markingType={'multi-dot'}
 />
+
       
-                  </View>
 
 
                   {showPopupDate && (
-  <ScrollView style={{background: "black", position: "absolute", zIndex:99, left: 0, right: 0, top: 0, bottom: 0}}>
-      <View style={{display: "flex", padding: "15px", borderTopRightRadius: "15px", borderTopLeftRadius: "15px", alignItems: "center"}}>
-        <Pressable style={{alignSelf: "flex-end", background: "red"}} onPress={() => setShowPopupDate(false)}>
-<FontAwesomeIcon icon={faX} size={20} style={{color: "white"}} />
-</Pressable>
-        </View>
+  <ScrollView>
+
+<View style={{display:"flex",width:"100%", alignItems:"center",flexDirection:"row",justifyContent:"flex-end",marginBottom:25}}>
+    <Pressable onPress={() => {
+   setShowPopupDate(false)
+
+    }}
+    
+    style={{backgroundColor:"#142A4D", borderRadius:5,padding:10,display:"flex",flexDirection:"row",alignItems:"center",justifyContent:"center"}}
+    
+    >
+      <FontAwesomeIcon icon={faClose} size={20} style={{...styles.fileIcon, color:"#6FDDE8"}} />
+      <Text style={{color:"#6FDDE8", fontSize:20}}>Fermer</Text>
+      </Pressable>
+
+</View>
+
+
+
+      
 
         <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
+                          
+                          
                           <Text style={styles.text}>Ajouter un rappel :</Text>
+
+
+                          
+                          <View style={styles.labelInputBox}>
+                            
+<Text style={styles.labelText}>Titre</Text>
                            <TextInput
-                            style={styles.textInput}
+                            style={styles.input}
                             value={rappelText}
                             onChangeText={setRappelText}
-                            placeholder="Texte du rappel"
+                            placeholder="Exemple : Finir les devoirs de mathématiques"
                           />
-                          <TextInput
-                            style={styles.textInput}
-                            value={colorDay}
-                            onChangeText={setColorDay}
-                            placeholder="Couleur du rappel"
+                          </View>
+                          <View style={styles.labelInputBox}>
+                          <Text style={styles.labelText}>Couleur</Text>
+                          <RNPickerSelect
+                            style={styles.input}
+                            placeholder={{ label: 'Choisir une couleur', value: null }}
+                            onValueChange={(value) => setColorDay(value)}
+                            items={[
+                              { label: 'Rouge', value: 'red' },
+                              { label: 'Bleu', value: 'blue' },
+                              { label: 'Vert', value: 'green' },
+                              { label: 'Jaune', value: 'yellow' },
+                              { label: 'Rose', value: 'pink' },
+                              { label: 'Orange', value: 'orange' },
+                            ]}
                           />
 
-                          <Button title="Ajouter" onPress={addRappel} />
+                          </View>
+<Pressable onPress={addRappel} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+              </Pressable>
 
-                        </View>
-  
-
-
+                       </View>
+                       <View style={styles.subtitlePage}>
+                <Text style={styles.sizeSubtitlePage}>Liste des rappels</Text>
+                </View>
+{currentDay.length == 0 && (
+   
+     <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucun rappel</Text>
+   
+)}
                   {currentDay.length > 0 && (
-                    <View style={styles.popupMain}>
-                      <Text style={{ fontSize: 18, marginBottom: 10 }}>Rappels :</Text>
-                      <FlatList
+                    <View>
+                    
+                
+                
+                 <FlatList
                         data={currentDay}
                         keyExtractor={item => item[0]}
                         renderItem={({ item }) => (
                           <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
                             <Text style={styles.text}>Rappel : {item[0]}</Text>
-                            <Text style={styles.text}>Heure : {item[1]}</Text>
+                            <Text style={styles.text}>Date : {`${item[1].split("-")[2]}/${item[1].split("-")[1]}/${item[1].split("-")[0]}`}</Text>
                             <Text style={styles.text}>Couleur : {item[2]}</Text>
-                            <TouchableOpacity onPress={() => removeRappel(item[0], item[1])}>
-                              <Text style={styles.removeButton}>Supprimer</Text>
-                            </TouchableOpacity>
+
+
+                            <Pressable onPress={() => removeRappel(item[0], item[1])} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faTrash} size={20} style={{color:"#FF6254"}} />
+               
+              </Pressable>
+
+                   
                           
                        
                           </View>
@@ -2148,141 +3221,194 @@ markedDates={markedDates}
 
     </ScrollView>
 )}
+</View>
+            </ScrollView>
+          </SafeAreaView>
 
-              </View>
+
            )
            
            
            
            }
 
-{showFileInfo && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Informations fichier</Text>
-    <Pressable onPress={() => setShowFileInfo(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-    </Pressable>
-  </View>
-  <View style={styles.popupMain}>
 
-  {infosFiles.length > 0 && (
-    <View style={styles.popupMain}>
-      <Text style={{ fontSize: 18, marginBottom: 10 }}>Fichiers existants :</Text>
-      <FlatList
-        data={infosFiles}
-        keyExtractor={item => item.file}
-        renderItem={({ item }) => (
-          <Pressable onPress={() => fetchFileInfo(item.file)}>
-          <View style={{display: "flex", flexDirection: "column", gap: "15px", background: "white", borderRadius: "15px", padding: "15px"}}>
-            <Text style={styles.text}>Nom : {item.file}</Text>
-        
-          </View>
-          </Pressable>
-          
-        )}
-      />
-      {Object.values(fileInfo).length > 0 && (
-        <View style={styles.popupMain}>
-          <Text style={{ fontSize: 18, marginBottom: 10 }}>Informations :</Text>
-          <Text style={styles.text}>Nombre de caractères : {fileInfo.nbChars}</Text>
-          <Text style={styles.text}>Nombre de mots : {fileInfo.nbWords}</Text>
-          <Text style={styles.text}>Nombre de phrases : {fileInfo.nbSentences}</Text>
-          <Text style={styles.text}>Temps de lecture nécessaire : </Text>
-          <Text style={styles.text}>Lent : {fileInfo.timeFormat[0]}</Text>
-          <Text style={styles.text}>Elocution : {fileInfo.timeFormat[1]}</Text>
-          <Text style={styles.text}>Rapide : {fileInfo.timeFormat[2]}</Text>
-
-          </View>
-      )}
-
-      </View>
-  )}
-
-
-      
-    </View>
-    </View>
-
-
-)}
 
 {showAddCommand && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Ajouter une commande</Text>
-    <Pressable onPress={() => setShowAddCommand(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+    
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Commandes</Text>
+    </View>
+    <Pressable onPress={() => setShowAddCommand(false)} style={{alignSelf: "flex-start"}}>
+      <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
+  
   </View>
-  <View style={styles.popupMain}>
+  <View style={styles.insidePage}>
+
+
+  <View style={styles.labelInputBox}>
+  <Text style={styles.label}>Nom de la commande</Text>
     <TextInput
-      style={styles.textInput}
+      style={styles.input}
       value={command}
       onChangeText={setCommand}
       placeholder="Commande"
     />
+    </View>
+    <View style={styles.labelInputBox}>
+    <Text style={styles.label}>Réponse</Text>
     <TextInput
-      style={styles.textInput}
+      style={styles.input}
       value={response}
       onChangeText={setResponse}
       placeholder="Réponse"
     />
-    <Button title="Ajouter" onPress={createCommand} />
-  </View>
+    </View>
+
+<Pressable onPress={createCommand} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+              </Pressable>
+
+
+
+
+  <View style={styles.subtitlePage}>
+   <Text style={styles.sizeSubtitlePage}>Liste des commandes</Text>
+   </View>
+
+{commands.length == 0 && (
+  <Text style={{color:"white", fontSize:20, textAlign:"center"}}>Aucune commande</Text>
+
+)}
   {commands.length > 0 && (
-    <View style={styles.popupMain}>
-      <Text style={{ fontSize: 18, marginBottom: 10 }}>Commandes existantes :</Text>
       <FlatList
         data={commands}
         keyExtractor={item => item.uuid}
+        style={{display: "flex", flexDirection: "column",  gap:15,padding:10}}
         renderItem={({ item }) => (
-          <View style={{display: "flex", flexDirection: "column", gap: "15px"}}>
-            <Text style={styles.text}>Nom : {item.name}</Text>
-            <Text style={styles.text}>Réponse : {item.reply}</Text>
-            <TouchableOpacity onPress={() => deleteCommand(item.uuid)}>
-              <Text style={styles.removeButton}>Supprimer</Text>
-            </TouchableOpacity>
+        
+          <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center",backgroundColor: "#142A4D", padding:10,marginTop:15}}>
+            <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+            <Text style={{color:"white"}}>Nom : {item.name}</Text>
+            <Text style={{color:"white"}}>Réponse : {item.reply}</Text>
+            </View>
+
+            <Pressable onPress={() => deleteCommand(item.uuid)} style={{backgroundColor: "#142A4D"}}>
+          <FontAwesomeIcon icon={faTrash} size={24} style={{color: "#FF6254"}} />
+        </Pressable>
+
+        
+          
           </View>
         )}
       />
-    </View>
+   
   )}
-
-</View>
+  </View>
+</ScrollView>
+</SafeAreaView>
 )}
 
 
 {showCorrecteur && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Correcteur</Text>
-    <Pressable onPress={() => setShowCorrecteur(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+  
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Correcteur</Text>
+    </View>
+    <Pressable onPress={() => setShowCorrecteur(false)} style={{alignSelf: "flex-start"}}>
+      <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
+  
   </View>
-  <View style={styles.popupMain}>
-    <Text style={{ fontSize: 18, marginBottom: 10 }}>Entrez le texte à corriger :</Text>
-    <TextInput
-      style={styles.textInput}
+  
+  <View style={styles.insidePage}>
+
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Corrigez un texte</Text>
+</View>
+
+
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Texte a corriger</Text>
+<TextInput
+      style={styles.input}
       value={tradText}
       onChangeText={setTradText}
       placeholder="Entrez le texte"
     />
-  
-    <Button title="Corriger" onPress={correctText} />
+</View>
 
-  </View>
+
+    <Pressable onPress={correctText} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faLanguage} size={20} style={{color:"#6FDDE8"}} />
+
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Corriger</Text>
+              </Pressable>
+
+              <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Texte corrigé</Text>
+</View>
+
+    {correctedText.length == 0 && (
+      <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucun texte corrigé</Text>
+    
+    )}
+    
   {correctedText !== '' && (
-    <View style={styles.popupMain}>
-      <Text style={{ fontSize: 18, marginBottom: 10 }}>Texte corrigé :</Text>
-      <Text style={styles.text}>{correctedText}</Text>
-      <Text style={{ fontSize: 18, marginBottom: 10 }}>Corrections :</Text>
-      <Text style={styles.text}>{JSON.stringify(corrections)}</Text>
-      </View>
+
+<View style={{borderWidth: 2, borderColor:"#ccc", padding: 10, borderRadius: 5,display:"flex",flexDirection:"column",gap:15}}>
+  
+  <Pressable onPress={() => {
+    Clipboard.setString(correctedText);
+    showToastI("success", "Texte copié", "Le texte corrigé a été copié dans le presse-papiers")
+  
+
+  }} 
+  style={{alignSelf: "flex-end"}}>
+
+  <FontAwesomeIcon icon={faCopy} size={20} style={{alignSelf: "flex-end"}}  />
+  </Pressable>
+  <Text style={styles.text}>{correctedText}</Text>
+  </View>
+
+
+
+    
   )}
 
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Corrections</Text>
 </View>
+{correctedText.length == 0 && (
+      <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucune correction disponible</Text>
+    
+    )}
+{correctedText !== '' && (
+
+<View style={{display: "flex", flexDirection: "column", gap: 15}}>
+{console.log(corrections)}
+  {Object.keys(corrections).map((key) => (  
+    <Text key={key}> 
+      {key} &gt; {corrections[key]}
+    </Text>
+  ))}
+</View>
+
+
+)}
+</View>
+</ScrollView>
+</SafeAreaView>
 
 )}
           {showNotes && (
@@ -2362,25 +3488,59 @@ markedDates={markedDates}
         </View>
         
           )}
-{
-
-showLed && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Gérer les leds</Text>
-    <Pressable onPress={() => setShowLed(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-    </Pressable>
-  </View>
+{showLed && (
   
-<Button title={blue ? "Bleu : ON": "Bleu : OFF"} onPress={handleBlue} />
-<Button title={white ? "Blanc : ON": "Blanc : OFF"} onPress={handleWhite} />
-<Button title={blinkBlue ? "Clignotte Bleu : ON": "Clignotte bleu : OFF"} onPress={handleBlinkBlue} />
-<Button title={blinkWhite ? "Clignotte blanc : ON": "Clignotte blanc : OFF"} onPress={handleBlinkWhite} />
-<Button title={alternate ? "Alterné : ON": "Alterné : OFF"} onPress={handleAlternate} />
-<Button title={mixed ? "Mixé : ON": "Mixé : OFF"} onPress={handleMixed} />
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+<View style={styles.header}>
+
+  <Text style={{fontSize: 20}}>Leds</Text>
+  <Pressable onPress={() => setShowLed(false)}>
+    <FontAwesomeIcon icon={faX} size={20} />
+  </Pressable>
 
 </View>
+
+<View style={styles.insidePage}>
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Gérer les leds</Text>
+
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Bleu</Text>
+<Switch value={blue} onValueChange={handleBlue} />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Blanc</Text>
+<Switch value={white} onValueChange={handleWhite} />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Clignotte bleu</Text>
+<Switch value={blinkBlue} onValueChange={handleBlinkBlue} />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Clignotte blanc</Text>
+<Switch value={blinkWhite} onValueChange={handleBlinkWhite} />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Alterné</Text>
+<Switch value={alternate} onValueChange={handleAlternate} />
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Mixé</Text>
+<Switch value={mixed} onValueChange={handleMixed} />
+
+</View>
+
+
+
+
+
+
+
+</View>
+</ScrollView>
+</SafeAreaView>
 
 
 )
@@ -2397,311 +3557,184 @@ showLed && (
 
 
 
-{showTaches && (
-  <View style={styles.popupContainer}>
-    <View style={styles.popupHeader}>
-      <Text style={styles.headerText}>Tâches</Text>
-      <Pressable onPress={() => setShowTaches(false)}>
-        <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-      </Pressable>
-    </View>
-    <View style={styles.popupMain}>
-
-<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
-  <Text style={{ fontSize: 18, marginBottom: 10 }}>Ajouter une catégorie :</Text>
-  <TextInput
-
-    style={styles.textInput}
-    value={newCategory}
-    onChangeText={setNewCategory}
-    placeholder="Entrez la catégorie"
-  />
-  <Button onPress={createCategory} title="Ajouter la catégorie" />
-
-  </View>
-
-
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
-        <Text style={{ fontSize: 18, marginBottom: 10 }}>Ajouter une tâche :</Text>
-        <TextInput
-          style={styles.textInput}
-          value={task}
-          onChangeText={setTask}
-          placeholder="Entrez la tâche"
-        />
-        <Picker
-          selectedValue={selectedCategory}
-          style={{ height: 50, width: 150, marginBottom:15 }}
-          onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-        >
-          {categories.map((category) => (
-            <Picker.Item key={category[0]} label={category[0]} value={category[0]} />
-          ))}
-        </Picker>
-        <Button onPress={addTask} title="Ajouter la tâche" />
-        <Text style={{ fontSize: 18, marginTop: 20 }}>Liste des tâches :</Text>
-        <View>
-          {categories.map((category) => (
-            <View key={category[0]} style={styles.category}>
-               <View style={styles.categoryHeader}>
-                      <Text style={styles.categoryTitle}>{category[0]}</Text>
-                      <Pressable onPress={() => removeCategory(category[0])}>
-                        <FontAwesomeIcon icon={faTrash} size={20} color="red" />
-                      </Pressable>
-                    </View>
-              {tasks.length > 0 &&
-                tasks.find(t => t.category === category[0])?.tasks.map((t) => (
-                  <View key={t.name} style={styles.task}>
-                    <Text style={styles.taskTitle}>{t.name}</Text>
-                    <Pressable onPress={() => {
-                      axios({
-                        method: 'post',
-                        url: `http://${config.URL}:5000/api/removeTask`,
-                        data: { name: t.name, category: category[0] }
-                      }).then((response) => {
-                        if (response.data.result === "success") {
-                          console.log("Task deleted successfully");
-                          fetchCategories();
-                        }
-                      }).catch((error) => {
-                        console.error("Error deleting task: ", error);
-                      });
-                    }}>
-                   
-                      <FontAwesomeIcon icon={faTrash} size={20} color="red" />
-                    </Pressable>
-                    <Button title="Déplacer" onPress={handleOpenModal} />
-      <Modal isVisible={isModalVisible}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Catégorie vers laquelle vous souhaitez déplacer ?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nom de la catégorie"
-            value={moveCategory}
-            onChangeText={setMoveCategory}
-          />
-          <View style={styles.buttonContainer}>
-            <Button title="Annuler" onPress={handleCloseModal} />
-            <Button title="Déplacer" onPress={() => handleMoveCategory(t.name, category[0])} />
-          </View>
-        </View>
-      </Modal>
-                  </View>
-                ))
-              }
-            </View>
-          ))}
-        </View>
-      </View>
-    </View>
-  </View>
-)}
-
-
-          {showQcm && (
-                 <View style={styles.container}>
-                 <View style={styles.header}>
-                   <Text style={styles.headerText}>Créer un QCM</Text>
-                   <Pressable onPress={() => setShowQcm(false)}>
-                     <FontAwesomeIcon style={styles.closeIcon} icon={faX} size={20} />
-                   </Pressable>
-                 </View>
-                 <View style={styles.main}>
-                   <View style={styles.qcmContainer}>
-                     <Text style={styles.label}>Titre du QCM</Text>
-                     <TextInput
-                       style={styles.input}
-                       value={qcmTitle}
-                       onChangeText={setQcmTitle}
-                       placeholder="Entrez le titre du QCM"
-                     />
-                     <Button title="Ajouter une question" onPress={addQuestion} />
-                     <ScrollView style={styles.questionsContainer}>
-                       {qcmQuestions.map((question, questionIndex) => (
-                         <View key={questionIndex} style={styles.questionContainer}>
-                           <Text style={styles.label}>Question {questionIndex + 1}</Text>
-                           <TextInput
-                             style={[styles.input, styles.questionInput]}
-                             value={question.question}
-                             onChangeText={(text) => updateQuestion(questionIndex, text)}
-                             placeholder="Entrez la question"
-                           />
-                           <View style={styles.optionsContainer}>
-                             {question.options.map((option, optionIndex) => (
-                               <View key={optionIndex} style={styles.optionContainer}>
-                                 <TextInput
-                                   style={[styles.input, styles.optionInput]}
-                                   value={option.text}
-                                   onChangeText={(text) => updateOption(questionIndex, optionIndex, text)}
-                                   placeholder="Entrez une option"
-                                 />
-                                 <Pressable onPress={() => toggleCorrectAnswer(questionIndex, optionIndex)}>
-                                   <View style={[styles.checkbox, { backgroundColor: option.isCorrect ? '#4CAF50' : '#eee' }]}>
-                                     {option.isCorrect && <Text style={styles.checkboxCheck}>✓</Text>}
-                                   </View>
-                                 </Pressable>
-                                 <Button title="Supprimer l'option" onPress={() => deleteOption(questionIndex, optionIndex)} />
-                               </View>
-                             ))}
-                             <Button title="Ajouter une option" onPress={() => addOption(questionIndex)} />
-                           </View>
-                           <Button title="Supprimer la question" onPress={() => deleteQuestion(questionIndex)} />
-                         </View>
-                       ))}
-                     </ScrollView>
-                     <Button title="Valider le QCM" onPress={validateQ} />
-                   </View>
-                 </View>
-
-                       <View>
-                        {qcms.map((qcm) => (
-                          <View key={qcm} style={styles.qcm}>
-                            <Text style={styles.qcmTitle}>{qcm}</Text>
-                            <Pressable onPress={() => {
-                              axios({
-                                method: 'post',
-                                url: `http://${config.URL}:5000/api/removeQcm`,
-                                data: {
-                                 
-                                  titre: qcm
-                                },
-                              }).then((response) => {
-                                if(response.data.result == "success") {
-                                  console.log("QCM deleted successfully");
-                                  fetchQcms();
-                                }
-                              }
-                              )
-                            }}>
-                              <FontAwesomeIcon icon={faTrash} size={20} color="red" />
-                            </Pressable>
-                          </View>
-                        ))}
-
-                        </View>
-
-
-               </View>
-          )}
 
 
 {showReveil && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Reveil</Text>
-    <Pressable onPress={() => setShowReveil(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+  
+          
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Réveil</Text>
+    </View>
+    <Pressable onPress={() => setShowReveil(false)} style={{alignSelf: "flex-start"}}>
+      <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
+  
   </View>
-  <View style={styles.popupMain}>
+  <View style={styles.insidePage}>
 
 
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
-  <Text style={{ fontSize: 18, marginBottom: 10 }}>Ajouter une alarme :</Text>
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-  <Picker
-    style={{ height: 50, width: 100, marginRight: 10 }}
-    selectedValue={alarmHour}
-    onValueChange={(itemValue, itemIndex) => setAlarmHour(itemValue)}
-  >
-    {hours.map((hour) => (
-      <Picker.Item key={hour} label={hour} value={hour} />
-    ))}
-  </Picker>
-  <Text>:</Text>
-  <Picker
-    style={{ height: 50, width: 100, marginLeft: 10 }}
-    selectedValue={alarmMinute}
-    onValueChange={(itemValue, itemIndex) => setAlarmMinute(itemValue)}
-  >
-    {minutes.map((minute) => (
-      <Picker.Item key={minute} label={minute} value={minute} />
-    ))}
-  </Picker>
+  <View style={styles.subtitlePage}>
+                <Text style={styles.sizeSubtitlePage}>Ajouter une alarme</Text>
+                </View>
+
+  
+                <View style={styles.labelInputBox}>
+           <Text style={styles.label}>Heures</Text>
+           <Picker
+           style={{ height: 50, width: 100, marginLeft: 10 }}
+           selectedValue={alarmHour}
+           onValueChange={(itemValue, itemIndex) => setAlarmHour(itemValue)}
+         >
+           {hours.map((hour) => (
+             <Picker.Item key={hour} label={hour} value={hour} />
+           ))}
+          </Picker>
+          </View>
+
+
+          <View style={styles.labelInputBox}>
+           <Text style={styles.label}>Minutes</Text>
+           <Picker
+            style={{ height: 50, width: 100, marginLeft: 10 }}
+            selectedValue={alarmMinute}
+            onValueChange={(itemValue, itemIndex) => setAlarmMinute(itemValue)}
+          >
+            {minutes.map((minute) => (
+              <Picker.Item key={minute} label={minute} value={minute} />
+            ))}
+          </Picker>
+          </View>
+
+          <Pressable onPress={addAlarm} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+              </Pressable>
+              <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Liste des alarmes</Text>
 </View>
-  <Button onPress={addAlarm} title="Ajouter l'alarme" />
-  <Text style={{ fontSize: 18, marginTop: 20 }}>Liste des alarmes :</Text>
-  <FlatList
+{alarms.length == 0 && (
+  <Text style={styles.text}>Aucune alarme</Text>
+)}
+<FlatList
     data={alarms}
     renderItem={({ item }) => (
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, background: "white", borderRadius: "15px", padding: "15px", marginTop: "10px" }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, background: "white", borderRadius: 5, padding: 15, marginTop: 10,backgroundColor: "#142A4D",borderRadius:5 }}>
         <Pressable onPress={() => removeAlarm(item[0])}>
-          <FontAwesomeIcon icon={faTrash} size={20} color="red" />
+          <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
         </Pressable>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10 }}>
-          <FontAwesomeIcon icon={faClock} size={20}  />
-          <Text style={{ marginLeft: 5 }}>{item[0]}</Text>
+          <FontAwesomeIcon icon={faClock} size={20} style={{color:"#6FDDE8"}} />
+          <Text style={{ marginLeft: 5,color:"#6FDDE8" }}>{item[0]}</Text>
         </View>
       </View>
     )}
     keyExtractor={item => item.time}
-    style={{ width: '100%', display: "flex", gap: "15px", flexDirection: "column" }}
+    style={{ width: '100%', display: "flex", gap: 15, flexDirection: "column" }}
   />
+
+
+  
+
   </View>
-
-
-
-
-  </View>
-  </View>
+  </ScrollView>
+  </SafeAreaView>
   )}
 
 
      {showFeed && (
-        <View style={styles.popupContainer}>
-        <View style={styles.popupHeader}>
-          <Text style={styles.headerText}>Feed</Text>
-          <Pressable onPress={() => setShowFeed(false)}>
-            <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-          </Pressable>
-        </View>
-        <TextInput
-        style={styles.textInput}
-        placeholder="Entrez le feed"
+       <SafeAreaView style={styles.page}>
+       <ScrollView style={{marginBottom:100}}>
+       <View style={styles.header}>
+      
+         <Text style={styles.sizeTitlePage}>Actualités</Text>
+      
+         <Pressable onPress={() => setShowFeed(false)}>
+           <FontAwesomeIcon icon={faX} size={20} />
+         </Pressable>
+       
+       </View>
+       <View style={styles.insidePage}>
+       <View style={styles.subtitlePage}>
+     <Text style={styles.sizeSubtitlePage}>Ajouter un fil d'actualité</Text>
+     </View>
+
+     <View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Lien flux RSS</Text>
+<TextInput
+        style={styles.input}
+        placeholder="Exemple : https://www.lemonde.fr/rss/une.xml"
         onChangeText={setFeed}
         value={feed}
       />
-      <Button title="Envoyer" onPress={() => {
-        axios({
-          method: 'post',
-          url: `http://${config.URL}:5000/api/addFeed`,
-          data: {
-            url: feed,
-          },
-        }).then((response) => {
-          if(response.data.result == "success") {
-            console.log("Feed sent successfully");
-            alert("Feed envoyé")
-          } else if(response.data.result == "already") {
-            alert("Vous êtes déjà abonné a ce feed")
-          
-          } else if(response.data.result == "invalid") {
-            alert("Feed invalide")
-          
-          }
-        }
-        )
-      }} />
-      </View>
-     )}
+</View>
 
-
-{
-
-  showTraducteur && (
-    <View style={styles.popupContainer}>
-    <View style={styles.popupHeader}>
-      <Text style={styles.headerText}>Traduire un texte</Text>
-      <Pressable onPress={() => setShowTraducteur(false)}>
-        <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
+      <Pressable onPress={handleChangeFeed} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+        <FontAwesomeIcon icon={faPlus} size={20} style={{color: "#6FDDE8"}} />
+        <Text style={{color: "#6FDDE8"}}>Ajouter un feed</Text>
       </Pressable>
-    </View>
+
+      <View style={styles.subtitlePage}>
+     <Text style={styles.sizeSubtitlePage}>Liste des fils d'actualités</Text>
+     </View>
+     {feeds.length == 0 && (
+        <Text style={styles.text}>Aucun fil d'actualité</Text>
+      
+     )}
+      {feeds.length > 0 && (
+       
+       feeds.map((feed) => (
+         <View key={feed} style={{display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center",backgroundColor: "#142A4D", padding:10,marginTop:15}}>
+           <Text style={{color:"white"}}>{feed}</Text>
+           <Pressable onPress={() => removeFeed(feed)}>
+             <FontAwesomeIcon icon={faTrash} size={24} style={{color: "#FF6254"}} />
+           </Pressable>
+         </View>
+       ))
+   
+   )}
+      </View>
+     
+      </ScrollView>
+      </SafeAreaView>
+     )}
+{showTraducteur && (
+   
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+<View style={styles.header}>
+
+  <Text style={{fontSize: 20}}>Traducteur</Text>
+  <Pressable onPress={() => setShowTraducteur(false)}>
+    <FontAwesomeIcon icon={faX} size={20} />
+  </Pressable>
+
+</View>
+
+<View style={styles.insidePage}>
+
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Traduire un texte</Text>
+
+</View>
+
+
+<View style={styles.labelInputBox}>
+<Text style={styles.label}>Texte à traduire</Text>
     <TextInput
-    style={styles.textInput}
-    placeholder="Entrez le texte à traduire"
+    style={styles.input}
+    placeholder="Exemple : Bonjour, je suis Flo"
     onChangeText={setText}
     value={text}
   />
+  </View>
+  <View style={styles.labelInputBox}>
+  <Text style={styles.label}>Langue</Text>
   <Picker
     selectedValue={selectedLanguage}
     style={styles.picker}
@@ -2711,11 +3744,43 @@ showLed && (
       <Picker.Item key={language.value} label={language.label} value={language.value} />
     ))}
   </Picker>
-  <Button title="Traduire" onPress={translateText} />
+  </View>
+
+    <Pressable onPress={translateText} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+      <FontAwesomeIcon icon={faPlay} size={20} style={{color: "#6FDDE8"}} />
+      <Text style={{color: "#6FDDE8"}}>Traduire</Text>
+    </Pressable>
+    <View style={styles.subtitlePage}>
+
+
+</View>
+
+
+<Text style={styles.sizeSubtitlePage}>Texte traduit</Text>
+{translation.translatedText == "" && (
+  <Text style={styles.text}>Aucun texte traduit</Text>
+
+)}
+{translation.translatedText !== "" && (
+  <View style={{borderWidth: 2, borderColor:"#ccc", padding: 10, borderRadius: 5,display:"flex",flexDirection:"column",gap:15}}>
+  
+  <Pressable onPress={() => {
+    Clipboard.setString(translation.translatedText);
+    showToastI("success", "Texte copié", "Le texte traduit a été copié dans le presse-papiers")
   
 
+  }} 
+  style={{alignSelf: "flex-end"}}>
+
+  <FontAwesomeIcon icon={faCopy} size={20} style={{alignSelf: "flex-end"}}  />
+  </Pressable>
+  <Text style={styles.text}>{translation.translatedText}</Text>
+  </View>
+)}
 
   </View>
+  </ScrollView>
+  </SafeAreaView>
   
 
   )
@@ -2723,181 +3788,31 @@ showLed && (
 
 
 
-{ficheMaker && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Créer une fiche</Text>
-    <Pressable onPress={() => setFicheMaker(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-    </Pressable>
-  </View>
-  <View style={styles.popupMain}>
-  <View style={styles.ficheContainer}>
-    <Text>Titre</Text>
-            <TextInput
-                style={styles.titleInput}
-                value={ficheTitle}
-                onChangeText={setFicheTitle}
-            />
-            <Text>Description</Text>
-              <TextInput
-                style={styles.titleInput}
-                value={ficheDescription}
-                onChangeText={setFicheDescription}
-            />
-            <Button title="Ajouter une section" onPress={addSection} />
-            <ScrollView>
-                {fiche.map((section, index) => (
-                    <Section
-                        key={section.id}
-                        data={section}
-                        updateSection={updateSection}
-                        deleteSection={deleteSection}
-                        moveSection={moveSection}
-                        index={index}
-                        totalSections={fiche.length}
-                    />
-                ))}
-            </ScrollView>
-            <Button title="Ajouter la fiche" onPress={validate} />
-           
-        </View>
-        {fiches.map((fiche) => (
-          <View key={fiche} style={{display: "flex", justifyContent: "space-between", padding: "15px", borderRadius: "15px", backgroundColor:"white", marginTop: "15px"}}>
-            <Text style={styles.ficheTitle}>{fiche.title}</Text>
-            <Pressable onPress={() => {
-              axios({
-                method: 'post',
-                url: `http://${config.URL}:5000/api/removeFiche`,
-                data: {
-                  titre: fiche.title
-                },
-              }).then((response) => {
-                if(response.data.result == "success") {
-                  console.log("Fiche deleted successfully");
-
-                  fetchFiches();
-                }
-              }
-              )
-            }}>
-              <FontAwesomeIcon icon={faTrash} size={20} color="red" />
-            </Pressable>
-          </View>
-        ))}
-
-  </View>
-</View>
-
-)}
-
-
-
-{showEditPPTimeTable && (
-
-<View style={styles.timetable}>
-
-<Pressable onPress={() => setShowEditPPTimeTable(false)}>
-  <FontAwesomeIcon icon={faX} size={20} />
-</Pressable>
-
-
-
-
-<ScrollView horizontal>
-  <View style={styles.grid}>
-    {/* Colonne des heures */}
-    <View style={styles.timeColumn}>
-      {timeSlots.map((time, index) => (
-        <View key={index} style={styles.timeSlot}>
-          <Text>{time - 1}:00</Text>
-        </View>
-      ))}
-    </View>
-    
-    {/* Jours de la semaine */}
-    {daysOfWeek.map((day, index) => (
-      <View key={index} style={styles.day}>
-        <Text>{day}</Text>
-      </View>
-    ))}
-    
-    {/* Éléments du calendrier */}
-    {elements.map((element, index) => (
-      <View
-        key={index}
-        style={[
-          styles.element,
-          {
-            gridRowStart: element.startTime + 2,
-            gridRowEnd: element.endTime + 2,
-            gridColumn: element.day + 2,
-          },
-        ]}
-      >
-        <View style={styles.dayBanner}>
-          <Pressable onPress={() => {
-            axios({
-              method: 'post',
-              url: `http://${config.URL}:5000/api/deleteDay`,
-              data: {
-                id: element.id,
-              },
-            }).then((response) => {
-              if(response.data.result == "success") {
-                console.log("Day deleted successfully");
-                setElements(elements.filter((el) => el.id !== element.id));
-              }
-            }
-            )
-          }}>
-          <FontAwesomeIcon icon={faX} size={15}  />
-</Pressable>
-<Pressable onPress={() => {
-setShowEditTimeTable(true)
-setModifyId(element.id)
-setModifyNomDay(element.name)
-setModifyDay(reverse_corr[element.day])
-setModifyFrom(element.startTime)
-setModifyTo(element.endTime)
-
-}
-}>
-          <FontAwesomeIcon icon={faEdit} size={15}  />
-</Pressable>
-
-          </View>
-          <Text>{element.name}</Text>
-        <Text>{element.startTime}:00 - {element.endTime}:00</Text>
-      </View>
-    ))}
-  </View>
-</ScrollView>
-
-</View>
-
-
-)}
-
-
-
 
         {showMinuteur && (
-        <View style={styles.popupContainer}>
 
 
           
-        <View style={styles.popupHeader}>
-          <Text style={styles.headerText}>Minuteur</Text>
-          <Pressable onPress={() => setShowMinuteur(false)}>
-            <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-          </Pressable>
-        </View>
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Minuteur</Text>
+    </View>
+    <Pressable onPress={() => setShowMinuteur(false)} style={{alignSelf: "flex-start"}}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+  </View>
+  <View style={styles.insidePage}>
 
 
-        <View style={styles.popupMain}>
-        <Text style={styles.headerText}>Heures:</Text>
-          <Picker
+  <View style={styles.subtitlePage}>
+                <Text style={styles.sizeSubtitlePage}>Créer un minuteur</Text>
+                </View>
+        <View style={styles.labelInputBox}>
+           <Text style={styles.label}>Heures</Text>
+           <Picker
             selectedValue={selectedMinutes}
             onValueChange={(itemValue) => setSelectedHours(itemValue)}
             style={styles.picker}
@@ -2907,9 +3822,11 @@ setModifyTo(element.endTime)
             ))}
 
           </Picker>
+           </View>
 
-        <Text style={styles.label}>Minutes:</Text>
-          <Picker
+           <View style={styles.labelInputBox}>
+           <Text style={styles.label}>Minutes</Text>
+           <Picker
             selectedValue={selectedMinutes}
             onValueChange={(itemValue) => setSelectedMinutes(itemValue)}
             style={styles.picker}
@@ -2918,9 +3835,11 @@ setModifyTo(element.endTime)
               <Picker.Item key={i} label={`${i}`} value={i} />
             ))}
           </Picker>
+           </View>
 
-          <Text style={styles.label}>Secondes:</Text>
-          <Picker
+           <View style={styles.labelInputBox}>
+           <Text style={styles.label}>Secondes</Text>
+           <Picker
             selectedValue={selectedSeconds}
             onValueChange={(itemValue) => setSelectedSeconds(itemValue)}
             style={styles.picker}
@@ -2929,143 +3848,324 @@ setModifyTo(element.endTime)
               <Picker.Item key={i} label={`${i}`} value={i} />
             ))}
           </Picker>
-       <Button title="Start" onPress={handleStartMinuteur} />
-        <Button title="Stop" onPress={handleStopMinuteur} />
-        <Button title="Pause" onPress={handlePauseMinuteur} />
-        <Button title="Reprendre" onPress={handleResumeMinuteur} />
+           </View>
+
+       
+           <View style={styles.subtitlePage}>
+                <Text style={styles.sizeSubtitlePage}>Gérer un minuteur</Text>
+                </View>
+            
+
+                <Pressable onPress={handleStartMinuteur} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faPlay} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Commencer</Text>
+        </Pressable>
+        <Pressable onPress={handleStopMinuteur} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+         <FontAwesomeIcon icon={faStop} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Stop</Text>
+        </Pressable>
+        <Pressable onPress={handlePauseMinuteur} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+        <FontAwesomeIcon icon={faPause} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Pause</Text>
+        </Pressable>
+        <Pressable onPress={handleResumeMinuteur} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+        <FontAwesomeIcon icon={faPlayCircle} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Reprendre</Text>
+        </Pressable>
+
+
+
    
 </View>
-
-
-        </View>
+</ScrollView>
+        </SafeAreaView>
             
+        )
+        
+        
+        
+        }
+
+    
+ 
+        {showChronometre && (
+         
+<SafeAreaView style={styles.page}>
+  
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Chronomètre</Text>
+    </View>
+    <Pressable onPress={() => setShowChronometre(false)} style={{alignSelf: "flex-start"}}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+  </View>
+ 
+
+  
+
+  <View style={styles.insidePage}>
+
+
+       <Pressable onPress={handleStartChronometre} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faPlay} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Commencer</Text>
+        </Pressable>
+        <Pressable onPress={handleStopChronometre} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+         <FontAwesomeIcon icon={faStop} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Stop</Text>
+        </Pressable>
+        <Pressable onPress={handlePauseChronometre} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+        <FontAwesomeIcon icon={faPause} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Pause</Text>
+        </Pressable>
+        <Pressable onPress={handleResumeChronometre} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+        <FontAwesomeIcon icon={faPlayCircle} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Reprendre</Text>
+        </Pressable>
+
+
+
+
+
+         
+</View>
+            </SafeAreaView>
         )}
 
 
-{showEditTimeTable && (
-  <View style={styles.popupContainer}>
-  <View style={styles.popupHeader}>
-    <Text style={styles.headerText}>Modifier une tâche</Text>
-    <Pressable onPress={() => setShowEditTimeTable(false)}>
-      <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-    </Pressable>
-  </View>
-  <View style={styles.popupMain}>
 
-    <Text style={styles.label}>Nom</Text>
-    <TextInput
-      style={styles.textInput}
-      placeholder="Exemple : Coder un truc cool"
-      value={modifyNomDay}
-      onChangeText={setModifyNomDay}
-    />
-    <Text style={styles.label}>Jour</Text>
-    <RNPickerSelect
-      onValueChange={(value) => {
-       
-        
-        setModifyDay(value)
-      
-      }}
-      value={modifyDay}
-      items={[
-        { label: 'Lundi', value: 'Lundi' },
-        { label: 'Mardi', value: 'Mardi' },
-        { label: 'Mercredi', value: 'Mercredi' },
-        { label: 'Jeudi', value: 'Jeudi' },
-        { label: 'Vendredi', value: 'Vendredi' },
-        { label: 'Samedi', value: 'Samedi' },
-        { label: 'Dimanche', value: 'Dimanche' },
-      ]}
-    />
-    <Text style={styles.label}>De</Text>
-    <TextInput
-      style={styles.textInput}
-      placeholder="Exemple : 14"
-      value={modifyFrom}
-      onChangeText={setModifyFrom}
-    />
-    <Text style={styles.label}>À</Text>
-    <TextInput
-      style={styles.textInput}
-      placeholder="Exemple : 15"
-      value={modifyTo}
-      onChangeText={setModifyTo}
-    />
-    <Button title="Modifier" onPress={handleEditDay} />
+<Modal
+     animationType="slide"
+     transparent={true}
+     visible={showEditTimeTable}
+     onRequestClose={() => setShowEditTimeTable(false)}
+   >
+     <View style={{...styles.modalOverlay}}>
+       <View style={styles.popupContainer}>
+         <View style={{padding: 15, display:"flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+           <Text style={{fontSize:20}}>Modifier un jour</Text>
+           <Pressable onPress={() => setShowEditTimeTable(false)}>
+             <FontAwesomeIcon style={{ color: 'black' }} icon={faX} size={20} />
+           </Pressable>
+         </View>
+         <View style={{...styles.popupMain, display: "flex", flexDirection: "column", gap: 10}}>
+
+          <View style={styles.labelInputBox}>
+           <Text style={styles.label}>Nom</Text>
+           <TextInput
+             style={styles.input}
+             placeholder="Exemple : Coder un truc cool"
+             value={modifyNomDay}
+             onChangeText={setModifyNomDay}
+           />
+           </View>
+
+           <View style={styles.labelInputBox}>
+
+           <Text style={styles.label}>Jour</Text>
+           <RNPickerSelect
+             placeholder={{}}
+             onValueChange={(value) => setModifyDay(value)}
+             value={modifyDay}
+             style={styles}
+             items={[
+               { label: 'Lundi', value: 'Lundi' },
+               { label: 'Mardi', value: 'Mardi' },
+               { label: 'Mercredi', value: 'Mercredi' },
+               { label: 'Jeudi', value: 'Jeudi' },
+               { label: 'Vendredi', value: 'Vendredi' },
+               { label: 'Samedi', value: 'Samedi' },
+               { label: 'Dimanche', value: 'Dimanche' },
+             ]}
+           />
+           </View>
+
+           <View style={styles.labelInputBox}>
+            <View style={{display: "flex", flexDirection: "row", gap: 5, alignItems: "center"}}>
+                      <Text style={styles.label}>De</Text>
+                      <View style={{width:50}}>
+
+           <TextInput
+             style={styles.input}
+             placeholder="Exemple : 14"
+             value={modifyFrom}
+             onChangeText={setModifyFrom}
+             keyboardType="numeric"
+           />
+           </View>
+
+           <Text style={styles.label}>à</Text>
+           <View style={{width:50}}>
+           <TextInput
+             style={styles.input}
+             placeholder="Exemple : 15"
+             value={modifyTo}
+             onChangeText={setModifyTo}
+             keyboardType="numeric"
+           />
+           </View>
+           </View>
+           </View>
+          
+           <Pressable onPress={handleEditDay} style={{backgroundColor: "#142A4D",  padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+           <FontAwesomeIcon icon={faEdit} size={20} style={{color:"#6FDDE8"}} />
+             <Text style={{color:"#6FDDE8", fontSize:20}}>Modifier</Text>
+           </Pressable>
+         </View>
+       </View>
+     </View>
+   </Modal>
 
 
-      </View>
+
+
+
+
+
+
+
+
+
+
+        {showMeteo && ( 
+
+
+
+<SafeAreaView style={styles.page}>
   
-  <View style={styles.popupMain}>
-  
+<View style={styles.header}>
+<View style={styles.titlePage}>
+  <Text style={styles.sizeTitlePage}>Météo</Text>
   </View>
-  </View>
-  )}
-        {showChronometre && (
-          <View style={styles.popupContainer}>
-            <View style={styles.popupHeader}>
-              <Text style={styles.headerText}>Chronomètre</Text>
-              <Pressable onPress={() => setShowChronometre(false)}>
-                <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-              </Pressable>
-            </View>
+  <Pressable onPress={() => setShowMeteo(false)} style={{alignSelf: "flex-start"}}>
+    <FontAwesomeIcon icon={faX} size={20} />
+  </Pressable>
 
-
-            <View style={styles.popupMain}>
-           <Button title="Start" onPress={handleStartChronometre} />
-            <Button title="Stop" onPress={handleStopChronometre} />
-            <Button title="Pause" onPress={handlePauseChronometre} />
-            <Button title="Reprendre" onPress={handleResumeChronometre} />
-       
 </View>
 
 
-            </View>
-        )}
+   
+          
+            <View style={styles.insidePage}>
 
-        {showMeteo && ( 
-          <View style={styles.popupContainer}>
-            <View style={styles.popupHeader}>
-              <Text style={styles.headerText}>Changer la ville météo</Text>
-              <Pressable onPress={() => setShowMeteo(false)}>
-                <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-              </Pressable>
-            </View>
 
-            <View style={styles.popupMain}>
-              <Text style={styles.labelText}>Ville</Text>
+              <View style={styles.subtitlePage}>
+              <Text style={styles.sizeSubtitlePage}>Changer la localisation</Text>
+              </View>
+
+              <View style={{display: "flex", flexDirection: "row", marginLeft:10}}>
               <TextInput
-                style={styles.textInput}
+                style={{
+                  borderColor: '#ccc', 
+                  borderWidth: 1,
+                  borderTopLeftRadius: 5,
+                  borderBottomLeftRadius: 5,
+                  paddingLeft: 10, 
+                  backgroundColor: '#fff', 
+                  fontSize: 16,
+                  color: '#333',
+                  alignSelf: "center",
+                  padding:10
+                }}
                 placeholder="Exemple : Paris"
                 value={city}
                 onChangeText={setCity}
               />
-              <Button title="Changer" onPress={handleChangeCity} />
-            </View>
-          </View>
-        )}
-        {showMusique && (
-          <View style={styles.popupContainer}>
-            <View style={styles.popupHeader}>
-              <Text style={styles.headerText}>Jouer de la musique</Text>
-              <Pressable onPress={() => setShowMusique(false)}>
-                <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-              </Pressable>
-            </View>
 
-            <View style={styles.popupMain}>
-              <Text style={styles.labelText}>Nom de la musique</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Exemple : Crab rave"
-                value={music}
-                onChangeText={setMusic}
-              />
-              <Button title="Jouer" onPress={handleChangeMusic} />
-              <Button title="Pause" onPress={handlePauseMusic} />
-              <Button title="Reprendre" onPress={handleResumeMusic} />
-              <Button title="Arrêter" onPress={handleStopMusic} />
+
+
+              <Pressable onPress={handleChangeCity} style={styles.ctaInput}>
+                <FontAwesomeIcon icon={faExchange} size={20} style={{color:"white"}}  />
+              </Pressable>
+
+              </View>
+
+
+
+
+              <View style={styles.subtitlePage}>
+              
+              <Text style={styles.sizeSubtitlePage}>Localisation actuelle</Text>
+              
+              </View>
+
+
+              <View style={styles.block}>
+<Text style={{fontSize: 20, color: "white"}}>{currentCity[0]}</Text>
+</View>
+                
+             
+             
+            </View>
+         
+
+
+          </SafeAreaView>
+
+
+
+
+
+        )}
+
+        
+        {showMusique && (
+             
+<SafeAreaView style={styles.page}>
+  <ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+ 
+    <Text style={styles.sizeTitlePage}>Musique</Text>
+ 
+    <Pressable onPress={() => setShowMusique(false)}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+  </View>
+  <View style={styles.insidePage}>
+
+
+  <View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Jouer de la musique</Text>
+
+
+
+
+</View>
+
+
+
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Titre de la musique</Text>
+<TextInput
+          style={styles.input}
+          value={music}
+          onChangeText={setMusic}
+          placeholder="Eminem Black Magic"
+        />
+</View>
+
+
+          <Pressable onPress={handleChangeMusic} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faPlay} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Jouer</Text>
+        </Pressable>
+        <Pressable onPress={handlePauseMusic} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faPause} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Pause</Text>
+        </Pressable>
+        <Pressable onPress={handleResumeMusic} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faPlayCircle} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Reprendre</Text>
+        </Pressable>
+        <Pressable onPress={handleStopMusic} style={{backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faStop} size={20} style={{color: "#6FDDE8"}} />
+          <Text  style={{color: "#6FDDE8"}}>Stop</Text>
+        </Pressable>
+
+
               <Slider
     style={{ width: '100%', marginTop: 10 }}
     minimumValue={0}
@@ -3078,291 +4178,246 @@ setModifyTo(element.endTime)
   />
 
             </View>
-          </View>
+          </ScrollView>
+          </SafeAreaView>
         )}
-        {showTimeTable && ( 
-          <View style={styles.popupContainer}>
-            <View style={styles.popupHeader}>
-              <Text style={styles.headerText}>Emploi du temps</Text>
-              <Pressable onPress={() => setShowTimeTable(false)}>
-                <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-              </Pressable>
-            </View>
-
-            <View style={styles.popupMain}>
-            <Text style={styles.labelText}>Nom</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Exemple : Coder un truc cool"
-                value={nomDay}
-                onChangeText={setNomDay}
-              />
-              <Text style={styles.labelText}>Jour</Text>
-              <RNPickerSelect
-                onValueChange={(value) => setDay(value)}
-                items={[
-                  { label: 'Lundi', value: 'Lundi' },
-                  { label: 'Mardi', value: 'Mardi' },
-                  { label: 'Mercredi', value: 'Mercredi' },
-                  { label: 'Jeudi', value: 'Jeudi' },
-                  { label: 'Vendredi', value: 'Vendredi' },
-                  { label: 'Samedi', value: 'Samedi' },
-                  { label: 'Dimanche', value: 'Dimanche' },
-                ]}
-              />
-              <Text style={styles.labelText}>De</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Exemple : 14"
-                value={from}
-                onChangeText={setFrom}
-              />
-              <Text style={styles.labelText}>À</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Exemple : 15"
-                value={to}
-                onChangeText={setTo}  
-              />
-              <Button title="Ajouter" onPress={handleAddDay} />
-              
-            </View>
-
-          </View>
-        
-        )}
-{showFichiers && (
-     <View style={styles.popupContainer}>
-     <View style={styles.popupHeader}>
-       <Text style={styles.headerText}>Sélectionner un fichier</Text>
-       <Pressable onPress={() => setShowFichiers(true)}>
-         <FontAwesomeIcon style={{ color: "white" }} icon={faX} size={20} />
-       </Pressable>
-     </View>
+   
+    
 
 
 
-     <View style={{...styles.popupMain, gap: "15px", alignItems: "center"}}>
 
-{hierarchy.map((element, id_g) => (
- <Pressable key={id_g} onPress={() => {
-  
-  setShowTabFichiers(!showTabFichiers)
-  setFichiers(element["files"])
-  setFolder(element["folder"])
 
-  
-  } }>
-    <View style={{display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "grey", padding: "15px", width: "100px"}} key={id_g}>
+        <View style={styles.footer}>
+        <ToastContainer />
+<TouchableOpacity onPress={() => setPage("home")}>
+ <FontAwesomeIcon icon={faHome} size={30} style={{color: "black"}}/>
+</TouchableOpacity>
+<TouchableOpacity onPress={() => setPage("settings")}>
+ <FontAwesomeIcon icon={faCog} size={30} style={{color: "black"}}  />
+</TouchableOpacity>
+
+</View>
+
+
+
+<ToastContainer />
+
+
+  </SafeAreaView>
+     
+
       
-<FontAwesomeIcon icon={faFolder} size={50} />
-  <Text>
-    {element["folder"]}
+      
 
-  </Text>
+    
+  ) : (
   
-  </View>
- </Pressable>
-  
-))}
- <Button title="Crée un dossier" onPress={handleOpenModal} />
-      <Modal isVisible={isModalVisible}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Entrez un nom de dossier</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nom du dossier"
-            value={folderName}
-            onChangeText={setFolderName}
-          />
-          <View style={styles.buttonContainer}>
-            <Button title="Annuler" onPress={handleCloseModal} />
-            <Button title="Créer" onPress={handleSubmit} />
-          </View>
-        </View>
-      </Modal>
 
+    <SafeAreaView style={styles.questionsContainer}>
+    <View style={styles.questionsCard}>
+      <FontAwesomeIcon icon={data[currentQuestionIndex].icon} size={50} />
+      <Text style={styles.questionTitle}>
+        {currentQuestionIndex === 0 ? `Commençons` : `Très bien ${name}`}, {data[currentQuestionIndex].title}
+      </Text>
+      {data[currentQuestionIndex].type === "text" ? (
+        <TextInput
+          style={[styles.input]}
+          placeholder="Réponse"
+          value={name}
+          onChangeText={setName}
+        />
+      ) : (
+        data[currentQuestionIndex].options.map((option, index) => (
+          <TouchableOpacity key={index} style={styles.radioContainer} onPress={() => {
+            
+        
+            setVoicePreference(option)
+          
+          }}>
+            <Text style={styles.radioText}>
+              {voicePreference === option ? '●' : '○'} {option}
+            </Text>
+          </TouchableOpacity>
+        ))
+      )}
+
+<Pressable onPress={handleNextQuestion} style={{marginTop: 10, backgroundColor: "#142A4D", padding: 10, borderRadius:5, display:"flex", flexDirection: "row", alignItems: "center", gap:5}}>
+          <FontAwesomeIcon icon={faArrowRight} size={20} style={{color: "white"}} />
+          <Text  style={{color: "white"}}>Suivant</Text>
+        </Pressable>
 
    
-      
-</View>
-      
-{showTabFichiers && (
-  <View>
-    {fichiers.map((element, id) => (
-      
-   <View key={id} style={styles.fileContainer}>
+    </View>
+
+
+
+
+
+  </SafeAreaView>
   
-   <FontAwesomeIcon icon={faFile} size={20} style={styles.fileIcon} />
-   <Text style={styles.fileName}>{element}</Text>
-   <TouchableOpacity onPress={() => {
-     axios({
-       method: 'post',
-       url: `http://${config.URL}:5000/api/removeFile`,
-       data: {
-         folder_name: folder,
-         file_name: element,
-       },
-     }).then((response) => {
-       if(response.data.result === "success") {
-         fetchHierarchy();
-         setFichiers(fichiers.filter((file) => file !== element));
-         setFolder("");
-         
-       }
-     });
-   }}>
-     <FontAwesomeIcon icon={faX} size={20} style={styles.removeIcon} />
-   </TouchableOpacity>
- </View>
-    ))}
-   <Button title="Ajouter un fichier" onPress={pickFile} />
-      {file && <Button title="Uploads le fichier" onPress={() => uploadFile(folder)} />}
-  </View>
-)}
+  )
+  
+  
+ 
 
-
-     </View>
-    )}
-
-      </View>
-    ) : (
-
-
-     <View style={styles.questionsContainer}>
-        <View style={styles.questionsCard}>
-          <FontAwesomeIcon icon={data[currentQuestionIndex].icon} size={50} />
-          <Text style={styles.questionTitle}>
-            {currentQuestionIndex === 0 ? `Commençons` : `Très bien ${name}`}, {data[currentQuestionIndex].title}
-          </Text>
-          {data[currentQuestionIndex].type === "text" ? (
-            <TextInput
-              style={[styles.input, showToast && !name ? styles.invalid : null]}
-              placeholder="Réponse"
-              value={name}
-              onChangeText={setName}
-            />
-          ) : (
-            data[currentQuestionIndex].options.map((option, index) => (
-              <TouchableOpacity key={index} style={styles.radioContainer} onPress={() => setVoicePreference(option)}>
-                <Text style={styles.radioText}>
-                  {voicePreference === option ? '●' : '○'} {option}
-                </Text>
-              </TouchableOpacity>
-            ))
-          )}
-          <TouchableOpacity style={styles.button} onPress={handleNextQuestion}>
-            <Text style={styles.buttonText}>Suivant</Text>
-          </TouchableOpacity>
-          {showToast && (
-            <View style={styles.toast}>
-              <Text style={styles.toastText}>Veuillez remplir tous les champs avant de passer à la question suivante.</Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-    )
-    
-  }
-  </ScrollView>
-</SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 24,
-  },
-  questionsContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  questionsCard: {
-    padding: 25,
-    borderRadius: 15,
-    width: '90%',
-    backgroundColor: '#f9f9f9',
+
+const ToastContainer = React.forwardRef((props, ref) => (
+  <Toast ref={ref} />
+));
+
+
+
+const shadowStyle = Platform.select({
+  ios: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    alignItems: 'center',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
   },
-  questionTitle: {
-    marginTop: 15,
-    marginBottom: 25,
-    textAlign: 'center',
-    fontSize: 18,
+  android: {
+    elevation: 10,
   },
-  input: {
-    width: '100%',
-    marginBottom: 15,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-  },
-  radioContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  radioText: {
-    fontSize: 16,
-  },
-  button: {
-    marginTop: 20,
-    padding: 15,
-    borderRadius: 5,
-    backgroundColor: '#2e2e2e',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-  },
-  toast: {
-    position: 'absolute',
-    top: 10,
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#333',
-  },
-  toastText: {
-    color: 'white',
-  },
-  invalid: {
-    borderColor: 'red',
-  },
-  popupContainer: {
-    position: 'absolute',
-    top: '0%',
-    left: '50%',
-    transform: [{ translateX: -150 }, { translateY: 150 }],
-    width: 300,
-    backgroundColor: '#1C3746',
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
+});
+
+const styles = StyleSheet.create({
+
+ 
+item: {display: "flex", alignItems: "center", flexDirection: "column", gap: 10, width: 75},
+
+icon: {width: 40,height:40},
+image: {
+  width: "100%",
+  height: 110,
+  alignSelf: "center"
+
+},
+titleCategory:{borderBottomWidth: 2, borderBottomColor: "black", padding: 10},
+flexer:{display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 25,padding: 25, justifyContent: "space-evenly"},
+footer:{display:"flex", alignItems: "center", justifyContent: "space-evenly", backgroundColor: "white", flexDirection:"row",height:"10%",  shadowColor: '#000',
+  shadowOffset: { width: 0, height: -5 },
+  shadowOpacity: 0.2,
+  shadowRadius: 10},
+
+
+  page: {backgroundColor: "white", position: "absolute", right: 0, left: 0, bottom: 0, top: 45, padding:25},
+
+
+  header: {display: "flex", justifyContent: "space-between", flexDirection: "row",padding:25},
+
+titlePage: {borderBottomWidth:2,borderColor: "black"},
+sizeTitlePage: {fontSize: 20},
+insidePage:{padding:25,display:"flex",flexDirection:"column", gap:25},
+subtitlePage: {borderLeftWidth: 2, borderColor:"black"},
+sizeSubtitlePage:{fontSize: 20, marginLeft: 10},
+input: {
+  borderColor: '#ccc', 
+  borderWidth: 1,
+  borderTopLeftRadius: 5,
+  borderBottomLeftRadius: 5,
+  paddingLeft: 10, 
+  backgroundColor: '#fff', 
+  fontSize: 16,
+  color: '#333',
+  alignSelf: "center"
+},
+ctaInput: {backgroundColor: "#142A4D", padding: 10, borderTopRightRadius: 5, borderBottomRightRadius:5,display:"flex",alignItems:"center",justifyContent:"center"},
+block:{backgroundColor: "#142A4D", padding: 10, borderRadius:5, marginLeft:10},
+
+inputIOS: {
+  fontSize: 16,
+  paddingVertical: 12,
+  paddingHorizontal: 10,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 4,
+  color: 'black',
+  paddingRight: 30, // to ensure the text is never behind the icon
+},
+inputAndroid: {
+  fontSize: 16,
+  paddingHorizontal: 10,
+  paddingVertical: 8,
+  borderWidth: 0.5,
+  borderColor: 'purple',
+  borderRadius: 8,
+  color: 'black',
+  paddingRight: 30, // to ensure the text is never behind the icon
+},
+placeholder: {
+  color: '#ccc',
+  fontSize: 16,
+},
+
+labelText: {
+  color: 'black',
+  fontSize:15
+},
+labelInputBox: {display:"flex", flexDirection: "column", gap:5, marginLeft:10},
+popupContainer: {
+  position: 'absolute',
+  top: '0%',
+  left: '50%',
+  transform: [{ translateX: -150 }, { translateY: 150 }],
+  width: 300,
+  borderRadius: 10,
+  overflow: 'hidden',
+  backgroundColor:"white",
+  
+},
+
+modalOverlay: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  position:"absolute",top:-40, left:-20, right:-20, bottom:-20
+},
+
+
+
+shadowBox: {
+
+  backgroundColor: '#fff',
+  justifyContent: 'center',
+  alignItems: 'center',
+  // iOS shadow properties
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.3,
+  shadowRadius: 3.84,
+  // Android shadow property
+  elevation: 5,
+},
+
+
+
+questionsCard: {
+  padding: 25,
+  borderRadius: 15,
+  width: '90%',
+  backgroundColor: '#f9f9f9',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+  elevation: 4,
+  alignItems: 'center',
+},
+questionTitle: {
+  marginTop: 15,
+  marginBottom: 25,
+  textAlign: 'center',
+  fontSize: 18,
+},
+
+
+
+
+
   popupHeader: {
     backgroundColor: '#2E2E2E',
     padding: 10,
@@ -3370,21 +4425,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+
+
   headerText: {
     color: 'white',
   },
   popupMain: {
     padding: 10,
   },
-  labelText: {
-    color: 'white',
-  },
-  textInput: {
-    padding: 10,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    marginBottom: 10,
-  },timetable: {
+  timetable: {
     width: '100%',
     marginTop: 50,
   },
@@ -3531,7 +4580,10 @@ input: {
   marginBottom: 10,
 },
 questionsContainer: {
-  maxHeight: 300,
+  height: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
 },
 questionContainer: {
   marginBottom: 20,

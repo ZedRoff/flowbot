@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import { faMapPin, faMicrophoneSlash, faPauseCircle, faPhone, faPlayCircle, faWifi, faTools, faBook, faPen, faRuler } from "@fortawesome/free-solid-svg-icons";
+import { faMapPin, faMicrophoneSlash, faPauseCircle, faPhone, faPlayCircle, faWifi, faTools, faBook, faRuler, faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Homepage.css";
 import icon from "./images/flo.png";
-import icon2 from "./images/sunny-day.png";
 import config from "../../config.json";
 import axios from 'axios';
 
@@ -63,151 +62,229 @@ const ClockAnalog = () => {
   };
 
 
-
 const Homepage = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [weather, setWeather] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [phoneConnected, setPhoneConnected] = useState(false);
-    const [musicInfo, setMusicInfo] = useState({});
-    const [time, setTime] = useState(0);
-    const [minuteur, setMinuteur] = useState(0);
-    const [getC, setGetC] = useState(false);
-    const [pageC, setPageC] = useState(1);
+  const d = new Date();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
 
-    const [initialTraduction, setInitialTraduction] = useState("");
-    const [finalTraduction, setFinalTraduction] = useState("");
+  let [date, setDate] = useState(`${hours}:${minutes} | ${day}/${month}/${year}`);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const d = new Date();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
 
-    const [feeds, setFeeds] = useState([]);
+      setDate(`${hours}:${minutes} | ${day}/${month}/${year}`);
+    }, 1000);
 
-    const [qcms, setQcms] = useState([]);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  let [currentIndex, setCurrentIndex] = useState(0);
+
+  let [modules, setModules] = useState([
+    { name: "Tâches", description: "Organise tes journées en tâches", icon: "taches.png", show: false },
+    { name: "Rappels", description: "N'oublie plus rien", icon: "reveil.png", show: false },
+    { name: "Quizzs", description: "Teste tes connaissances", icon: "quizz.png", show: false },
+    { name: "Météo", description: "La météo de ta ville", icon: "meteo.png", show: false },
+    {name: "Musique", description: "Ecoute ta musique préférée", icon: "musique.png", show: false},
+    {name: "Emploi du temps", description: "Consulte ton emploi du temps", icon: "edt.png", show: false},
+    {name: "Chronometre", description: "Chronomètre toi pendant que tu révises", icon: "chronometre.png", show: false},
+    {name: "PDF", description: "Lis tes fichiers PDF", icon: "fichier.png", show: false},
+    {name: "Train", description: "Consulte les horaires de train", icon: "train.png", show: false},
+    {name: "Fiches", description: "Consulte tes fiches de révision", icon: "fiche.png", show: false},
+    {name: "Actualité", description: "Consulte les actualités", icon: "news.png", show: false},
+    {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false},
     
+
     
-    const cards = [
-        {
-            type: "weather",
-           
-            icon: icon2,
-        }, 
-        {
-            type: "music",
-           
-        }, {
-            type: "timetable"
-        }, {
-            type: "chronometre"
-        }, {
-            type: "pdf"
-        },
-        {
-            type: "train"
-        },
-        {
-            type: "fiches"
-        },
-        {
-            type: "traduction"
-        },
-        {
-            type: "feeds"
-        },
-        {
-            type: "reveil"
-        },
-        {
-            type: "qcm"
-        },
-        {
-            type: "taches"
-        },
-        {
-            type: "horloge"
+  ]);
+
+  const containerRef = useRef(null);
+  const elsRef = useRef([]);
+
+  const updateView = () => {
+    if (elsRef.current.length === 0) return;
+
+    const elements = elsRef.current;
+    elements.forEach((el, index) => {
+      el.classList.remove('focused');
+      const sepBottom = el.querySelector('.sep_bottom');
+      if (sepBottom) {
+        sepBottom.style.background = 'white';
+      }
+      if (index === currentIndex) {
+        el.classList.add('focused');
+        if (sepBottom) {
+          sepBottom.style.background = '#152A4D';
         }
-    ]; 
-    const fetchDays = async() => {
-        axios({
-            method: 'get',
-            url: `http://${config.URL}:5000/api/getDays`,
-        }).then((response) => {
-            setElements([])
-            for(let i = 0; i < response.data.result.length; i++) {
-                let d = {};
-                d["id"] = response.data.result[i][0];
-                d["name"] = response.data.result[i][1];
-                d["day"] = corr[response.data.result[i][2]];
-                d["startTime"] = parseInt(response.data.result[i][3]);
-                d["endTime"] = parseInt(response.data.result[i][4]);
-            
-                setElements((els) => [...els, d]);
-           
-            }
+      }
+    });
+
+    const focusedEl = elements[currentIndex];
+    const elCenter = focusedEl.offsetLeft + focusedEl.offsetWidth / 2;
+    const containerCenter = containerRef.current.offsetWidth / 2;
+    containerRef.current.scrollTo({
+      left: elCenter - containerCenter,
+      behavior: 'smooth',
+    });
+  };
+
+  const moveLeft = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const moveRight = () => {
+    if (currentIndex < modules.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  useEffect(() => {
+    updateView();
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        moveLeft();
+      } else if (e.key === 'ArrowRight') {
+        moveRight();
+      } else if(e.key == "Enter") {
+       setModules((modules) => {
+        return modules.map((module, index) => {
+          if (index === currentIndex) {
+            return {
+              ...module,
+              show: !module.show,
+            };
+          }
+          return module;
         });
-    }
-    const updateTime = async() => {
-        const r3 = await axios.get(`http://${config.URL}:5000/api/getTemps`);
-        
-                setTime(r3.data.temps);
-    }
-    const updateMinuteur = async() => {
-        const r4 = await axios.get(`http://${config.URL}:5000/api/getMinuteur`);
-        setMinuteur(r4.data.temps);
-    
-    }
+
+      }
+      );
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentIndex]);
+
+
+
+
+  const [weather, setWeather] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [phoneConnected, setPhoneConnected] = useState(false);
+  const [musicInfo, setMusicInfo] = useState({});
+  const [time, setTime] = useState(0);
+  const [minuteur, setMinuteur] = useState(0);
+  const [getC, setGetC] = useState(false);
+  const [pageC, setPageC] = useState(1);
+
+  const [initialTraduction, setInitialTraduction] = useState("");
+  const [finalTraduction, setFinalTraduction] = useState("");
+
+  const [feeds, setFeeds] = useState([]);
+
+  const [qcms, setQcms] = useState([]);
+  
+  
+  const fetchDays = async() => {
+      axios({
+          method: 'get',
+          url: `http://${config.URL}:5000/api/getDays`,
+      }).then((response) => {
+          setElements([])
+          for(let i = 0; i < response.data.result.length; i++) {
+              let d = {};
+              d["id"] = response.data.result[i][0];
+              d["name"] = response.data.result[i][1];
+              d["day"] = corr[response.data.result[i][2]];
+              d["startTime"] = parseInt(response.data.result[i][3]);
+              d["endTime"] = parseInt(response.data.result[i][4]);
+          
+              setElements((els) => [...els, d]);
+         
+          }
+      });
+  }
+  const updateTime = async() => {
+      const r3 = await axios.get(`http://${config.URL}:5000/api/getTemps`);
+      
+              setTime(r3.data.temps);
+  }
+  const updateMinuteur = async() => {
+      const r4 = await axios.get(`http://${config.URL}:5000/api/getMinuteur`);
+      setMinuteur(r4.data.temps);
+  
+  }
 const [fiches, setFiches] = useState([]);
 
-    const fetchFiches = async() => {
-        axios({
-          method: 'get',
-          url: `http://${config.URL}:5000/api/getFiches`,
-        }).then((response) => {
-            
-          setFiches(response.data.result);
-        })
-      
-      }
-   
-      
-const fetchFeeds = async() => {
-    axios({
+  const fetchFiches = async() => {
+      axios({
         method: 'get',
-        url: `http://${config.URL}:5000/api/getFeeds`,
-    }).then((response) => {
-        setFeeds(response.data.result);
-    });
+        url: `http://${config.URL}:5000/api/getFiches`,
+      }).then((response) => {
+          
+        setFiches(response.data.result);
+      })
+    
+    }
+ 
+    
+const fetchFeeds = async() => {
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getFeeds`,
+  }).then((response) => {
+      setFeeds(response.data.result);
+  });
 }
 
 const [alarms, setAlarms] = useState([]);
 const fetchAlarms = async() => {
-    axios({
-        method: 'get',
-        url: `http://${config.URL}:5000/api/getReveil`,
-    }).then((response) => {
-        setAlarms(response.data.result);
-    });
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getReveil`,
+  }).then((response) => {
+      setAlarms(response.data.result);
+  });
 }
 
 
 const fetchQcms = async() => {
-    axios({
-        method: 'get',
-        url: `http://${config.URL}:5000/api/getQuestions`,
-    }).then((response) => {
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getQuestions`,
+  }).then((response) => {
 
 
-        let used = []
+      let used = []
 
-        response.data.result.forEach((qcm) => {
-            if(used.includes(qcm[2])) {
-                return;
-            }
-            used.push(qcm[2]);
-        
-        })
-        setQcms(used);
-        
-        
-        
-    });
+      response.data.result.forEach((qcm) => {
+          if(used.includes(qcm[2])) {
+              return;
+          }
+          used.push(qcm[2]);
+      
+      })
+      setQcms(used);
+      
+      
+      
+  });
 }
 
 
@@ -215,36 +292,36 @@ const [categories, setCategories] = useState([]);
 const [tasks, setTasks] = useState([]);
 
 useEffect(() => {
-  fetchCategories();
+fetchCategories();
 }, []);
 
 const fetchCategories = () => {
-  axios({
-    method: 'get',
-    url: `http://${config.URL}:5000/api/getCategories`,
-  }).then((response) => {
-    const categoriesData = response.data.result;
-    setCategories(categoriesData);
+axios({
+  method: 'get',
+  url: `http://${config.URL}:5000/api/getCategories`,
+}).then((response) => {
+  const categoriesData = response.data.result;
+  setCategories(categoriesData);
 
-    const fetchTasksPromises = categoriesData.map((category) =>
-      axios({
-        method: 'post',
-        url: `http://${config.URL}:5000/api/getTasks`,
-        data: {
-          category: category[0],
-        },
-      }).then((taskResponse) => ({
+  const fetchTasksPromises = categoriesData.map((category) =>
+    axios({
+      method: 'post',
+      url: `http://${config.URL}:5000/api/getTasks`,
+      data: {
         category: category[0],
-        tasks: taskResponse.data.result,
-      }))
-    );
+      },
+    }).then((taskResponse) => ({
+      category: category[0],
+      tasks: taskResponse.data.result,
+    }))
+  );
 
-    Promise.all(fetchTasksPromises).then((tasksData) => {
-      setTasks(tasksData);
-    });
-  }).catch((error) => {
-    console.error("Error fetching categories: ", error);
+  Promise.all(fetchTasksPromises).then((tasksData) => {
+    setTasks(tasksData);
   });
+}).catch((error) => {
+  console.error("Error fetching categories: ", error);
+});
 };
 
 
@@ -252,347 +329,670 @@ const fetchCategories = () => {
 
 
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const r1 = await axios.get(`http://${config.URL}:5000/api/getCity`);
-                const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
-                setWeather(r2.data.result);
-                fetchDays()
-                fetchFiches()
-                fetchFeeds()
-                fetchQcms()
-                setLoading(false); 
+  useEffect(() => {
+      const fetchData = async () => {
+          try {
+              setLoading(true);
+              const r1 = await axios.get(`http://${config.URL}:5000/api/getCity`);
+              const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
+              setWeather(r2.data.result);
+              fetchDays()
+              fetchFiches()
+              fetchFeeds()
+              fetchQcms()
+              setLoading(false); 
 
-            } catch (error) {
-                console.error("Erreur lors de la récupération des données météorologiques:", error);
-            }
-        };
+          } catch (error) {
+              console.error("Erreur lors de la récupération des données météorologiques:", error);
+          }
+      };
 
-        const socket = io(`http://${config.URL}:5000`);
+      const socket = io(`http://${config.URL}:5000`);
 
-        socket.on('connect', () => {
-            console.log('Connected to WebSocket server');
-            socket.emit('message', {from: 'bot', message: 'bot_connected'});
-            socket.emit('message', {from: 'bot', message: 'check_mobile_connected'})
-        });
+      socket.on('connect', () => {
+          console.log('Connected to WebSocket server');
+          socket.emit('message', {from: 'bot', message: 'bot_connected'});
+          socket.emit('message', {from: 'bot', message: 'check_mobile_connected'})
+      });
 
-        socket.on('disconnect', () => {
-            console.log('Disconnected from WebSocket server');
-        });
-      
-        socket.on('message', (message) => {
+      socket.on('disconnect', () => {
+          console.log('Disconnected from WebSocket server');
+      });
+    
+      socket.on('message', (message) => {
+
+        
+
+          //let who = message["from"];
+          let type = message["type"];
+          let msg = message["message"];
+
+        if(type == "mobile_status_change") {
+              setPhoneConnected(msg)
+          } else if(type == "check_mobile_connected") {
+              setPhoneConnected(msg)
+          } else if(type == "city_changed") {
+              fetchData();
+          } else if(type == "music_play") {
+              setMusicInfo(msg);
+          } else if(type == "music_update") {
+              setMusicInfo(message);
+              console.log("Music updated: ", message);
+          } else if(type == 'timetable_update') {
+              fetchDays()
+          } else if(type == 'files_update') {
+              fetchPDFs()
+
+          } else if(type == 'molette') {
+              if(msg == "GAUCHE") {
+                  moveLeft();
+              } else if(msg == "DROITE") {
+                 moveRight()
+          }
+      } else if(type == "bouton_action") {
+          if(msg == "APPUI") {
+              alert("appui du bouton")
+          }
+      } else if(type == "fiches_update") {
+          fetchFiches()
+      } else if(type == "translation") {
+          setInitialTraduction(message["initialText"])
+          setFinalTraduction(message["translatedText"])
+      } else if(type == "feeds_update") {
+          fetchFeeds()
+      } else if(type == "reveil_update") {
+          fetchAlarms()
+      } else if(type == "qcm_update") {   
+          fetchQcms()
+      } else if(type == "tasks_update") {
+          fetchCategories()
+      }
+
+
 
           
+      console.log(type)
+          console.log('Message received: ' + message);
+      });
 
-            //let who = message["from"];
-            let type = message["type"];
-            let msg = message["message"];
-
-          if(type == "mobile_status_change") {
-                setPhoneConnected(msg)
-            } else if(type == "check_mobile_connected") {
-                setPhoneConnected(msg)
-            } else if(type == "city_changed") {
-                fetchData();
-            } else if(type == "music_play") {
-                setMusicInfo(msg);
-            } else if(type == "music_update") {
-                setMusicInfo(message);
-                console.log("Music updated: ", message);
-            } else if(type == 'timetable_update') {
-                fetchDays()
-            } else if(type == 'files_update') {
-                fetchPDFs()
-
-            } else if(type == 'molette') {
-                if(msg == "GAUCHE") {
-                    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-
-                } else if(msg == "DROITE") {
-                    setCurrentIndex((prev) => Math.min(prev + 1, cards.length - 1));
-            }
-        } else if(type == "bouton_action") {
-            if(msg == "APPUI") {
-                alert("appui du bouton")
-            }
-        } else if(type == "fiches_update") {
-            fetchFiches()
-        } else if(type == "translation") {
-            setInitialTraduction(message["initialText"])
-            setFinalTraduction(message["translatedText"])
-        } else if(type == "feeds_update") {
-            fetchFeeds()
-        } else if(type == "reveil_update") {
-            fetchAlarms()
-        } else if(type == "qcm_update") {   
-            fetchQcms()
-        } else if(type == "tasks_update") {
-            fetchCategories()
-        }
-
-
-
-            
-        console.log(type)
-            console.log('Message received: ' + message);
-        });
-
-        fetchData(); // Appel initial
-        
-        return () => {
-            socket.disconnect();
-        };
-    }, []);
-
-    const handleSliderChange = (event) => {
-        if (Number(event.target.value) === 3) {
-            setGetC(true);
-        } else {
-            setGetC(false);
-        }
-        setCurrentIndex(Number(event.target.value));
-    };
-    
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (getC) {
-                updateTime();
-                updateMinuteur();
-            }
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [getC]); // Mettre getC dans les dépendances de useEffect
- 
-    const timeConvert = (n) => {
+      fetchData(); // Appel initial
       
-        var num = n;
-        var minutes = Math.floor(num / 60);
-        var seconds = Math.floor(num % 60);
-        if(seconds < 10) {
-            seconds = "0" + seconds;
-        }
-        if(minutes < 10) {
-            minutes = "0" + minutes;
-        }
-        if(minutes == 0) {
-            minutes = "00";
-        }
-        if(seconds == 0) {
-            seconds = "00";
-        }
-        if(isNaN(minutes) || isNaN(seconds)) {
-            return "00:00";
-        }
+      return () => {
+          socket.disconnect();
+      };
+  }, []);
 
-        return minutes + ":" + seconds;
+  const handleSliderChange = (event) => {
+      if (Number(event.target.value) === 3) {
+          setGetC(true);
+      } else {
+          setGetC(false);
+      }
+      setCurrentIndex(Number(event.target.value));
+  };
+  
+  useEffect(() => {
+      const interval = setInterval(() => {
+          if (getC) {
+              updateTime();
+              updateMinuteur();
+          }
+      }, 1000);
+      return () => clearInterval(interval);
+  }, [getC]); // Mettre getC dans les dépendances de useEffect
 
-      
-    }
-
-
-
-
-    const [elements, setElements] = useState([]);
+  const timeConvert = (n) => {
     
-  
- 
-  
-    const timeSlots = Array.from(Array(24).keys());
-  
-    const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    let corr = {
-        "Lundi": 0,
-        "Mardi": 1,
-        "Mercredi": 2,
-        "Jeudi": 3,
-        "Vendredi": 4,
-        "Samedi": 5,
-        "Dimanche": 6
-        
-    }
-    const [pdf, setPdf] = useState(null);
-    const canvasRef = useRef(null);
-    const [pdfName, setPdfName] = useState('');
+      var num = n;
+      var minutes = Math.floor(num / 60);
+      var seconds = Math.floor(num % 60);
+      if(seconds < 10) {
+          seconds = "0" + seconds;
+      }
+      if(minutes < 10) {
+          minutes = "0" + minutes;
+      }
+      if(minutes == 0) {
+          minutes = "00";
+      }
+      if(seconds == 0) {
+          seconds = "00";
+      }
+      if(isNaN(minutes) || isNaN(seconds)) {
+          return "00:00";
+      }
 
-    const fetchPdf = async () => {
-        try {
+      return minutes + ":" + seconds;
+
+    
+  }
 
 
-            axios({
-                method: 'post',
-                url: `http://${config.URL}:5000/api/processPDF`,
-                responseType: 'blob',
-                data: {
-                    pdf_name: pdfName
-                }
-             
-            }).then(async(response) => {
-                setPageC(1);
-                const blob = response.data;
-                const url = URL.createObjectURL(blob);
-    console.log(url)
-                const loadingTask = pdfjsLib.getDocument(url);
-                const pdfDoc = await loadingTask.promise;
-                setPdf(pdfDoc);
-            })
+
+
+  const [elements, setElements] = useState([]);
+  
+
+
+
+  const timeSlots = Array.from(Array(24).keys());
+
+  const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  let corr = {
+      "Lundi": 0,
+      "Mardi": 1,
+      "Mercredi": 2,
+      "Jeudi": 3,
+      "Vendredi": 4,
+      "Samedi": 5,
+      "Dimanche": 6
+      
+  }
+  const [pdf, setPdf] = useState(null);
+  const canvasRef = useRef(null);
+  const [pdfName, setPdfName] = useState('');
+
+  const fetchPdf = async () => {
+      try {
+
+
+          axios({
+              method: 'post',
+              url: `http://${config.URL}:5000/api/processPDF`,
+              responseType: 'blob',
+              data: {
+                  pdf_name: pdfName
+              }
            
-        } catch (error) {
-            console.error('Error fetching PDF:', error);
-        }
-    };
+          }).then(async(response) => {
+              setPageC(1);
+              const blob = response.data;
+              const url = URL.createObjectURL(blob);
+  console.log(url)
+              const loadingTask = pdfjsLib.getDocument(url);
+              const pdfDoc = await loadingTask.promise;
+              setPdf(pdfDoc);
+          })
+         
+      } catch (error) {
+          console.error('Error fetching PDF:', error);
+      }
+  };
 
 
 
-    useEffect(() => {
-        if (pdf) {
-            renderPage(pageC);
-        }
-    }, [pdf, pageC]); 
+  useEffect(() => {
+      if (pdf) {
+          renderPage(pageC);
+      }
+  }, [pdf, pageC]); 
 
-    const renderPage = async (pageNum) => {
-       
-        if (!pdf) return;
+  const renderPage = async (pageNum) => {
+     
+      if (!pdf) return;
 
-        const page = await pdf.getPage(pageNum);
-        const scale = 1;
-        const viewport = page.getViewport({ scale });
+      const page = await pdf.getPage(pageNum);
+      const scale = 1;
+      const viewport = page.getViewport({ scale });
 
-        const canvas = canvasRef.current;
-        const context = canvas?.getContext('2d');
-        canvas.height = viewport?.height;
-        canvas.width = viewport?.width;
+      const canvas = canvasRef.current;
+      const context = canvas?.getContext('2d');
+      canvas.height = viewport?.height;
+      canvas.width = viewport?.width;
 
-        const renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-        };
+      const renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+      };
 
-        await page.render(renderContext).promise;
-    };
+      await page.render(renderContext).promise;
+  };
 const [pdfs, setPdfs] = useState([]);
-    const fetchPDFs = async() => {
-        axios({
-            method: 'get',
-            url: `http://${config.URL}:5000/api/getPDFs`,
-        }).then((response) => {
-            setPdfs(response.data.pdf_files);
-        
-            if (response.data.pdf_files.length > 0) {
-               
-                setPdfName(response.data.pdf_files[0]); 
-            }
-        });
-    }
-    const [train, setTrain] = useState([]);
+  const fetchPDFs = async() => {
+      axios({
+          method: 'get',
+          url: `http://${config.URL}:5000/api/getPDFs`,
+      }).then((response) => {
+          setPdfs(response.data.pdf_files);
+      
+          if (response.data.pdf_files.length > 0) {
+             
+              setPdfName(response.data.pdf_files[0]); 
+          }
+      });
+  }
+  const [train, setTrain] = useState([]);
 const [typeTrain, setTypeTrain] = useState("departures");
 
-    const fetchTrain = async() => {
-        axios({
-            method: 'post',
-            url: `http://${config.URL}:5000/api/getTrain`,
-            data: {
-                "location": "La Défense Grande Arche",
-            }
-        }).then((response) => {
-           
-                setTrain(response.data.result);
-            
+  const fetchTrain = async() => {
+      axios({
+          method: 'post',
+          url: `http://${config.URL}:5000/api/getTrain`,
+          data: {
+              "location": "La Défense Grande Arche",
+          }
+      }).then((response) => {
+         
+              setTrain(response.data.result);
           
-        });
-    }
+        
+      });
+  }
 
-   
-
-
-    useEffect(() => {
-        fetchPDFs();
-        fetchTrain();
-        fetchAlarms()
-        axios({
-            method: "post",
-            url: `http://${config.URL}:5000/api/launch_reveil`,
-
-        })
-    }, []);
+ 
 
 
+  useEffect(() => {
+      fetchPDFs();
+      fetchTrain();
+      fetchAlarms()
+      axios({
+          method: "post",
+          url: `http://${config.URL}:5000/api/launch_reveil`,
 
-    let [fiche, setFiche] = useState({});
-    let [popup, setPopup] = useState(false);
-    const handleShowFiche = (ficheTitle) => {
-        axios({
-            method: 'post',
-            url: `http://${config.URL}:5000/api/getFiche`,
-            data: {
-                fiche: ficheTitle
-            }
-        }).then((response) => {
-            setFiche(response.data.result);
-            setPopup(true);
-        });
-    }
-
-    const [qcmStartup, setQcmStartup] = useState(false);
-    const [selectedAnswers, setSelectedAnswers] = useState({});
-    const [qcm, setQcm] = useState([]);
-    const [indice, setIndice] = useState(0);
-    const [points, setPoints] = useState(0);
-    const [showResults, setShowResults] = useState(false);
-    const [results, setResults] = useState([]);
-
-    const handleGetQcm = (qcmTitle) => {
-        axios({
-            method: 'post',
-            url: `http://${config.URL}:5000/api/getQuestion`,
-            data: { titre: qcmTitle }
-        }).then((response) => {
-            setQcm(response.data.result);
-            setQcmStartup(true);
-            setIndice(0);
-            setPoints(0);
-            setSelectedAnswers({});
-            setShowResults(false);
-            setResults([]);
-        });
-    };
-
-    const handleValidate = () => {
-        const currentQuestion = qcm[indice][0];
-        const correctAnswers = JSON.parse(qcm[indice][1]).filter((answer) => answer.isCorrect).map((answer) => answer.text);
-        const selected = selectedAnswers[currentQuestion] || [];
-        console.log("correctAnswers", correctAnswers);
-        console.log("selected", selected);
-
-        let isCorrect = selected.length === correctAnswers.length && selected.every((answer) => correctAnswers.includes(answer));
-        let resultEntry = {
-            question: currentQuestion,
-            correctAnswers: correctAnswers,
-            selectedAnswers: selected,
-            isCorrect: isCorrect
-        };
-
-        setResults((prevResults) => [...prevResults, resultEntry]);
-
-        if (isCorrect) {
-            setPoints(points + 1);
-        }
-
-        if (indice === qcm.length - 1) {
-            setShowResults(true);
-            setQcmStartup(false);
-            return;
-        }
-
-        setIndice(indice + 1);
-        setSelectedAnswers({});
-    };
-    return (
-        <div style={{ height: "100vh" }}>
+      })
+  }, []);
 
 
-{(qcmStartup || showResults) && (
+
+  let [fiche, setFiche] = useState({});
+  let [popup, setPopup] = useState(false);
+  const handleShowFiche = (ficheTitle) => {
+      axios({
+          method: 'post',
+          url: `http://${config.URL}:5000/api/getFiche`,
+          data: {
+              fiche: ficheTitle
+          }
+      }).then((response) => {
+          setFiche(response.data.result);
+          setPopup(true);
+      });
+  }
+
+  const [qcmStartup, setQcmStartup] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [qcm, setQcm] = useState([]);
+  const [indice, setIndice] = useState(0);
+  const [points, setPoints] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [results, setResults] = useState([]);
+
+  const handleGetQcm = (qcmTitle) => {
+      axios({
+          method: 'post',
+          url: `http://${config.URL}:5000/api/getQuestion`,
+          data: { titre: qcmTitle }
+      }).then((response) => {
+          setQcm(response.data.result);
+          setQcmStartup(true);
+          setIndice(0);
+          setPoints(0);
+          setSelectedAnswers({});
+          setShowResults(false);
+          setResults([]);
+      });
+  };
+
+  const handleValidate = () => {
+      const currentQuestion = qcm[indice][0];
+      const correctAnswers = JSON.parse(qcm[indice][1]).filter((answer) => answer.isCorrect).map((answer) => answer.text);
+      const selected = selectedAnswers[currentQuestion] || [];
+      console.log("correctAnswers", correctAnswers);
+      console.log("selected", selected);
+
+      let isCorrect = selected.length === correctAnswers.length && selected.every((answer) => correctAnswers.includes(answer));
+      let resultEntry = {
+          question: currentQuestion,
+          correctAnswers: correctAnswers,
+          selectedAnswers: selected,
+          isCorrect: isCorrect
+      };
+
+      setResults((prevResults) => [...prevResults, resultEntry]);
+
+      if (isCorrect) {
+          setPoints(points + 1);
+      }
+
+      if (indice === qcm.length - 1) {
+          setShowResults(true);
+          setQcmStartup(false);
+          return;
+      }
+
+      setIndice(indice + 1);
+      setSelectedAnswers({});
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  return (
+    <div className="global">
+      <img src="https://cdn.glitch.global/fc3240cb-ecdc-47a9-9aff-06b7b848d76e/image%204.png?v=1718792102188" className="image_main" alt="Main" />
+      <header>
+        <div className="header_item">
+          <img src="https://cdn.glitch.global/fc3240cb-ecdc-47a9-9aff-06b7b848d76e/image%203.png?v=1718792685753" className="icon_flo" alt="Icon" />
+          <h2 className="header_title">FloBot</h2>
+        </div>
+        <div className="header_item">
+          
+          <FontAwesomeIcon icon={faMicrophoneSlash} size="2x" className="icon" />
+          <FontAwesomeIcon icon={faPhone} size="2x" className="icon" />
+            <FontAwesomeIcon icon={faWifi} size="2x" className="icon" />
+          
+          
+            </div>
+      </header>
+
+      <main>
+        <div className="container" ref={containerRef}>
+          {modules.map((module, index) => (
+            <div
+              className={`child ${index === currentIndex ? 'focused' : ''}`}
+              key={index}
+              ref={(el) => (elsRef.current[index] = el)}
+            >
+              <div className="sep_top">
+                <div className="aligner">
+                  <img src={`/src/images/${module.icon}`} className="icon_box" alt="Icon Box" />
+                  <h2 className="box_title">{module.name}</h2>
+                </div>
+              </div>
+             {index !== currentIndex && (<img src="https://cdn.glitch.global/fc3240cb-ecdc-47a9-9aff-06b7b848d76e/wave.png?v=1718797491724" className="wave" alt="Wave" />) } 
+              <div className="sep_bottom" style={{bottom: index === currentIndex ? "5px": "0px"}}>
+                <p className="box_description" style={{color: index === currentIndex ? "white": "black"}}>{module.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+
+
+
+
+
+
+        
+      </main>
+      {modules[currentIndex].name == "Tâches" && modules[currentIndex].show && (
+        <div className="popC">
+   <div className="task-manager">
+   <h2 style={{color:"white"}}>Gestionnaire de tâches</h2>
+   <div className="columns">
+     {categories.map((category) => (
+       <div key={category[0]} className="column">
+         <h2 className="column-title">{category[0]}</h2>
+         <div className="tasks">
+           {tasks
+             .filter((taskGroup) => taskGroup.category === category[0])
+             .flatMap((taskGroup) => taskGroup.tasks)
+             .map((task) => (
+               <div key={task.name} className="task">
+                 <span>{task.name}</span>
+                
+               </div>
+             ))}
+         </div>
+       </div>
+     ))}
+   </div>
+ </div>
+  </div>
+  
+  )}
+
+
+
+{modules[currentIndex].name == "Chronometre" && modules[currentIndex].show && (
+        <div className="popC">
+          <div className="stopwatch" style={{width: "100%"}}>
+                                                    <div className="display">{timeConvert(time)}</div>
+                                                    <div className="display">{timeConvert(minuteur)}</div>
+                                                    <div className="horloge">
+                                                                                    <ClockAnalog />
+                                                                                    <ClockDigital />
+                                                                                </div>
+                                                   
+                                                  </div>
+                                                  </div>)}
+
+
+                                                  {modules[currentIndex].name == "PDF" && modules[currentIndex].show && (
+        <div className="popC">
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
+            <select onChange={(e) => setPdfName(e.target.value)} style={{ margin: '10px' }} value={pdfName}>
+                {pdfs.map((pdf, index) => (
+                    <option key={index} value={pdf}>{pdf}</option>
+                ))}
+            </select>
+            <button onClick={fetchPdf} style={{ margin: '10px' }}>Charger le PDF</button>
+                                                   
+            <button onClick={() => setPageC((prev) => Math.max(prev - 1, 1))} style={{ margin: '10px' }}>Page précédente</button>
+            <button onClick={() => setPageC((prev) => (pdf && prev < pdf.numPages) ? prev + 1 : prev)} style={{ margin: '10px' }}>Page suivante</button>
+           
+                                                        <canvas ref={canvasRef} style={{ border: '1px solid black' }}></canvas>
+                                                    </div>
+
+                                                  </div>)}
+
+
+                                                  {modules[currentIndex].name == "Train" && modules[currentIndex].show && (
+        <div className="popC">
+        <div className="train">
+                                                        <h2>Prochains départs du <i className="fas fa-train train-icon"></i> RER A <img src={image} alt="RER A Logo" className="rer-a-logo" /></h2>
+                                                        {train.map((departure, index) => (
+                                                          <div key={index} className="departure">
+                                                            <div>{departure.direction}</div>
+                                                            <div>Dans : {departure.time} minutes </div>
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                  </div>)}                                          
+                                                  {modules[currentIndex].name == "Météo" && modules[currentIndex].show && (
+        <div className="popC">
+       <div className="card-s">
+                                            <div className="card-header">
+                                                <h2>{weather.day}</h2>
+                                                <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                                                    <FontAwesomeIcon icon={faMapPin} size="2x" />
+                                                    <h2 style={{ fontSize: "20px" }}>{weather.City[0]}</h2>
+                                                </div>
+                                            </div>
+                                            <div><img src={icon} alt="no image cloud" style={{ width: "100px", height: "100px", color: "white", marginLeft: "30px" }} /></div>
+                                            <div style={{ width: "100%", borderBottomRightRadius: "15px", borderBottomLeftRadius: "15px", display: "flex" }}>
+                                                <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "15px", padding: "10px", borderBottomLeftRadius: "15px" }}>
+                                                    <h1 style={{ fontWeight: "950" }}>{weather.Temperature}</h1>
+                                                    <h1 style={{ fontWeight: "bold" }}>{weather.ressenti}</h1>
+                                                </div>
+                                                <div style={{ flex: 2, background: "#1C3746", borderTopLeftRadius: "50px", padding: "25px", borderBottomRightRadius: "15px", paddingBottom: "0px", display: "flex", justifyContent: "center", flexDirection: "column" }}>
+                                                  
+                                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px" }}>
+                                                        <h2>VENT</h2>
+                                                        <h2>{weather.Windspeed}</h2>
+                                                    </div>
+                                                  
+                                                </div>
+                                            </div>
+                                        </div>
+                                                  </div>)}    
+
+
+                                                  {modules[currentIndex].name == "Fiches" && modules[currentIndex].show && (
+        <div className="popC">
+        <div className="fiches">
+                                                            <h2>Fiches</h2>
+                                                            <div className="fiches-container" style={{display: "flex", gap: "15px", flexFlow: "row wrap"}}>
+                                                                {fiches.map((fiche, index) => (
+                                                                    <div key={index} className="fiche" style={{padding: "25px", borderRadius: "15px", background: '#FF5733', color: "white", width: "300px"}} onClick={() => handleShowFiche(fiche.title)}>
+                                                                        <h3 style={{borderBottom: "1px solid white"}}>{fiche.title}</h3>
+                                                                        <p>{fiche.description}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                  </div>)} 
+
+
+
+
+                                                  {modules[currentIndex].name == "Actualité" && modules[currentIndex].show && (
+        <div className="popC">
+        <div className="feeds">
+    <h2>Actualitées</h2>
+    <div className="feeds-container">
+        {feeds.map((feed, index) => (
+            <div key={index} className="feed">
+                <h3>{feed.journal}</h3>
+                <p>{feed.headline}</p>
+            </div>
+        ))}
+    </div>
+</div>
+                                                  </div>)} 
+
+
+
+                                                  {modules[currentIndex].name == "Réveil" && modules[currentIndex].show && (
+        <div className="popC">
+         <div className="reveil">
+                                                                    <h2>Liste des réveils programmés</h2>
+                                                                    <div className="reveil-container">
+                                                                        {alarms.map((alarm, index) => (
+                                                                            <div key={index} className="alarm">
+                                                                                <h3>{alarm[0]}</h3>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+
+                                                  </div>)} 
+
+
+
+                                                  {modules[currentIndex].name == "Quizzs" && modules[currentIndex].show && (
+        <div className="popC">
+        <div className="qcm">
+                                                                <h2>QCM</h2>
+                                                                <div className="qcm-container">
+                                                                    {qcms.map((qcm, index) => (
+                                                                        <div key={index} className="qcm">
+                                                                            <h3>{qcm}</h3>
+                                                                            <button onClick={() => handleGetQcm(qcm)}>
+                                                                                Démarrer le QCM
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                </div>
+                                                  </div>)} 
+
+
+
+                                                
+
+
+
+                                                 
+
+
+
+                                                
+
+
+                                                  {modules[currentIndex].name == "Musique" && modules[currentIndex].show && (
+        <div className="popC">
+      <div className="music-card">
+                                            <img src={musicInfo.image ? musicInfo.image : "https://via.placeholder.com/300x150"} alt="Album Cover" />
+                                            <h2>{musicInfo.title ? musicInfo.title : "Pas de musique"}</h2>
+                                            <div className="progress-bar">
+                                                <div className="progress" style={{width: `${(musicInfo.elapsed_time / musicInfo.duration)*100}%`} }></div>
+                                            </div>
+                                            <div style={{display: "flex", alignItems: "center"}}>
+                                                <p>{timeConvert(musicInfo.elapsed_time)}</p>/<p>{timeConvert(musicInfo.duration)}</p>
+                                                </div>
+                                            
+                                            {musicInfo.status == "play" && <FontAwesomeIcon icon={faPlayCircle} size="2x" className="play-icon" />}
+                                            {musicInfo.status == "pause" && <FontAwesomeIcon icon={faPauseCircle} size="2x" className="play-icon" style={{color: "red"}} />}
+                                        </div>
+
+                                                  </div>)} 
+
+
+
+                                                  {modules[currentIndex].name == "Rappels" && modules[currentIndex].show && (
+        <div className="popC">
+      <div className="rappels">
+                                       RAPPELS 
+                                             </div>
+
+                                                  </div>)} 
+
+
+
+                                                  {modules[currentIndex].name == "Emploi du temps" && modules[currentIndex].show && (
+        <div className="popC">
+        <div className="timetable">
+    
+    <div className="grid">
+    
+      <div className="time-column">
+        {timeSlots.map((time) => (
+          <div key={time} className="time-slot">
+            {time-1}:00
+          </div>
+        ))}
+      </div>
+    
+      {daysOfWeek.map((day, index) => (
+        <div key={index} className="day">
+          {day}
+        </div>
+      ))}
+    
+      {elements.map(element => (
+      
+        <div
+          key={element?.id}
+          className="element"
+          style={{
+            gridRowStart: element?.startTime + 2,
+            gridRowEnd: element?.endTime + 2,
+            gridColumn: element?.day + 2,
+          }}
+        >
+          {element?.name}
+          <div>{element?.startTime}:00 - {element?.endTime}:00</div>
+        </div>
+      ))}
+    </div>
+  </div>
+                                                  </div>)} 
+
+
+
+                                                
+
+
+
+
+                                                  {(qcmStartup || showResults) && (
                 <div className="qcm-popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
                     <div className="qcm-popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
                         <button style={{ background: "#e74c3c", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
@@ -668,7 +1068,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
     <div className="popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
       <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
         setPopup(false)
-        set
+   
       }}>Fermer</button>
     </div>
 
@@ -708,323 +1108,26 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
 
 
-            {loading ? (
-                <div className="loading-container">
-                    <div className="spinner"></div>
-                    <p>Chargement des données...</p>
-                </div>
-            ) : (
-                <>
-                
-                <header className="header">
-                    <div className="header-space">
-                        <FontAwesomeIcon icon={faPhone} size="3x" className="header-element" style={{color: phoneConnected ? "green" : "red"}} />
-                        <FontAwesomeIcon icon={faMicrophoneSlash} size="3x" className="header-element" />
-                        <FontAwesomeIcon icon={faWifi} size="3x" className="header-element" />
-                    </div>
-                </header>
-                <main>
-                    <div className="slider">
-                        <div
-                            className="slider-inner"
-                            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-                        >
-                            {cards.map((card, index) => (
-                            
-                                <div key={index} className="card">
-                                    {card.type === "weather" ? (
-                                        <div className="card-s">
-                                            <div className="card-header">
-                                                <h2>{weather.day}</h2>
-                                                <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-                                                    <FontAwesomeIcon icon={faMapPin} size="2x" />
-                                                    <h2 style={{ fontSize: "20px" }}>{weather.City[0]}</h2>
-                                                </div>
-                                            </div>
-                                            <div><img src={card.icon} alt="no image cloud" style={{ width: "100px", height: "100px", color: "white", marginLeft: "30px" }} /></div>
-                                            <div style={{ width: "100%", borderBottomRightRadius: "15px", borderBottomLeftRadius: "15px", display: "flex" }}>
-                                                <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "15px", padding: "10px", borderBottomLeftRadius: "15px" }}>
-                                                    <h1 style={{ fontWeight: "950" }}>{weather.Temperature}</h1>
-                                                    <h1 style={{ fontWeight: "bold" }}>{weather.ressenti}</h1>
-                                                </div>
-                                                <div style={{ flex: 2, background: "#1C3746", borderTopLeftRadius: "50px", padding: "25px", borderBottomRightRadius: "15px", paddingBottom: "0px", display: "flex", justifyContent: "center", flexDirection: "column" }}>
-                                                  
-                                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px" }}>
-                                                        <h2>VENT</h2>
-                                                        <h2>{weather.Windspeed}</h2>
-                                                    </div>
-                                                  
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                       
-
-                                            
 
 
 
 
 
-                                        card.type === "music" ? (
-                                            <div className="music-card">
-                                            <img src={musicInfo.image ? musicInfo.image : "https://via.placeholder.com/300x150"} alt="Album Cover" />
-                                            <h2>{musicInfo.title ? musicInfo.title : "Pas de musique"}</h2>
-                                            <div className="progress-bar">
-                                                <div className="progress" style={{width: `${(musicInfo.elapsed_time / musicInfo.duration)*100}%`} }></div>
-                                            </div>
-                                            <div style={{display: "flex", alignItems: "center"}}>
-                                                <p>{timeConvert(musicInfo.elapsed_time)}</p>/<p>{timeConvert(musicInfo.duration)}</p>
-                                                </div>
-                                            
-                                            {musicInfo.status == "play" && <FontAwesomeIcon icon={faPlayCircle} size="2x" className="play-icon" />}
-                                            {musicInfo.status == "pause" && <FontAwesomeIcon icon={faPauseCircle} size="2x" className="play-icon" style={{color: "red"}} />}
-                                        </div>
 
 
-                                        
-                                        ) : (
-                                            card.type === "timetable" ? (
-<div className="timetable">
-    
-      <div className="grid">
-      
-        <div className="time-column">
-          {timeSlots.map((time) => (
-            <div key={time} className="time-slot">
-              {time-1}:00
-            </div>
-          ))}
+
+
+
+
+      <footer className="footer_main">
+        <div className="date">{date}</div>
+        <div className="flexer">
+          <div className="white_box">Tournez la molette pour naviguer</div>
+          <img src="https://cdn.glitch.global/fc3240cb-ecdc-47a9-9aff-06b7b848d76e/flo.png?v=1718797121412" className="flo" alt="Flo" />
         </div>
-      
-        {daysOfWeek.map((day, index) => (
-          <div key={index} className="day">
-            {day}
-          </div>
-        ))}
-      
-        {elements.map(element => (
-        
-          <div
-            key={element?.id}
-            className="element"
-            style={{
-              gridRowStart: element?.startTime + 2,
-              gridRowEnd: element?.endTime + 2,
-              gridColumn: element?.day + 2,
-            }}
-          >
-            {element?.name}
-            <div>{element?.startTime}:00 - {element?.endTime}:00</div>
-          </div>
-        ))}
-      </div>
+      </footer>
     </div>
-                                            ) : (
-
-
-
-                                                card.type === "chronometre" ? (
-                                                    <div className="stopwatch" style={{width: "100%"}}>
-                                                    <div className="display">{timeConvert(time)}</div>
-                                                    <div className="display">{timeConvert(minuteur)}</div>
-                                                   
-                                                  </div>
-                                                ) : (
-
-                                                    card.type === "pdf" ? (
-                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
-            <select onChange={(e) => setPdfName(e.target.value)} style={{ margin: '10px' }} value={pdfName}>
-                {pdfs.map((pdf, index) => (
-                    <option key={index} value={pdf}>{pdf}</option>
-                ))}
-            </select>
-            <button onClick={fetchPdf} style={{ margin: '10px' }}>Charger le PDF</button>
-                                                   
-            <button onClick={() => setPageC((prev) => Math.max(prev - 1, 1))} style={{ margin: '10px' }}>Page précédente</button>
-            <button onClick={() => setPageC((prev) => (pdf && prev < pdf.numPages) ? prev + 1 : prev)} style={{ margin: '10px' }}>Page suivante</button>
-           
-                                                        <canvas ref={canvasRef} style={{ border: '1px solid black' }}></canvas>
-                                                    </div>
-
-
-
-
-
-                                                     
-                                                    ) : (
-                                                    card.type === "train" ? (
-                                                        <div className="train">
-                                                        <h2>Prochains départs du <i className="fas fa-train train-icon"></i> RER A <img src={image} alt="RER A Logo" className="rer-a-logo" /></h2>
-                                                        {train.map((departure, index) => (
-                                                          <div key={index} className="departure">
-                                                            <div>{departure.direction}</div>
-                                                            <div>Dans : {departure.time} minutes </div>
-                                                          </div>
-                                                        ))}
-                                                      </div>
-
-                                                    ) : (
-                                                        card.type === "fiches" ? (
-                                                            <div className="fiches">
-                                                            <h2>Fiches</h2>
-                                                            <div className="fiches-container" style={{display: "flex", gap: "15px", flexFlow: "row wrap"}}>
-                                                                {fiches.map((fiche, index) => (
-                                                                    <div key={index} className="fiche" style={{padding: "25px", borderRadius: "15px", background: '#FF5733', color: "white", width: "300px"}} onClick={() => handleShowFiche(fiche.title)}>
-                                                                        <h3 style={{borderBottom: "1px solid white"}}>{fiche.title}</h3>
-                                                                        <p>{fiche.description}</p>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                        ) : (
-                                                            card.type === "traduction" ? (
-                                                                <div className="traduction">
-                                                                <h2>Traduction</h2>
-                                                                <div className="traduction-container" style={{display: "flex", gap: "15px"}}>
-                                                                    <div style={{display: "flex", flexDirection: "column",flex:1}}>
-                                                                    <h2>Texte d'origine</h2>
-                                                                    <div className="traduction-input">
-                                                                        <p>{initialTraduction}</p>
-                                                                    </div>
-                                                                    </div>
-                                                                    <div>
-                                                                    <h2>Texte traduit</h2>
-                                                                    <div className="traduction-output">
-                                                                        <p>{finalTraduction}</p>
-                                                                    </div>
-                                                                </div>
-                                                                </div>
-                                                            </div>
-
-                                                            ): (
-                                                                card.type === "feeds" ? (
-                                                                    <div className="feeds">
-    <h2>Actualitées</h2>
-    <div className="feeds-container">
-        {feeds.map((feed, index) => (
-            <div key={index} className="feed">
-                <h3>{feed.journal}</h3>
-                <p>{feed.headline}</p>
-            </div>
-        ))}
-    </div>
-</div>
-
-                                                                ) : (
-
-                                                                card.type === "reveil" ? (
-
-                                                                    <div className="reveil">
-                                                                    <h2>Liste des réveils programmés</h2>
-                                                                    <div className="reveil-container">
-                                                                        {alarms.map((alarm, index) => (
-                                                                            <div key={index} className="alarm">
-                                                                                <h3>{alarm[0]}</h3>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-
-                                                                ) : (
-                                                                    card.type === "qcm" ? (
-                                                                <div className="qcm">
-                                                                <h2>QCM</h2>
-                                                                <div className="qcm-container">
-                                                                    {qcms.map((qcm, index) => (
-                                                                        <div key={index} className="qcm">
-                                                                            <h3>{qcm}</h3>
-                                                                            <button onClick={() => handleGetQcm(qcm)}>
-                                                                                Démarrer le QCM
-                                                                            </button>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                                </div>
-                                                                    ) : (
-                                                                        card.type == "taches" ? (
-                                                                            <div className="task-manager">
-                                                                            <h2>Gestionnaire de tâches</h2>
-                                                                            <div className="columns">
-                                                                              {categories.map((category) => (
-                                                                                <div key={category[0]} className="column">
-                                                                                  <h2 className="column-title">{category[0]}</h2>
-                                                                                  <div className="tasks">
-                                                                                    {tasks
-                                                                                      .filter((taskGroup) => taskGroup.category === category[0])
-                                                                                      .flatMap((taskGroup) => taskGroup.tasks)
-                                                                                      .map((task) => (
-                                                                                        <div key={task.name} className="task">
-                                                                                          <span>{task.name}</span>
-                                                                                         
-                                                                                        </div>
-                                                                                      ))}
-                                                                                  </div>
-                                                                                </div>
-                                                                              ))}
-                                                                            </div>
-                                                                          </div>
-                                                                      
-   
-                                                                        ) : (
-                                                                            card.type == "horloge" ? (
-                                                                                <div className="horloge">
-                                                                                    <ClockAnalog />
-                                                                                    <ClockDigital />
-                                                                                </div>
-                                                                            ) : (
-
-                                        <div className="blank-card">Blank Card</div>
-                                                                            )
-                                                                    )
-                                                                )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                                )
-                                    )
-                                )
-                                    
-                                    )
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max={cards.length - 1}
-                        value={currentIndex}
-                        onChange={handleSliderChange}
-                        className="slider-range"
-                    />
-                </main>
-                <footer>
-                    <div className="footer-space">
-                        <div className="footer-container">
-                            <p className="footer-text">
-                                Bienvenue dans votre dashboard !
-                            </p>
-                        </div>
-                        <img src={icon} alt="flowbot icon" className="footer-image" />
-                    </div>
-                </footer>
-            </>
-            )}
-        </div>
-    );
-}
+  );
+};
 
 export default Homepage;
-
-
-
-
-
-
-
-
-

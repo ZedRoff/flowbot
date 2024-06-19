@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { 
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container { 
+
+      display: flex; 
+      flex-wrap: nowrap;
+      height: 300px;
+      width: 100%;
+      max-width: 600px;
+      overflow: hidden;
+      position: relative;
+      align-items:center;
+    }
+
+    .child { 
+      background: purple; 
+      flex: 0 0 30%;
+      height: 200px; 
+      margin: 0 15px;
+      transition: transform 0.3s, flex 0.3s;
+    }
+
+    .child.focused {
+      transform: scale(1.2); 
+      z-index: 1; 
+    }
+
+    .navigator {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .navigator-left {
+      left: 0;
+    }
+
+    .navigator-right {
+      right: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="child"></div>
+    <div class="child"></div>
+    <div class="child"></div>
+    <div class="child"></div>
+    <div class="child"></div>
+    <div class="child"></div>
+  </div>
+  <button class="navigator navigator-left">←</button>
+  <button class="navigator navigator-right">→</button>
+
+  <script>
+    let currentIndex = 0;
+    const els = document.querySelectorAll(".child");
+    const container = document.querySelector(".container");
+
+    const updateView = () => {
+      els.forEach((el, index) => {
+        el.classList.remove('focused');
+        el.style.transform = 'scale(1)';
+        if (index === currentIndex) {
+          el.classList.add('focused');
+          el.style.transform = 'scale(1.2)';
+        }
+      });
+
+      const focusedEl = els[currentIndex];
+      const elCenter = focusedEl.offsetLeft + focusedEl.offsetWidth / 2;
+      const containerCenter = container.offsetWidth / 2;
+      container.scrollTo({
+        left: elCenter - containerCenter,
+        behavior: "smooth"
+      });
+    };
+
+    const moveLeft = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateView();
+      }
+    };
+
+    const moveRight = () => {
+      if (currentIndex < els.length - 1) {
+        currentIndex++;
+        updateView();
+      }
+    };
+
+    document.querySelector(".navigator-left").addEventListener("click", moveLeft);
+    document.querySelector(".navigator-right").addEventListener("click", moveRight);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") {
+        moveLeft();
+      } else if (e.key === "ArrowRight") {
+        moveRight();
+      }
+    });
+
+   
+    updateView();
+  </script>
+</body>
+</html>

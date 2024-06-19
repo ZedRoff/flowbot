@@ -59,7 +59,9 @@ bp = Blueprint('play_audio', __name__)
 def play_audio():
     global title, duration, elapsed_time, last_start_time, is_paused, image, status
     if request.method == 'POST':
+
         data = request.get_json()
+        # 
         videosSearch = VideosSearch(data["query"], limit=1)
         download_audio(videosSearch.result()['result'][0]["link"])
         pygame.mixer.init()

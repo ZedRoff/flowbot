@@ -11,8 +11,10 @@ en_cours = False
 @bp.route('/api/startChronometre', methods=['GET'])
 def start_chronometre():
     if request.method == 'GET':
+        if en_cours:
+            return jsonify({'result': 'error'})
         demarrer()
-        return "Chronomètre démarré avec succès."
+        return jsonify({'result': 'success'})
 
 @bp.route('/api/getTemps', methods=['GET'])
 def get_temps():
@@ -23,19 +25,25 @@ def get_temps():
 @bp.route('/api/pauseChronometre', methods=['GET'])
 def pause_chronometre():
     if request.method == 'GET':
+        if not en_cours:
+            return jsonify({'result': 'error'})
         mettre_en_pause()
-        return "Chronomètre mis en pause avec succès."
+        return jsonify({'result': 'success'})
 
 @bp.route('/api/stopChronometre', methods=['GET'])
 def stop_chronometre():
     if request.method == 'GET':
+        if not en_cours:
+            return jsonify({'result': 'error'})
         arreter()
-        return "Chronomètre arrêté avec succès."
+        return jsonify({'result': 'success'})
 @bp.route('/api/continueChronometre', methods=['GET'])
 def continue_chronometre():
     if request.method == 'GET':
+        if en_cours:
+            return jsonify({'result': 'error'})
         demarrer()
-        return "Chronomètre continué avec succès."
+        return jsonify({'result': 'success'})
     
 
 # Variables globales pour stocker l'état du chronomètre

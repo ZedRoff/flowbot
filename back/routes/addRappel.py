@@ -17,7 +17,12 @@ def add_rappel():
             text = data['text']
             color = data['color']
             
-            
+            # check if it already exists
+            cur = con.cursor()
+            cur.execute("SELECT * FROM rappels WHERE text = ? AND date = ?", (text,date,))
+            if cur.fetchone():
+                return jsonify({'result': 'already'})
+            cur.close()
 
             cur = con.cursor()
             cur.execute("INSERT INTO rappels (text, date, color) VALUES (?, ?, ?)", (text, date,color,))
