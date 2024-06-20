@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import { faMapPin, faMicrophoneSlash, faPauseCircle, faPhone, faPlayCircle, faWifi, faTools, faBook, faRuler, faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Homepage.css";
-import icon from "./images/flo.png";
+import icon from "./images/sunny-day.png";
 import config from "../../config.json";
 import axios from 'axios';
 
@@ -16,7 +16,40 @@ import moment from 'moment';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 
+const Rappels = ({ data }) => {
+  // Grouper les rappels par date
+  const groupedByDate = data.reduce((acc, rappel) => {
+    const date = rappel[1];
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(rappel);
+    return acc;
+  }, {});
 
+  // Convertir l'objet en tableau pour pouvoir le mapper
+  const groupedEntries = Object.entries(groupedByDate).sort(
+    (a, b) => new Date(a[0]) - new Date(b[0])
+  );
+
+  return (
+    <div className="rappels-container">
+      {groupedEntries.map(([date, rappels], index) => (
+        <div key={index} style={{ marginBottom: '20px' }}>
+          <h2>{new Date(date).toLocaleDateString()}</h2>
+          {rappels.map((rappel, idx) => (
+            <div
+              key={idx}
+              style={{ backgroundColor: rappel[2], padding: '10px', margin: '10px 0' }}
+            >
+              <h3>{rappel[0]}</h3>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
 const ClockAnalog = () => {
     const [time, setTime] = useState(moment());
   
@@ -97,7 +130,7 @@ const Homepage = () => {
     {name: "Emploi du temps", description: "Consulte ton emploi du temps", icon: "edt.png", show: false},
     {name: "Chronometre", description: "Chronomètre toi pendant que tu révises", icon: "chronometre.png", show: false},
     {name: "PDF", description: "Lis tes fichiers PDF", icon: "fichier.png", show: false},
-    {name: "Train", description: "Consulte les horaires de train", icon: "train.png", show: false},
+    {name: "Train", description: "Consulte les horaires de train", icon: "trains.png", show: false},
     {name: "Fiches", description: "Consulte tes fiches de révision", icon: "fiche.png", show: false},
     {name: "Actualité", description: "Consulte les actualités", icon: "news.png", show: false},
     {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false},
@@ -152,34 +185,72 @@ const Homepage = () => {
     updateView();
   }, [currentIndex]);
 
+  let refTaches = useRef(null); 
+  let refRappels = useRef(null);
+  let refEdt = useRef(null);    
+
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Récupérer l'état actuel du module courant
+      const currentModule = modules[currentIndex];
+  
+      if (currentModule.show) {
+       
+        if(currentModule.name == "Tâches") {
+          if (e.key === 'ArrowLeft') {
+         refTaches.current.scrollLeft -= 100;
+          } else if (e.key === 'ArrowRight') {
+            refTaches.current.scrollLeft += 100;
+          }
+        
+        } else if(currentModule.name == "Rappels") {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".rappels-container")
+            elem.scrollTop -= 20;
+           
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".rappels-container")
+            elem.scrollTop += 20;
+           
+          } 
+        } else if(currentModule.name == "Emploi du temps") {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".timetable")
+          elem.scrollTop -= 100;
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".timetable")
+            elem.scrollTop +=100;
+          }
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          return;
+        }
+      }
+  
       if (e.key === 'ArrowLeft') {
         moveLeft();
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight')  {
         moveRight();
-      } else if(e.key == "Enter") {
-       setModules((modules) => {
-        return modules.map((module, index) => {
-          if (index === currentIndex) {
-            return {
-              ...module,
-              show: !module.show,
-            };
-          }
-          return module;
+      } else if(e.key === "Enter") {
+        setModules((modules) => {
+          return modules.map((module, index) => {
+            if (index === currentIndex) {
+              return {
+                ...module,
+                show: !module.show,
+              };
+            }
+            return module;
+          });
         });
-
-      }
-      );
       }
     };
-
+  
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentIndex]);
+  }, [currentIndex, modules]);
 
 
 
@@ -406,6 +477,8 @@ axios({
           fetchQcms()
       } else if(type == "tasks_update") {
           fetchCategories()
+      } else if(type == "rappels_update") {
+        fetchRappels()
       }
 
 
@@ -561,7 +634,7 @@ const [pdfs, setPdfs] = useState([]);
           }
       });
   }
-  const [train, setTrain] = useState([]);
+const [train, setTrain] = useState([]);
 const [typeTrain, setTypeTrain] = useState("departures");
 
   const fetchTrain = async() => {
@@ -569,7 +642,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
           method: 'post',
           url: `http://${config.URL}:5000/api/getTrain`,
           data: {
-              "location": "La Défense Grande Arche",
+              "location": "Chatelet Les Halles"
           }
       }).then((response) => {
          
@@ -668,8 +741,21 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
 
 
+const [rappels, setRappels] = useState([]);
+const fetchRappels = async() => {
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getAllRappels`,
+  }).then((response) => {
+    console.log(response.data.result)
+      setRappels(response.data.result);
+  });
 
+}
+useEffect(() => {
 
+  fetchRappels();
+  }, [])
 
 
 
@@ -733,9 +819,9 @@ const [typeTrain, setTypeTrain] = useState("departures");
       </main>
       {modules[currentIndex].name == "Tâches" && modules[currentIndex].show && (
         <div className="popC">
-   <div className="task-manager">
-   <h2 style={{color:"white"}}>Gestionnaire de tâches</h2>
-   <div className="columns">
+   
+   <h2 style={{color:"black"}}>Gestionnaire de tâches</h2>
+   <div className="columns" ref={refTaches}>
      {categories.map((category) => (
        <div key={category[0]} className="column">
          <h2 className="column-title">{category[0]}</h2>
@@ -754,7 +840,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
      ))}
    </div>
  </div>
-  </div>
+
   
   )}
 
@@ -807,6 +893,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
                                                   </div>)}                                          
                                                   {modules[currentIndex].name == "Météo" && modules[currentIndex].show && (
         <div className="popC">
+        <h2 style={{color:"black"}}>Météo</h2>
        <div className="card-s">
                                             <div className="card-header">
                                                 <h2>{weather.day}</h2>
@@ -918,6 +1005,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
                                                   {modules[currentIndex].name == "Musique" && modules[currentIndex].show && (
         <div className="popC">
+        <h2 style={{color:"black"}}>Musique</h2>
       <div className="music-card">
                                             <img src={musicInfo.image ? musicInfo.image : "https://via.placeholder.com/300x150"} alt="Album Cover" />
                                             <h2>{musicInfo.title ? musicInfo.title : "Pas de musique"}</h2>
@@ -938,9 +1026,12 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
                                                   {modules[currentIndex].name == "Rappels" && modules[currentIndex].show && (
         <div className="popC">
-      <div className="rappels">
-                                       RAPPELS 
-                                             </div>
+     
+
+             <div className="App">
+      <h1>Rappels Programmés</h1>
+      <Rappels data={rappels} ref={refRappels} />
+    </div>
 
                                                   </div>)} 
 
@@ -948,13 +1039,16 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
                                                   {modules[currentIndex].name == "Emploi du temps" && modules[currentIndex].show && (
         <div className="popC">
-        <div className="timetable">
+        <h2 style={{color:"black"}}>Emploi du temps</h2>
+        <div className="timetable" style={{height: "500px", overflow:"scroll"}}>
     
     <div className="grid">
     
       <div className="time-column">
         {timeSlots.map((time) => (
+          
           <div key={time} className="time-slot">
+          
             {time-1}:00
           </div>
         ))}

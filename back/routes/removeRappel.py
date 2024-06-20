@@ -5,6 +5,7 @@ import feedparser
 
 from flask import Blueprint, request, jsonify
 import sqlite3
+from flask_socketio import SocketIO, emit
 con = sqlite3.connect("./db/database.db", check_same_thread=False)
 bp = Blueprint('remove_rappel', __name__)
 
@@ -19,6 +20,7 @@ def remove_rappel():
             cur.execute("DELETE FROM rappels WHERE date=? AND text=?", (date, text,))
             con.commit()
             cur.close()
+            emit('message', {"from": "back", "type": "rappels_update"}, broadcast=True, namespace='/')
             
             return jsonify({'result': 'success'})
         except Exception as e:

@@ -5,6 +5,9 @@ import feedparser
 
 from flask import Blueprint, request, jsonify
 import sqlite3
+
+from flask_socketio import SocketIO, emit
+
 con = sqlite3.connect("./db/database.db", check_same_thread=False)
 bp = Blueprint('add_rappel', __name__)
 
@@ -28,6 +31,7 @@ def add_rappel():
             cur.execute("INSERT INTO rappels (text, date, color) VALUES (?, ?, ?)", (text, date,color,))
             con.commit()
             cur.close()
+            emit('message', {"from": "back", "type": "rappels_update"}, broadcast=True, namespace='/')
             return jsonify({'result': 'success'})
         except Exception as e:
             return jsonify({'error': str(e)})
