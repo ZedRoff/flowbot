@@ -682,12 +682,16 @@ const handleAddDay = () => {
     showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
     return;
   }
+  if(parseInt(from.split(":")[0]) == parseInt(to.split(":")[0])) {
+    showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
+    return;
+  }
   if(parseInt(from.split(":")[0]) == parseInt(to.split(":")[0]) && parseInt(from.split(":")[1]) >= parseInt(to.split(":")[1])) {
 
     showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
     return;
   }
-
+  
 
   axios({
     method: 'post',
@@ -702,6 +706,10 @@ const handleAddDay = () => {
     if(response.data.result == "success") {
       showToastI("success", "Jour ajouté", "Le jour a été ajouté avec succès")
       
+    } else if(response.data.result == "already_name") {
+      showToastI("error", "Jour déjà existant", "Un jour avec ce nom existe déjà")
+    } else if(response.data.result == "already_date") {
+      showToastI("error", "Heures déjà prises", "Les heures choisies sont déjà prises")
     }
   }
   )
@@ -825,7 +833,7 @@ const [elements, setElements] = useState([]);
   
  
   
-const timeSlots = Array.from(Array(24).keys());
+const timeSlots = Array.from(Array(25).keys());
 
 const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 let corr = {
@@ -893,10 +901,20 @@ const handleEditDay = () => {
     showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
     return;
   }
-  if(parseInt(modifyFrom.split(":")[0]) == parseInt(modifyTo.split(":")[0]) && parseInt(modifyFrom.split(":")[1]) >= parseInt(modifyTo.split(":")[1])) {
-    showToastI("error", "Heure de début supérieure à l'heure de fin", "L'heure de début ne peut pas être supérieure à l'heure de fin")
+  if(parseInt(modifyFrom.split(":")[0]) == parseInt(modifyTo.split(":")[0])) {
+    showToastI("error", "Heure de début égale à l'heure de fin", "L'heure de début ne peut pas être égale à l'heure de fin")
+    
     return;
   }
+  if(parseInt(modifyFrom.split(":")[0]) < elements[modifyId].startTime || parseInt(modifyTo.split(":")[0]) > elements[modifyId].endTime) {
+    showToastI("error", "Heures invalides", "Les heures ne peuvent pas être en dehors des heures de travail")
+    return;
+  }
+  if(modifyNomDay === elements[modifyId].name && modifyDay === reverse_corr[elements[modifyId].day] && modifyFrom === elements[modifyId].startTime && modifyTo === elements[modifyId].endTime) {
+    showToastI("error", "Aucune modification", "Aucune modification n'a été apportée")
+    return;
+  }
+ 
 
 
   axios({
@@ -912,6 +930,11 @@ const handleEditDay = () => {
   }).then((response) => {
     if(response.data.result == "success") {
      showToastI("success", "Jour modifié", "Le jour a été modifié avec succès")
+    } else if(response.data.result == "already_name") {
+      showToastI("error", "Jour déjà existant", "Un jour avec ce nom existe déjà")
+    } else if(response.date.result == "already_date") {
+      showToastI("error", "Heures déjà prises", "Les heures choisies sont déjà prises")
+    
     }
   }
   )
@@ -1270,6 +1293,11 @@ const [qcmTitle, setQcmTitle] = useState('');
     updatedQuestions[questionIndex].options.splice(optionIndex, 1);
     setQcmQuestions(updatedQuestions);
   };
+const deleteQuestion = (questionIndex) => {
+    const updatedQuestions = [...qcmQuestions];
+    updatedQuestions.splice(questionIndex, 1);
+    setQcmQuestions(updatedQuestions);
+  }
 
 
 
@@ -2480,8 +2508,8 @@ Fichiers
                 style={styles}
                 onValueChange={(value) => setFrom(value)}
                 items={timeSlots.map((time) => ({
-                  label: time - 1 + ":00",
-                  value: time-1,
+                  label: time != 0 ? `${time-1}:00` : "0:00",
+                  value: time != 0 ? time-1 : 0,
                 }))}
               />
 </View>
@@ -2498,8 +2526,8 @@ Fichiers
                 style={styles}
                 onValueChange={(value) => setTo(value)}
                 items={timeSlots.map((time) => ({
-                  label: time - 1 + ":00",
-                  value: time-1,
+                  label: time != 0 ? `${time-1}:00` : "0:00",
+                  value: time != 0 ? time-1 : 0,
                 }))}
               />
               </View>
@@ -2967,8 +2995,16 @@ setModifyTo(element.endTime)
                   <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
                 </Pressable>
                 </View>
+             
               </View>
+              
             ))}
+
+<Pressable onPress={() => {
+  deleteQuestion(questionIndex)
+}}>
+                  <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+                </Pressable>
           </View>
         ))}
         <Pressable onPress={validateQ} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
@@ -3813,7 +3849,7 @@ markingType={'multi-dot'}
         <View style={styles.labelInputBox}>
            <Text style={styles.label}>Heures</Text>
            <Picker
-            selectedValue={selectedMinutes}
+            selectedValue={selectedHours}
             onValueChange={(itemValue) => setSelectedHours(itemValue)}
             style={styles.picker}
           >

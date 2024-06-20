@@ -96,6 +96,8 @@ const ClockAnalog = () => {
 
 
 const Homepage = () => {
+  const [getC, setGetC] = useState(false);
+  const [qcmStartup, setQcmStartup] = useState(false); 
   const d = new Date();
   const hours = String(d.getHours()).padStart(2, '0');
   const minutes = String(d.getMinutes()).padStart(2, '0');
@@ -193,10 +195,15 @@ const Homepage = () => {
     const handleKeyDown = (e) => {
       // Récupérer l'état actuel du module courant
       const currentModule = modules[currentIndex];
-  
+
+   
+
+
+      console.log(currentModule)
       if (currentModule.show) {
        
         if(currentModule.name == "Tâches") {
+          console.log("oof")
           if (e.key === 'ArrowLeft') {
          refTaches.current.scrollLeft -= 100;
           } else if (e.key === 'ArrowRight') {
@@ -221,7 +228,10 @@ const Homepage = () => {
             let elem = document.querySelector(".timetable")
             elem.scrollTop +=100;
           }
-        }
+        } 
+
+
+
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
           return;
         }
@@ -231,7 +241,24 @@ const Homepage = () => {
         moveLeft();
       } else if (e.key === 'ArrowRight')  {
         moveRight();
-      } else if(e.key === "Enter") {
+      } else if(e.key === "A") {
+
+
+        if(qcmStartup) {
+          setQcmStartup(false);
+          setShowResults(false);
+          setIndice(0);
+          setPoints(0);
+          setSelectedAnswers({});
+          setResults([]);
+return;
+        }
+        if(currentModule.name == "Chronometre") {
+          setGetC(!getC);
+        } 
+
+
+
         setModules((modules) => {
           return modules.map((module, index) => {
             if (index === currentIndex) {
@@ -240,17 +267,22 @@ const Homepage = () => {
                 show: !module.show,
               };
             }
+            if(module.name == "Chronometre") {
+              setGetC(!getC);
+            }
             return module;
           });
         });
+     
       }
     };
+
   
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyDown);
     };
-  }, [currentIndex, modules]);
+  }, [currentIndex, modules, qcmStartup]);
 
 
 
@@ -261,7 +293,7 @@ const Homepage = () => {
   const [musicInfo, setMusicInfo] = useState({});
   const [time, setTime] = useState(0);
   const [minuteur, setMinuteur] = useState(0);
-  const [getC, setGetC] = useState(false);
+
   const [pageC, setPageC] = useState(1);
 
   const [initialTraduction, setInitialTraduction] = useState("");
@@ -495,18 +527,11 @@ axios({
       };
   }, []);
 
-  const handleSliderChange = (event) => {
-      if (Number(event.target.value) === 3) {
-          setGetC(true);
-      } else {
-          setGetC(false);
-      }
-      setCurrentIndex(Number(event.target.value));
-  };
-  
+
   useEffect(() => {
       const interval = setInterval(() => {
           if (getC) {
+            console.log("updating time")
               updateTime();
               updateMinuteur();
           }
@@ -548,7 +573,7 @@ axios({
 
 
 
-  const timeSlots = Array.from(Array(24).keys());
+  const timeSlots = Array.from(Array(25).keys());
 
   const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
   let corr = {
@@ -683,7 +708,6 @@ const [typeTrain, setTypeTrain] = useState("departures");
       });
   }
 
-  const [qcmStartup, setQcmStartup] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [qcm, setQcm] = useState([]);
   const [indice, setIndice] = useState(0);
@@ -779,9 +803,9 @@ useEffect(() => {
         </div>
         <div className="header_item">
           
-          <FontAwesomeIcon icon={faMicrophoneSlash} size="2x" className="icon" />
-          <FontAwesomeIcon icon={faPhone} size="2x" className="icon" />
-            <FontAwesomeIcon icon={faWifi} size="2x" className="icon" />
+          <FontAwesomeIcon icon={faMicrophoneSlash} size="2x" className="icon" style={{color: "#3DE56D"}} />
+          <FontAwesomeIcon icon={faPhone} size="2x" className="icon" style={{color: phoneConnected ? "#3DE56D":"#FF6254"}} />
+            <FontAwesomeIcon icon={faWifi} size="2x" className="icon" style={{color: "#3DE56D"}} />
           
           
             </div>
@@ -848,6 +872,7 @@ useEffect(() => {
 
 {modules[currentIndex].name == "Chronometre" && modules[currentIndex].show && (
         <div className="popC">
+        
           <div className="stopwatch" style={{width: "100%"}}>
                                                     <div className="display">{timeConvert(time)}</div>
                                                     <div className="display">{timeConvert(minuteur)}</div>
@@ -1048,8 +1073,8 @@ useEffect(() => {
         {timeSlots.map((time) => (
           
           <div key={time} className="time-slot">
-          
-            {time-1}:00
+            {time !=0 && `${time-1}:00`}
+           
           </div>
         ))}
       </div>
@@ -1087,16 +1112,17 @@ useEffect(() => {
 
 
                                                   {(qcmStartup || showResults) && (
-                <div className="qcm-popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
+                <div className="qcm-popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 1001, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
                     <div className="qcm-popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
-                        <button style={{ background: "#e74c3c", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
+                        <button style={{ background: "#e74c3c", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} 
+                        onClick={() => {
                             setQcmStartup(false);
                              setShowResults(false);
                              setIndice(0);
                              setPoints(0);
                              setSelectedAnswers({});
                              setResults([]);
-                             }}>Fermer</button>
+                             }}>Appuyez sur la molette pour quitter</button>
                     </div>
                     <div style={{ marginBottom: "10px" }}>
                         <h2 style={{ background: "#e74c3c", padding: "10px", borderRadius: "5px", marginBottom: "10px", fontSize: "1.2rem" }}>QCM</h2>
@@ -1163,7 +1189,7 @@ useEffect(() => {
       <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
         setPopup(false)
    
-      }}>Fermer</button>
+      }}>Appuyez sur la molette pour quitter</button>
     </div>
 
     <div style={{ marginBottom: "10px" }}>
