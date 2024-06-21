@@ -442,6 +442,7 @@ def run_Encoder():
 
 def run_bouttons():
      global molette_appuyer, action_appuyer
+     requests.post("http://"+host+":5000/api/manageLeds",json={"light": "blue", "mode": "on"})
      while(True):                                                                                                                           
           time.sleep(0.1)
           if GPIO.input(36) and not molette_appuyer:
@@ -485,11 +486,11 @@ def run_bouttons():
 
 
 if __name__ == '__main__':
-    '''t1 = Thread(target=run_molette)
+    t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
     
     t1.start()
-    t2.start()'''
+    t2.start()
  
     
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
