@@ -8,12 +8,12 @@ import config from "../../config.json";
 import axios from 'axios';
 
 import './Timetable.css';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-import 'pdfjs-dist/web/pdf_viewer.css';
+//import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+//import 'pdfjs-dist/web/pdf_viewer.css';
 import { useRef } from 'react';
 import image from "./images/rerA.png"
 import moment from 'moment';
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+//pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 
 const Rappels = ({ data }) => {
@@ -132,15 +132,16 @@ const Homepage = () => {
     {name: "Emploi du temps", description: "Consulte ton emploi du temps", icon: "edt.png", show: false},
     {name: "Chronometre", description: "Chronomètre toi pendant que tu révises", icon: "chronometre.png", show: false},
     {name: "PDF", description: "Lis tes fichiers PDF", icon: "fichier.png", show: false},
-    {name: "Train", description: "Consulte les horaires de train", icon: "trains.png", show: false},
+    {name: "Trains", description: "Consulte les horaires de train", icon: "trains.png", show: false},
     {name: "Fiches", description: "Consulte tes fiches de révision", icon: "fiche.png", show: false},
-    {name: "Actualité", description: "Consulte les actualités", icon: "news.png", show: false},
+    {name: "Actualités", description: "Consulte les actualités", icon: "news.png", show: false},
     {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false},
     
 
     
   ]);
 
+  let [popup, setPopup] = useState(false);
   const containerRef = useRef(null);
   const elsRef = useRef([]);
 
@@ -205,9 +206,9 @@ const Homepage = () => {
         if(currentModule.name == "Tâches") {
           console.log("oof")
           if (e.key === 'ArrowLeft') {
-         refTaches.current.scrollLeft -= 100;
+         refTaches.current.scrollLeft -= 20;
           } else if (e.key === 'ArrowRight') {
-            refTaches.current.scrollLeft += 100;
+            refTaches.current.scrollLeft += 20;
           }
         
         } else if(currentModule.name == "Rappels") {
@@ -223,12 +224,36 @@ const Homepage = () => {
         } else if(currentModule.name == "Emploi du temps") {
           if (e.key === 'ArrowLeft') {
             let elem = document.querySelector(".timetable")
-          elem.scrollTop -= 100;
+          elem.scrollTop -= 20;
           } else if (e.key === 'ArrowRight') {
             let elem = document.querySelector(".timetable")
-            elem.scrollTop +=100;
+            elem.scrollTop +=20;
           }
-        } 
+        } else if(currentModule.name == "Actualités") {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".feeds-container")
+            elem.scrollTop -= 20;
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".feeds-container")
+            elem.scrollTop += 20;
+          } 
+        } else if(currentModule.name == "Trains") {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".train")
+            elem.scrollTop -= 20;
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".train")
+            elem.scrollTop += 20;
+          } 
+        } else if(currentModule.name == "Fiches") {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".popup")
+            elem.scrollTop -= 20;
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".popup")
+            elem.scrollTop += 20;
+          }
+        }
 
 
 
@@ -252,6 +277,10 @@ const Homepage = () => {
           setSelectedAnswers({});
           setResults([]);
 return;
+        }
+        if(popup) {
+          setPopup(false)
+          return;
         }
         if(currentModule.name == "Chronometre") {
           setGetC(!getC);
@@ -282,7 +311,7 @@ return;
     return () => {
       document.removeEventListener('keyup', handleKeyDown);
     };
-  }, [currentIndex, modules, qcmStartup]);
+  }, [currentIndex, modules, qcmStartup, popup]);
 
 
 
@@ -694,7 +723,6 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
 
   let [fiche, setFiche] = useState({});
-  let [popup, setPopup] = useState(false);
   const handleShowFiche = (ficheTitle) => {
       axios({
           method: 'post',
@@ -904,7 +932,7 @@ useEffect(() => {
                                                   </div>)}
 
 
-                                                  {modules[currentIndex].name == "Train" && modules[currentIndex].show && (
+                                                  {modules[currentIndex].name == "Trains" && modules[currentIndex].show && (
         <div className="popC">
         <div className="train">
                                                         <h2>Prochains départs du <i className="fas fa-train train-icon"></i> RER A <img src={image} alt="RER A Logo" className="rer-a-logo" /></h2>
@@ -964,10 +992,10 @@ useEffect(() => {
 
 
 
-                                                  {modules[currentIndex].name == "Actualité" && modules[currentIndex].show && (
+                                                  {modules[currentIndex].name == "Actualités" && modules[currentIndex].show && (
         <div className="popC">
-        <div className="feeds">
-    <h2>Actualitées</h2>
+ 
+    <h2>Actualités</h2>
     <div className="feeds-container">
         {feeds.map((feed, index) => (
             <div key={index} className="feed">
@@ -975,7 +1003,12 @@ useEffect(() => {
                 <p>{feed.headline}</p>
             </div>
         ))}
-    </div>
+  {feeds.map((feed, index) => (
+            <div key={index} className="feed">
+                <h3>{feed.journal}</h3>
+                <p>{feed.headline}</p>
+            </div>
+        ))}
 </div>
                                                   </div>)} 
 
@@ -1184,7 +1217,7 @@ useEffect(() => {
 
 
 {popup && (
-  <div className="popup" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", zIndex: 999, padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)", maxWidth: "80vw", width: '50vw' }}>
+<div className="popup" style={{ position: "absolute", top: "15px",left:"15px",right:"15px",bottom:"15px",background:"white",zIndex:1002, overflow:"scroll", borderRadius:"15px", padding:"5px" }}>
     <div className="popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
       <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
         setPopup(false)

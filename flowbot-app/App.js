@@ -3619,8 +3619,10 @@ markingType={'multi-dot'}
   
                 <View style={styles.labelInputBox}>
            <Text style={styles.label}>Heures</Text>
+          
+
            <Picker
-           style={{ height: 50, width: 100, marginLeft: 10 }}
+          style={styles.picker}
            selectedValue={alarmHour}
            onValueChange={(itemValue, itemIndex) => setAlarmHour(itemValue)}
          >
@@ -3634,7 +3636,7 @@ markingType={'multi-dot'}
           <View style={styles.labelInputBox}>
            <Text style={styles.label}>Minutes</Text>
            <Picker
-            style={{ height: 50, width: 100, marginLeft: 10 }}
+         style={styles.picker}
             selectedValue={alarmMinute}
             onValueChange={(itemValue, itemIndex) => setAlarmMinute(itemValue)}
           >
@@ -3656,22 +3658,22 @@ markingType={'multi-dot'}
 {alarms.length == 0 && (
   <Text style={styles.text}>Aucune alarme</Text>
 )}
-<FlatList
-    data={alarms}
-    renderItem={({ item }) => (
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, background: "white", borderRadius: 5, padding: 15, marginTop: 10,backgroundColor: "#142A4D",borderRadius:5 }}>
-        <Pressable onPress={() => removeAlarm(item[0])}>
-          <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
-        </Pressable>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10 }}>
-          <FontAwesomeIcon icon={faClock} size={20} style={{color:"#6FDDE8"}} />
-          <Text style={{ marginLeft: 5,color:"#6FDDE8" }}>{item[0]}</Text>
+{alarms.map((item, idx) => (
+    
+        <View key={idx} style={{display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10, background: "white", borderRadius: 5, padding: 15, marginTop: 10,backgroundColor: "#142A4D",borderRadius:5 }}>
+          <Pressable onPress={() => removeAlarm(item[0])}>
+            <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+          </Pressable>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10 }}>
+            <FontAwesomeIcon icon={faClock} size={20} style={{color:"#6FDDE8"}} />
+            <Text style={{ marginLeft: 5,color:"#6FDDE8" }}>{item[0]}</Text>
+          </View>
         </View>
-      </View>
-    )}
-    keyExtractor={item => item.time}
-    style={{ width: '100%', display: "flex", gap: 15, flexDirection: "column" }}
-  />
+      )
+)
+}
+
+      
 
 
   

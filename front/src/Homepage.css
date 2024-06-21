@@ -243,6 +243,7 @@ footer {
     margin: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-y:scroll;
   }
   
   .departure {
@@ -301,26 +302,17 @@ footer {
     color: #555; /* Couleur du texte */
     line-height: 1.6; /* Hauteur de ligne */
 }
-.feeds {
-    background-color: #f9f9f9; /* Couleur de fond de la section */
-    padding: 20px; /* Espacement intérieur */
-    border-radius: 8px; /* Bords arrondis */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
-    margin: 20px 0; /* Espacement extérieur vertical */
-}
 
-.feeds h2 {
-    font-size: 24px; /* Taille de la police */
-    color: #333; /* Couleur du texte */
-    margin-bottom: 20px; /* Espacement en bas du titre */
-    text-align: center; /* Centrer le titre */
-}
+
+
 
 .feeds-container {
-    display: flex; /* Utiliser flexbox pour aligner les éléments */
-    gap: 15px; /* Espacement entre les éléments */
-    flex-flow: row wrap; /* Permettre le wrapping */
-    justify-content: center; /* Centrer les éléments horizontalement */
+  display: flex;
+  flex-direction:column;
+  gap: 20px;
+  overflow-y: scroll;
+  height: 100%;
+    
 }
 
 .feed {
@@ -328,8 +320,9 @@ footer {
     border-radius: 15px; /* Bords arrondis */
     background: #FF5733; /* Couleur de fond */
     color: white; /* Couleur du texte */
-    width: 300px; /* Largeur fixe des blocs */
+
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+
 }
 
 .feed h3 {
@@ -674,9 +667,7 @@ footer {
     display:flex;
     flex-direction:column;
     gap:15px;
-    overflow:hidden;
-    overflow-y: hidden;
-    overflow-x: scroll;
+
   }
 
   .rappels-container {
