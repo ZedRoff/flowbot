@@ -1,4 +1,4 @@
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 import os
 import json
@@ -366,8 +366,6 @@ def handle_message(message):
 
 
 
-'''
-
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
  
@@ -423,14 +421,14 @@ def run_molette():
 
 
 def run_Encoder():
-    MSB = GPIO.input(13) // Most significant bit
-    LSB = GPIO.input(15) // Least significant bit
+    MSB = GPIO.input(13) 
+    LSB = GPIO.input(15) 
     encoderValue = 0
     direction = 0
     if(MSB and not LSB):
-        encoderValue--
+        encoderValue-=1
     elif (not MSB and LSB):
-        encoderValue++
+        encoderValue+=1
     if(encoderValue == 0):
         return direction
     else:
@@ -482,9 +480,6 @@ def run_bouttons():
 
 
 
-
-
-'''
 
 
 
