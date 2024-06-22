@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Righteous', cursive;
+
+}
+/* Create a box with a more pronounced bottom shadow */
+.box {
+  width: 200px;
+  height: 100px;
+  margin: 50px;
+  background-color: #f0f0f0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+.title_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+  margin-top:15px;
+}
+
+.title {
+  color: #152A4D;
+  font-size:30px;
+}
+
+.container {
+  display:flex;
+  margin-left:25px;
+  margin-right:25px;
+}
+.child:nth-child(1) {
+  display:flex;
+  gap: 10px;
+  
+}
