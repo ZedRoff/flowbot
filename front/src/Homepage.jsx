@@ -174,12 +174,14 @@ const Homepage = () => {
 
   const moveLeft = () => {
     if (currentIndex > 0) {
+      console.log(currentIndex - 1)
       setCurrentIndex(currentIndex - 1);
     }
   };
 
   const moveRight = () => {
     if (currentIndex < modules.length - 1) {
+      console.log(currentIndex + 1)
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -200,7 +202,6 @@ const Homepage = () => {
    
 
 
-      console.log(currentModule)
       if (currentModule.show) {
        
         if(currentModule.name == "Tâches") {
@@ -457,104 +458,204 @@ axios({
 };
 
 
+const fetchData = async () => {
+  try {
+      setLoading(true);
+      const r1 = await axios.get(`http://${config.URL}:5000/api/getCity`);
+      const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
+      setWeather(r2.data.result);
+      fetchDays()
+      fetchFiches()
+      fetchFeeds()
+      fetchQcms()
+      setLoading(false); 
 
-
+  } catch (error) {
+      console.error("Erreur lors de la récupération des données météorologiques:", error);
+  }
+};
+useEffect(() => {
+  fetchData(); 
+}, [])
 
 
   useEffect(() => {
-      const fetchData = async () => {
-          try {
-              setLoading(true);
-              const r1 = await axios.get(`http://${config.URL}:5000/api/getCity`);
-              const r2 = await axios.post(`http://${config.URL}:5000/api/getWeather`, { location: r1.data.result });
-              setWeather(r2.data.result);
-              fetchDays()
-              fetchFiches()
-              fetchFeeds()
-              fetchQcms()
-              setLoading(false); 
-
-          } catch (error) {
-              console.error("Erreur lors de la récupération des données météorologiques:", error);
-          }
-      };
+      
 
       const socket = io(`http://${config.URL}:5000`);
 
-      socket.on('connect', () => {
-          console.log('Connected to WebSocket server');
-          socket.emit('message', {from: 'bot', message: 'bot_connected'});
-          socket.emit('message', {from: 'bot', message: 'check_mobile_connected'})
-      });
+     socket.on('connect', () => {
+    console.log('Connected to server');
+});
 
-      socket.on('disconnect', () => {
-          console.log('Disconnected from WebSocket server');
-      });
-    
-      socket.on('message', (message) => {
+socket.on('message', (message) => {
+    let type = message["type"];
+    let msg = message["message"];
 
-        
+    switch(type) {
+        case "mobile_status_change":
+        case "check_mobile_connected":
+            setPhoneConnected(msg);
+            break;
+        case "city_changed":
+            fetchData();
+            break;
+        case "music_play":
+        case "music_update":
+            setMusicInfo(type === "music_play" ? msg : message);
+            if(type === "music_update") console.log("Music updated: ", message);
+            break;
+        case "timetable_update":
+            fetchDays();
+            break;
+        case "files_update":
+            fetchPDFs();
+            break;
+        case "molette": {
 
-          //let who = message["from"];
-          let type = message["type"];
-          let msg = message["message"];
-
-        if(type == "mobile_status_change") {
-              setPhoneConnected(msg)
-          } else if(type == "check_mobile_connected") {
-              setPhoneConnected(msg)
-          } else if(type == "city_changed") {
-              fetchData();
-          } else if(type == "music_play") {
-              setMusicInfo(msg);
-          } else if(type == "music_update") {
-              setMusicInfo(message);
-              console.log("Music updated: ", message);
-          } else if(type == 'timetable_update') {
-              fetchDays()
-          } else if(type == 'files_update') {
-              fetchPDFs()
-
-          } else if(type == 'molette') {
-              if(msg == "GAUCHE") {
-                  moveLeft();
-              } else if(msg == "DROITE") {
-                 moveRight()
-          }
-      } else if(type == "bouton_action") {
-          if(msg == "APPUI") {
-              alert("appui du bouton")
-          }
-      } else if(type == "fiches_update") {
-          fetchFiches()
-      } else if(type == "translation") {
-          setInitialTraduction(message["initialText"])
-          setFinalTraduction(message["translatedText"])
-      } else if(type == "feeds_update") {
-          fetchFeeds()
-      } else if(type == "reveil_update") {
-          fetchAlarms()
-      } else if(type == "qcm_update") {   
-          fetchQcms()
-      } else if(type == "tasks_update") {
-          fetchCategories()
-      } else if(type == "rappels_update") {
-        fetchRappels()
-      }
-
-
-
+          let currentModule = modules[currentIndex];
+        if (currentModule.show) {
+       
+          if(currentModule.name == "Tâches") {
+            console.log("oof")
+            if (msg === 'GAUCHE') {
+           refTaches.current.scrollLeft -= 20;
+            } else if (msg === 'DROITE') {
+              refTaches.current.scrollLeft += 20;
+            }
           
-      console.log(type)
-          console.log('Message received: ' + message);
-      });
+          } else if(currentModule.name == "Rappels") {
+            if (msg === 'GAUCHE') {
+              let elem = document.querySelector(".rappels-container")
+              elem.scrollTop -= 20;
+             
+            } else if (msg === 'DROITE') {
+              let elem = document.querySelector(".rappels-container")
+              elem.scrollTop += 20;
+             
+            } 
+          } else if(currentModule.name == "Emploi du temps") {
+            if (msg === 'GAUCHE') {
+              let elem = document.querySelector(".timetable")
+            elem.scrollTop -= 20;
+            } else if (msg === 'DROITE') {
+              let elem = document.querySelector(".timetable")
+              elem.scrollTop +=20;
+            }
+          } else if(currentModule.name == "Actualités") {
+            if (msg === 'GAUCHE') {
+              let elem = document.querySelector(".feeds-container")
+              elem.scrollTop -= 20;
+            } else if (msg === 'DROITE') {
+              let elem = document.querySelector(".feeds-container")
+              elem.scrollTop += 20;
+            } 
+          } else if(currentModule.name == "Trains") {
+            if (msg === 'GAUCHE') {
+              let elem = document.querySelector(".train")
+              elem.scrollTop -= 20;
+            } else if (msg === 'DROITE') {
+              let elem = document.querySelector(".train")
+              elem.scrollTop += 20;
+            } 
+          } else if(currentModule.name == "Fiches") {
+            if (msg == 'GAUCHE') {
+              let elem = document.querySelector(".popup")
+              elem.scrollTop -= 20;
+            } else if (msg === 'DROITE') {
+              let elem = document.querySelector(".popup")
+              elem.scrollTop += 20;
+            }
+          }
+  
+  
+  
+          if (msg === 'GAUCHE' || msg === 'DROITE') {
+            return;
+          }
+        }
 
-      fetchData(); // Appel initial
-      
-      return () => {
-          socket.disconnect();
-      };
-  }, []);
+
+            if(msg === "GAUCHE") {
+                console.log("GAUCHE");
+                moveLeft();
+            } else if(msg === "DROITE") {
+                console.log("DROITE");
+                moveRight();
+            }
+          }
+            break;
+        case "bouton_molette":
+            if(msg === "APPUI") handleMoletteButtonPress();
+            break;
+        case "bouton_action":
+            if(msg === "APPUI") alert("appui du bouton");
+            break;
+        case "fiches_update":
+            fetchFiches();
+            break;
+        case "translation":
+            setInitialTraduction(message["initialText"]);
+            setFinalTraduction(message["translatedText"]);
+            break;
+        case "feeds_update":
+            fetchFeeds();
+            break;
+        case "reveil_update":
+            fetchAlarms();
+            break;
+        case "qcm_update":
+            fetchQcms();
+            break;
+        case "tasks_update":
+            fetchCategories();
+            break;
+        case "rappels_update":
+            fetchRappels();
+            break;
+        default:
+            console.log('Unknown message type:', type);
+    }
+
+    console.log('Message received: ', message);
+});
+
+const handleMoletteButtonPress = () => {
+    const currentModule = modules[currentIndex];
+    if(qcmStartup) {
+        setQcmStartup(false);
+        setShowResults(false);
+        setIndice(0);
+        setPoints(0);
+        setSelectedAnswers({});
+        setResults([]);
+        return;
+    }
+    if(popup) {
+        setPopup(false);
+        return;
+    }
+    if(currentModule.name === "Chronometre") {
+        setGetC(!getC);
+    }
+
+    setModules((modules) => modules.map((module, index) => {
+        if (index === currentIndex) {
+            return { ...module, show: !module.show };
+        }
+        if (module.name === "Chronometre") {
+            setGetC(!getC);
+        }
+        return module;
+    }));
+};
+
+// Initial call
+
+return () => {
+    socket.disconnect();
+};
+  }, [currentIndex, modules, qcmStartup, popup]);
 
 
   useEffect(() => {
@@ -799,7 +900,6 @@ const fetchRappels = async() => {
       method: 'get',
       url: `http://${config.URL}:5000/api/getAllRappels`,
   }).then((response) => {
-    console.log(response.data.result)
       setRappels(response.data.result);
   });
 
