@@ -101,7 +101,7 @@ style={{width:"100%", marginTop:"-10px"}}
 
 <div className="container">
   <FirstCard image={DevProd} title="Une solution aux smartphones" description="Les smartphones occupent une place prépondérante dans nos vies, mais ne devraient pas influencer notre efficacité au travail. L'un des défis majeurs est de maximiser la productivité, c'est-à-dire le rendement en temps et en résultats. Les notifications, les appels et les actualités nous distraient souvent. Nous avons besoin d'une solution pour nous affranchir des téléphones, tout en conservant leurs atouts, nous avons besoin de FloBot !"/>
-  <FirstCard image={Help} title="Un compagnon" description="FloBot, c’est plus qu'un simple assistant, il devient votre compagnon de travail, vous offrant une vaste panoplie d'outils pour vous faciliter la vie et vous faire gagner du temps."/>
+  <FirstCard image={Help} title="Un compagnon" description="FloBot, c'est plus qu'un simple assistant, il devient votre compagnon de travail, vous offrant une vaste panoplie d'outils pour vous faciliter la vie et vous faire gagner du temps."/>
   <FirstCard image={Custom} title="Entièrement customisable" description="Nous avons fait en sorte que chaque aspect de Flo soit customisable, et ergonomique a utilisé. En optant pour des designs sobres, droit au but, sans publicités ou distraction"/>
 
 </div>
@@ -161,7 +161,7 @@ style={{width:"100%", marginTop:"-10px"}}
 
 <h2 style={{color: "#152A4D"}}>Des commandes vocales</h2>
 <p>
-A l'occasion de la journée des projets, les commandes vocales n’ont pas été mises en lumière, mais elles sont présentes dans le bot, une fois qu’il est paramétré, vous pouvez interagir avec lui par voie vocale.
+A l'occasion de la journée des projets, les commandes vocales n'ont pas été mises en lumière, mais elles sont présentes dans le bot, une fois qu'il est paramétré, vous pouvez interagir avec lui par voie vocale.
 </p>
 
 
@@ -181,7 +181,7 @@ A l'occasion de la journée des projets, les commandes vocales n’ont pas été
  Les fonctionnalités
   </h2>
   <p>
-  Dans cette section, nous vous recensons les modules majeurs de Flo, il y en a d’autres que nous vous invitons a découvrir sur notre stand.
+  Dans cette section, nous vous recensons les modules majeurs de Flo, il y en a d'autres que nous vous invitons a découvrir sur notre stand.
   </p>
 </div>
 
@@ -358,7 +358,7 @@ Newsletter
 Contact
   </h2>
   <p>
-  Cette rencontre a la journée des projets vous a plû ? Vous avez une idée d’implémentations futures ? Voici un formulaire que vous pouvez remplir que nous sera d’une grande aide, merci pour l’attention que vous portez au projet !
+  Cette rencontre a la journée des projets vous a plû ? Vous avez une idée d'implémentations futures ? Voici un formulaire que vous pouvez remplir que nous sera d'une grande aide, merci pour l'attention que vous portez au projet !
   </p>
   
 
