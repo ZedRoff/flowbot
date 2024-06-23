@@ -91,6 +91,7 @@ Conçu par des étudiants pour des étudiants,
 <Image
 src={wave}
 style={{width:"100%", marginTop:"-10px"}}
+alt="Wave"
 />
 
 <div className="title_container">
@@ -233,6 +234,7 @@ Pourquoi investir dans FloBot ?
 <Image
 src={Arrow}
 width={50}
+alt="Arrow"
 />
 
 <h2 style={{color: "#152A4D"}}>Flo c'est,</h2>
@@ -251,6 +253,7 @@ width={50}
 <Image
 src={Arrow}
 width={50}
+alt="Arrow"
 />
 
 <h2 style={{color: "#152A4D"}}>Votre investissement nous permettra de,</h2>
@@ -269,6 +272,7 @@ width={50}
 <Image
 src={Arrow}
 width={50}
+alt="Arrow"
 />
 
 <h2 style={{color: "#152A4D"}}>Vous avez les avantages suivants,</h2>
@@ -285,6 +289,7 @@ width={50}
 <Image
 src={Arrow}
 width={50}
+alt="Arrow"
 />
 
 <h2 style={{color: "#152A4D"}}>Convaincu ? Cliquez ici pour nous soutenir</h2>
@@ -293,6 +298,7 @@ src={leetchi}
 width={150}
 height={50}
 style={{borderRadius:"5px"}}
+alt="Leetchi"
 />
 
 </div>
@@ -323,6 +329,7 @@ Newsletter
       <Image
       src={DiscordLogo}
       width={150}
+      alt="Discord Logo"
       />
 
     </div>
@@ -341,6 +348,7 @@ Newsletter
       src={checktick}
       width={25}
       style={{ cursor: "pointer"}}
+      alt="Check Tick"
       />
 </div>
 </div>
@@ -402,16 +410,19 @@ Contact
     src={githubcircle}
     width={50}
     style={{borderRadius:"50%"}}
+    alt="Github"
     />
     <Image
     src={mailcircle}
     width={50}
     style={{borderRadius:"50%"}}
+    alt="Mail"
     />
     <Image
     src={discordcircle}
     width={50}
     style={{borderRadius:"50%"}}
+    alt="Discord"
     />
 
     </div>

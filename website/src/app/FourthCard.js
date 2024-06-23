@@ -8,6 +8,7 @@ const FourthCard = ({icon, description}) => {
 <Image
 src={icon}
 width={50}
+alt="no image"
 />
 <h3 style={{color: "#152A4D"}}>{description}</h3>
 
