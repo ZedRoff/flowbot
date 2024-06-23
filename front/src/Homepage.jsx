@@ -124,6 +124,8 @@ const Homepage = () => {
   let [currentIndex, setCurrentIndex] = useState(0);
 
   let [modules, setModules] = useState([
+    
+    {name: "Enregistrement", description: "Enregistre toi en train de réviser", icon: "micro.png", show: false},
     { name: "Tâches", description: "Organise tes journées en tâches", icon: "taches.png", show: false },
     { name: "Rappels", description: "N'oublie plus rien", icon: "reveil.png", show: false },
     { name: "Quizzs", description: "Teste tes connaissances", icon: "quizz.png", show: false },
@@ -135,7 +137,7 @@ const Homepage = () => {
     {name: "Trains", description: "Consulte les horaires de train", icon: "trains.png", show: false},
     {name: "Fiches", description: "Consulte tes fiches de révision", icon: "fiche.png", show: false},
     {name: "Actualités", description: "Consulte les actualités", icon: "news.png", show: false},
-    {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false},
+    {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false}
     
 
     
@@ -194,6 +196,14 @@ const Homepage = () => {
   let refRappels = useRef(null);
   let refEdt = useRef(null);    
 
+
+
+
+const [indexFiche, setIndexFiche] = useState(0);
+const [indexQcm, setIndexQcm] = useState(0);
+const [insideQcmIndex, setInsideQcmIndex] = useState(0);
+
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Récupérer l'état actuel du module courant
@@ -205,9 +215,13 @@ const Homepage = () => {
       if (currentModule.show) {
        
         if(currentModule.name == "Tâches") {
-          console.log("oof")
+        
           if (e.key === 'ArrowLeft') {
-         refTaches.current.scrollLeft -= 20;
+
+            refTaches.current.scrollLeft -= 20;
+
+
+
           } else if (e.key === 'ArrowRight') {
             refTaches.current.scrollLeft += 20;
           }
@@ -249,12 +263,63 @@ const Homepage = () => {
         } else if(currentModule.name == "Fiches") {
           if (e.key === 'ArrowLeft') {
             let elem = document.querySelector(".popup")
-            elem.scrollTop -= 20;
+            if(popup) {
+              elem.scrollTop -= 20;
+              return;
+            }
+           
+            setIndexFiche(Math.max(0, indexFiche - 1));
+        
           } else if (e.key === 'ArrowRight') {
             let elem = document.querySelector(".popup")
+            if(popup) {
+              elem.scrollTop += 20;
+              return;
+            }
+        
+            setIndexFiche(Math.min(fiches.length - 1, indexFiche + 1));
+          
+          }
+        } else if(currentModule.name == "Quizzs") {
+          if (e.key === 'ArrowLeft') {
+            if(qcmStartup) {
+
+
+              setInsideQcmIndex(Math.max(0, insideQcmIndex - 1));
+
+
+              console.log(qcm)
+            
+return;
+            }
+
+
+
+            setIndexQcm(Math.max(0, indexQcm - 1));
+          } else if (e.key === 'ArrowRight') {
+            if(qcmStartup) {
+
+           
+
+        setInsideQcmIndex(Math.min(JSON.parse(qcm[indice][1]).length, insideQcmIndex + 1));
+    
+
+             
+              return;
+            }
+
+            setIndexQcm(Math.min(qcms.length - 1, indexQcm + 1));
+          }
+        } else if(currentModule.name == "Enregistrement") {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".enregistrements")
+            elem.scrollTop -= 20;
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".enregistrements")
             elem.scrollTop += 20;
           }
         }
+
 
 
 
@@ -264,11 +329,28 @@ const Homepage = () => {
       }
   
       if (e.key === 'ArrowLeft') {
+
+
+
         moveLeft();
       } else if (e.key === 'ArrowRight')  {
+
+
+
         moveRight();
       } else if(e.key === "A") {
 
+        if(showResults) {
+          setQcmStartup(false);
+          setShowResults(false);
+          setIndice(0);
+          setPoints(0);
+          setSelectedAnswers({});
+          setResults([]);
+          setInsideQcmIndex(0);
+          
+          return;
+        }
 
         if(qcmStartup) {
           setQcmStartup(false);
@@ -277,6 +359,7 @@ const Homepage = () => {
           setPoints(0);
           setSelectedAnswers({});
           setResults([]);
+          setInsideQcmIndex(0);
 return;
         }
         if(popup) {
@@ -304,6 +387,37 @@ return;
           });
         });
      
+      } else if(e.key == "Z") {
+        if(currentModule.name == "Fiches" && currentModule.show) {
+          handleShowFiche(fiches[indexFiche].title);
+        } else if(currentModule.name == "Quizzs" && currentModule.show) {
+          if (qcmStartup) {
+
+
+            if(insideQcmIndex == JSON.parse(qcm[indice][1]).length) {
+              handleValidate();
+
+              return;
+            }
+
+            const currentQuestion = qcm[indice][0];
+           
+                  setSelectedAnswers((prev) => {
+                    const currentAnswers = prev[currentQuestion] || [];
+                    if (!currentAnswers.includes(JSON.parse(qcm[indice][1])[insideQcmIndex].text)) {
+                      return { ...prev, [currentQuestion]: [...currentAnswers, JSON.parse(qcm[indice][1])[insideQcmIndex].text] };
+                    } else {
+                      return { ...prev, [currentQuestion]: currentAnswers.filter((val) => val !== JSON.parse(qcm[indice][1])[insideQcmIndex].text) };
+                    }
+                  });
+
+
+
+           } else {
+          handleGetQcm(qcms[indexQcm]);
+        }
+         
+        }
       }
     };
 
@@ -312,7 +426,7 @@ return;
     return () => {
       document.removeEventListener('keyup', handleKeyDown);
     };
-  }, [currentIndex, modules, qcmStartup, popup]);
+  }, [currentIndex, modules, qcmStartup, popup, indexFiche, indexQcm, insideQcmIndex]);
 
 
 
@@ -517,7 +631,7 @@ socket.on('message', (message) => {
         if (currentModule.show) {
        
           if(currentModule.name == "Tâches") {
-            console.log("oof")
+       
             if (msg === 'GAUCHE') {
            refTaches.current.scrollLeft -= 20;
             } else if (msg === 'DROITE') {
@@ -832,6 +946,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
               fiche: ficheTitle
           }
       }).then((response) => {
+
           setFiche(response.data.result);
           setPopup(true);
       });
@@ -888,6 +1003,8 @@ const [typeTrain, setTypeTrain] = useState("departures");
       }
 
       setIndice(indice + 1);
+      setInsideQcmIndex(0);
+
       setSelectedAnswers({});
   };
 
@@ -904,9 +1021,20 @@ const fetchRappels = async() => {
   });
 
 }
+
+const [enregistrements, setEnregistrements] = useState([]);
+const fetchEnregistrements = async() => {
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getEnregistrements`,
+  }).then((response) => {
+      setEnregistrements(response.data.result);
+  });
+}
 useEffect(() => {
 
   fetchRappels();
+  fetchEnregistrements()
   }, [])
 
 
@@ -969,6 +1097,159 @@ useEffect(() => {
 
         
       </main>
+
+
+
+{modules[currentIndex].name == "Enregistrement" && modules[currentIndex].show && (
+        <div className="popC">
+        <h2 style={{color:"black"}}>Enregistrement</h2>
+     
+         
+          <div className="enregistrements" style={{display: "flex", flexDirection: "column", gap: 15, marginTop: 15, height:"300px", overflowY: "scroll"}}>
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+            {enregistrements.map((enregistrement, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+               <h2>
+                {enregistrement}
+               </h2>
+               <button onClick={() => {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                      filename: enregistrement
+                  }
+
+                })
+               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
+              </div>
+            ))}
+
+            </div>
+   
+      </div>
+    )}
+
+
+
       {modules[currentIndex].name == "Tâches" && modules[currentIndex].show && (
         <div className="popC">
    
@@ -1078,9 +1359,9 @@ useEffect(() => {
         <div className="popC">
         <div className="fiches">
                                                             <h2>Fiches</h2>
-                                                            <div className="fiches-container" style={{display: "flex", gap: "15px", flexFlow: "row wrap"}}>
+                                                            <div className="fiches-container" style={{display: "flex", gap: "25px", flexFlow: "row wrap"}}>
                                                                 {fiches.map((fiche, index) => (
-                                                                    <div key={index} className="fiche" style={{padding: "25px", borderRadius: "15px", background: '#FF5733', color: "white", width: "300px"}} onClick={() => handleShowFiche(fiche.title)}>
+                                                                    <div key={index} className="fiche" style={{padding: "25px", borderRadius: "15px", background: '#FF5733', color: "white", width: "300px", transform: index == indexFiche ? "scale(1.1)" : "scale(1)"}} onClick={() => handleShowFiche(fiche.title)}>
                                                                         <h3 style={{borderBottom: "1px solid white"}}>{fiche.title}</h3>
                                                                         <p>{fiche.description}</p>
                                                                     </div>
@@ -1135,11 +1416,11 @@ useEffect(() => {
         <div className="popC">
         <div className="qcm">
                                                                 <h2>QCM</h2>
-                                                                <div className="qcm-container">
+                                                                <div style={{display: "flex", flexFlow: "row wrap", gap: "25px"}}>
                                                                     {qcms.map((qcm, index) => (
-                                                                        <div key={index} className="qcm">
+                                                                        <div key={index} className="qcm" style={{border: "2px solid black", padding: "15px", borderRadius: "15px", transform: index == indexQcm ? "scale(1.1)" : "scale(1)"}}>
                                                                             <h3>{qcm}</h3>
-                                                                            <button onClick={() => handleGetQcm(qcm)}>
+                                                                            <button onClick={() => handleGetQcm(qcm)} style={{background: "#142a4d", padding: "15px", borderRadius: "15px", color: "#6fdde8"}}>
                                                                                 Démarrer le QCM
                                                                             </button>
                                                                         </div>
@@ -1267,15 +1548,20 @@ useEffect(() => {
                                         <div className="qcm-answers" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                                             {JSON.parse(qcm[indice][1]).map((answer, index) => (
                                                 <div key={index} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                                  <div style={{ padding: "5px", background: insideQcmIndex == index ? "#e74c3c" : "#f2f2f2", borderRadius: "15px"}}>
+
                                                     <input
                                                         type="checkbox"
                                                         name={answer.text}
                                                         value={answer.text}
                                                         checked={(selectedAnswers[qcm[indice][0]] || []).includes(answer.text)}
+                                                        style={{ borderRadius: "5px", padding: "5px", cursor: "pointer" }}
                                                         onChange={(e) => {
+                                                          console.log(selectedAnswers)
                                                             const isChecked = e.target.checked;
                                                             setSelectedAnswers((prev) => {
                                                                 const currentAnswers = prev[qcm[indice][0]] || [];
+                                                              
                                                                 if (isChecked) {
                                                                     return { ...prev, [qcm[indice][0]]: [...currentAnswers, e.target.value] };
                                                                 } else {
@@ -1284,11 +1570,12 @@ useEffect(() => {
                                                             });
                                                         }}
                                                     />
+                                                    </div>
                                                     <label>{answer.text}</label>
                                                 </div>
                                             ))}
                                         </div>
-                                        <button onClick={handleValidate}>Suivant</button>
+                                        <button onClick={handleValidate} style={{border: insideQcmIndex == JSON.parse(qcm[indice][1]).length ? "2px solid red" : "2px solid grey"}}>Suivant</button>
                                     </>
                                 ) : (
                                     <div className="qcm-results" style={{ marginTop: "20px", padding: "20px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)" }}>

@@ -206,6 +206,15 @@ CREATE TABLE IF NOT EXISTS notes(
 )
 ''')
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS pense_bete(
+            title TEXT,
+            content TEXT
+            )
+            '''
+            )
+con.commit()
+
 
 
 

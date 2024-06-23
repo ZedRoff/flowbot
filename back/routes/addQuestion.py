@@ -19,8 +19,10 @@ def add_question():
            
             # check if already exists
             cur = con.cursor()
-            cur.execute("SELECT * FROM qcm WHERE question=?", (question,))
+            cur.execute("SELECT * FROM qcm WHERE titre=?", (question,))
+            print(question)
             if cur.fetchone():
+                print(cur.fetchone())
                 return jsonify({'result': 'already'})
             
             cur = con.cursor()

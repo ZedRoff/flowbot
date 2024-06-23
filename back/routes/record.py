@@ -4,6 +4,7 @@ import numpy as np
 import threading
 from flask import Flask, Blueprint, jsonify, request
 import os
+import uuid
 
 app = Flask(__name__)
 
@@ -67,7 +68,7 @@ def start_record():
 def stop_record():
     global is_recording, recording
     data = request.get_json()
-    filename = data['filename']
+    filename = f"{uuid.uuid4().hex}.wav"
 
     if is_recording:
         is_recording = False

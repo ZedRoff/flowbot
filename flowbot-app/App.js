@@ -7,7 +7,7 @@ import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faUser, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile, faCalendar, faTerminal, faTasks, faLightbulb, faHome, faCog, faExchange, faPlus, faArrowUp, faArrowDown, faPlay, faStop, faPause, faPlayCircle, faCopy, faUpload, faUndo, faCalendarCheck, faSpellCheck, faLanguage, faClose, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile, faCalendar, faTerminal, faTasks, faLightbulb, faHome, faCog, faExchange, faPlus, faArrowUp, faArrowDown, faPlay, faStop, faPause, faPlayCircle, faCopy, faUpload, faUndo, faCalendarCheck, faSpellCheck, faLanguage, faClose, faArrowRight, faBook, faStickyNote } from '@fortawesome/free-solid-svg-icons';
 import Slider from '@react-native-community/slider';
 import * as DocumentPicker from 'expo-document-picker';
 import RNPickerSelect from 'react-native-picker-select'
@@ -1350,8 +1350,7 @@ const deleteQuestion = (questionIndex) => {
       return;
     }
 
-    showToastI("success", "QCM validé", "Le QCM a été validé avec succès")
-
+    
 
 
     for(let i = 0; i < qcmQuestions.length; i++) {
@@ -1364,10 +1363,19 @@ const deleteQuestion = (questionIndex) => {
           question: qcmQuestions[i].question,
           choix: JSON.stringify(qcmQuestions[i].options)
         }
+    }).then((res) => {
+      if(res.data.result == "success") {
+        showToastI("success", "Question ajoutée", "La question a été ajoutée avec succès")
+        setQcmTitle('');
+        setQcmQuestions([]);
+        fetchQcms();
+      } else if(res.data.result == "already") {
+        showToastI("error", "Question déjà existante", "La question existe déjà")
+      }
+
     })
 
     }
-    fetchQcms();
   }
    
 const [qcms, setQcms] = useState([]);
@@ -1897,11 +1905,71 @@ const removeFeed = (url) => {
 useEffect(() => {
   fetchFeeds()
 }, [])
-const [page, setPage] = useState("settings")
+const [page, setPage] = useState("home")
 
 
 const [globalVolume, setGlobalVolume] = useState(0.5);
 const [effectsVolume, setEffectsVolume] = useState(0.5);
+
+const [notes, setNotes] = useState([]);
+const [noteTitle, setNoteTitle] = useState('');
+const [noteContent, setNoteContent] = useState('');
+const [showPenseBete, setShowPenseBete] = useState(false);
+const addNote = () => {
+  if(noteTitle === '') {
+    showToastI("error", "Erreur", "Le titre de la note ne peut pas être vide")
+    return;
+  }
+  if(noteContent === '') {
+    showToastI("error", "Erreur", "Le contenu de la note ne peut pas être vide")
+    return;
+  }
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/addPenseBete`,
+    data: {
+      title: noteTitle,
+      content: noteContent,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      showToastI("success", "Note ajoutée", "La note a été ajoutée avec succès")
+      setNoteTitle('');
+      setNoteContent('');
+      fetchNotes();
+    } else if(response.data.result == "already") {
+      showToastI("error", "Erreur", "La note existe déjà")
+    }
+
+  });
+}
+const fetchNotes = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getPenseBete`,
+  }).then((response) => {
+    console.log(response.data.result)
+    setNotes(response.data.result);
+  });
+}
+const deleteNote = (id) => {
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/deleteNote`,
+    data: {
+      title: id
+    },
+  }).then((response) => {
+    if (response.data.result === 'success') {
+      showToastI("success", "Note supprimée", "La note a été supprimée avec succès")
+      fetchNotes();
+    }
+  });
+}
+useEffect(() => {
+  fetchNotes();
+
+}, [])
 
 
 
@@ -1962,6 +2030,13 @@ style={styles.image}
 
     <Image source={require('./assets/edt.png')} style={styles.icon} />
     <Text>Emploi du temps</Text>
+  </Pressable>
+
+
+  <Pressable onPress={() => setShowPenseBete(true)} style={styles.item}>
+
+    <FontAwesomeIcon icon={faStickyNote} style={styles.icon} /> 
+    <Text>Pense Bête</Text>
   </Pressable>
 
   <Pressable onPress={() => setShowTaches(true)} style={styles.item}>
@@ -3057,6 +3132,99 @@ setModifyTo(element.endTime)
   </SafeAreaView>
 
 )}
+
+
+
+{showPenseBete && (
+  <SafeAreaView style={styles.page}>
+    <ScrollView style={{marginBottom:100}}>
+    <View style={styles.header}>
+
+<Text style={{fontSize: 20}}>Pense-bête</Text>
+<Pressable onPress={() => setShowPenseBete(false)}>
+  <FontAwesomeIcon icon={faX} size={20} />
+</Pressable>
+
+</View>
+
+<View style={styles.insidePage}>
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Ajouter une note :</Text>
+
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Titre</Text>
+<TextInput
+          style={styles.input}
+          value={noteTitle}
+          onChangeText={setNoteTitle}
+          placeholder="Entrez le titre de la note"
+        />
+
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Contenu</Text>
+<TextInput
+          style={styles.input}
+          value={noteContent}
+          onChangeText={setNoteContent}
+          placeholder="Entrez le contenu de la note"
+        />
+
+</View>
+<Pressable onPress={addNote} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+              <FontAwesomeIcon icon={faPlus} size={20} style={{color:"#6FDDE8"}} />
+                <Text style={{color:"#6FDDE8", fontSize:20}}>Ajouter</Text>
+
+
+</Pressable>
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Liste des notes :</Text>
+
+</View>
+
+{notes.length == 0 && (
+  <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucune note n'a été créée</Text>
+)}
+
+{notes.map((note) => (
+  <View key={note} style={{display: "flex", justifyContent: "space-between", padding: 10, borderRadius: 5, backgroundColor:"white", marginTop: 15, flexDirection: "row", backgroundColor:"#142A4D"}}>
+  
+  <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+    <Text style={{color:"white", fontWeight: "bold", fontSize: 25}}>{note[0]}</Text>
+
+    <Text style={{color:"white"}}>{note[1]}</Text>
+</View>
+    <Pressable onPress={() => {
+      axios({
+        method: 'post',
+        url: `http://${config.URL}:5000/api/removePenseBete`,
+        data: {
+          title: note[0]
+        },
+      }).then((response) => {
+        if(response.data.result == "success") {
+          showToastI("success", "Note supprimée", "La note a été supprimée avec succès")
+          fetchNotes();
+        }
+      }
+      )
+    }}>
+      <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+    </Pressable>
+  </View>
+))}
+
+</View>
+</ScrollView>
+</SafeAreaView>
+)
+
+}
+
+
+
 
 {showFileInfo && (
   <SafeAreaView style={{backgroundColor: "white", position: "absolute", right: 0, left: 0, bottom: 0,top: 45
@@ -4227,7 +4395,7 @@ markingType={'multi-dot'}
 
 
         <View style={styles.footer}>
-        <ToastContainer />
+       
 <TouchableOpacity onPress={() => setPage("home")}>
  <FontAwesomeIcon icon={faHome} size={30} style={{color: "black"}}/>
 </TouchableOpacity>
@@ -4335,13 +4503,13 @@ image: {
 },
 titleCategory:{borderBottomWidth: 2, borderBottomColor: "black", padding: 10},
 flexer:{display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 25,padding: 25, justifyContent: "space-evenly"},
-footer:{display:"flex", alignItems: "center", justifyContent: "space-evenly", backgroundColor: "white", flexDirection:"row",height:"10%",  shadowColor: '#000',
+footer:{display:"flex", alignItems: "center", justifyContent: "space-evenly", backgroundColor: "white", flexDirection:"row", shadowColor: '#000',
   shadowOffset: { width: 0, height: -5 },
   shadowOpacity: 0.2,
   shadowRadius: 10},
 
 
-  page: {backgroundColor: "white", position: "absolute", right: 0, left: 0, bottom: 0, top: 45, padding:25},
+  page: {backgroundColor: "white", position: "absolute", right: 0, left: 0, bottom: 0, top: 15, padding:25},
 
 
   header: {display: "flex", justifyContent: "space-between", flexDirection: "row",padding:25},
