@@ -76,4 +76,3 @@ def readDb(pText):
     cur.close()
     return res
 
-sayInstruction("Bonjour, je suis FlowBot, comment puis-je vous aider ?")

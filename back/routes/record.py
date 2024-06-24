@@ -58,16 +58,16 @@ def play_audio(filename):
 def start_record():
     global recording_thread, is_recording
     if is_recording:
-        return jsonify({'message': 'Un enregistrement est déjà en cours.'}), 400
+        return jsonify({'result': 'Un enregistrement est déjà en cours.'})
 
     recording_thread = threading.Thread(target=record_voice)
     recording_thread.start()
-    return jsonify({'message': 'Enregistrement commencé.'})
+    return jsonify({'result': 'Enregistrement commencé.'})
 
 @bp.route('/api/stopRecord', methods=['POST'])
 def stop_record():
     global is_recording, recording
-    data = request.get_json()
+   
     filename = f"{uuid.uuid4().hex}.wav"
 
     if is_recording:
@@ -76,9 +76,9 @@ def stop_record():
 
         if recording is not None:
             save_audio(f'./uploads/enregistrements/{filename}', recording, fs)
-            return jsonify({'message': 'Audio sauvegardé avec succès.'})
+            return jsonify({'result': 'Audio sauvegardé avec succès.'})
     
-    return jsonify({'message': 'Aucun enregistrement à sauvegarder.'}), 400
+    return jsonify({'result': 'Aucun enregistrement à sauvegarder.'})
 
 @bp.route('/api/playRecord', methods=['POST'])
 def play_record():
@@ -87,7 +87,7 @@ def play_record():
     filename = data['filename']
     try:
         if play_thread is not None and play_thread.is_alive():
-            return jsonify({'message': 'Une lecture est déjà en cours.'}), 400
+            return jsonify({'message': 'Une lecture est déjà en cours.'})
         
         play_thread = threading.Thread(target=play_audio, args=(filename,))
         play_thread.start()
@@ -96,3 +96,14 @@ def play_record():
         return jsonify({'message': 'Erreur lors du démarrage de la lecture audio.', 'error': str(e)})
 
 
+@bp.route('/api/deleteRecord', methods=['POST'])
+def delete_record():
+    data = request.get_json()
+    filename = data['filename']
+    file_path = f'./uploads/enregistrements/{filename}'
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return jsonify({'result': 'Fichier supprimé avec succès.'})
+    else:
+        return jsonify({'result': 'Fichier non trouvé.'})

@@ -1331,7 +1331,7 @@ const fetchRappels = async() => {
         <h2 style={{color:"black"}}>Enregistrement</h2>
      
          
-          <div className="enregistrements" style={{display: "flex", flexDirection: "column", gap: 15, marginTop: 15, height:"300px", overflowY: "scroll", overflow:"hidden"}}>
+          <div className="enregistrements" style={{display: "flex", flexDirection: "column", gap: 15, marginTop: 15,  overflowY: "scroll", overflow:"hidden"}}>
             {enregistrements.map((enregistrement, idx) => (
               <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center", transform: indexEnregistrements == idx ? "scale(1.1)" : "scale(1)", width: "90%", margin: "0 auto", marginTop: "10px"}}>
                <h2>

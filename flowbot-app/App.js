@@ -7,7 +7,7 @@ import io from 'socket.io-client';
 import config from './assets/config.json';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faUser, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile, faCalendar, faTerminal, faTasks, faLightbulb, faHome, faCog, faExchange, faPlus, faArrowUp, faArrowDown, faPlay, faStop, faPause, faPlayCircle, faCopy, faUpload, faUndo, faCalendarCheck, faSpellCheck, faLanguage, faClose, faArrowRight, faBook, faStickyNote } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faVoicemail, faX, faEdit, faFolder, faClock, faTrash, faFile, faCalendar, faTerminal, faTasks, faLightbulb, faHome, faCog, faExchange, faPlus, faArrowUp, faArrowDown, faPlay, faStop, faPause, faPlayCircle, faCopy, faUpload, faUndo, faCalendarCheck, faSpellCheck, faLanguage, faClose, faArrowRight, faBook, faStickyNote, faLink, faCheckCircle, faMicrophone } from '@fortawesome/free-solid-svg-icons';
 import Slider from '@react-native-community/slider';
 import * as DocumentPicker from 'expo-document-picker';
 import RNPickerSelect from 'react-native-picker-select'
@@ -16,6 +16,7 @@ import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
 import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
+import { CheckBox } from 'react-native-elements';
 
 
 LocaleConfig.locales['fr'] = {
@@ -349,6 +350,33 @@ const fetchCity = () => {
 useEffect(() => {
 fetchCity()
 }, [])
+const [showEnregistrement, setShowEnregistrement] = useState(false);
+
+
+const startRecord = async() => {
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/record`
+  }).then((res) => {
+    if(res.data.result == "Un enregistrement est déjà en cours.") {
+      showToastI("error", "Enregistrement déjà en cours", "Un enregistrement est déjà en cours")
+    } else if(res.data.result == "Enregistrement commencé.") {
+      showToastI("success", "Enregistrement commencé", "L'enregistrement a été commencé avec succès")
+    }
+  })
+}
+const stopRecord = async() => {
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/stopRecord`
+  }).then((res) => {
+    if(res.data.result == "Aucun enregistrement à sauvegarder.") {
+      showToastI("error", "Aucun enregistrement à sauvegarder", "Aucun enregistrement n'est en cours")
+    } else if(res.data.result == "Audio sauvegardé avec succès.") {
+      showToastI("success", "Audio sauvegardé", "L'audio a été sauvegardé avec succès")
+    }
+  })
+}
 
 
     const [tasks, setTasks] = useState([]);
@@ -731,6 +759,17 @@ const handleStartChronometre = () => {
   }
   )
 }
+
+
+const [mute, setMute] = useState(false);
+const toggleMute = () => {
+  setMute(!mute);
+}
+const [muteMic, setMuteMic] = useState(false);
+const toggleMuteMic = () => {
+  setMuteMic(!muteMic);
+}
+
 const handleStopChronometre = () => {
   axios({
     method: 'get',
@@ -1976,8 +2015,22 @@ const deleteNote = (id) => {
     }
   });
 }
+
+
+
+const [records, setRecords] = useState([]);
+const fetchRecords = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getEnregistrements`,
+  }).then((response) => {
+    setRecords(response.data.result);
+  });
+}
+
 useEffect(() => {
   fetchNotes();
+  fetchRecords()
 
 }, [])
 
@@ -2045,7 +2098,7 @@ style={styles.image}
 
   <Pressable onPress={() => setShowPenseBete(true)} style={styles.item}>
 
-    <FontAwesomeIcon icon={faStickyNote} style={styles.icon} /> 
+    <Image source={require('./assets/pensebete.png')} style={styles.icon} />
     <Text>Pense Bête</Text>
   </Pressable>
 
@@ -2097,6 +2150,13 @@ style={styles.image}
     <Image source={require('./assets/fiche.png')} style={styles.icon}/>
     <Text>
       Fiche
+    </Text>
+  </Pressable>
+
+  <Pressable onPress={() => setShowEnregistrement(true)}style={styles.item}>
+    <Image source={require('./assets/mic_circle.png')} style={styles.icon}/>
+    <Text>
+      Enregistrement
     </Text>
   </Pressable>
 
@@ -2347,20 +2407,117 @@ Fichiers
     onValueChange={(value) => handleChangeVolume(value)}
   />
 </View>
-<View style={styles.labelInputBox}>
-<Text style={styles.labelText}>Effets:</Text>
-<Slider
-    style={{ width: '100%', marginTop: 10 }}
-    minimumValue={0}
-    maximumValue={1}
-    minimumTrackTintColor="#142A4D"
-    maximumTrackTintColor="#FFFFFF"
-    thumbTintColor="#142A4D"
-    value={effectsVolume}
-    onValueChange={(value) => setEffectsVolume(value)}
-  />
-</View>
+<View style={{display: "flex", flexDirection: "row", gap: 10, alignItems: "center"}}>
+  <Text>
+    Muter le son
+  </Text>
+  <Switch
+  trackColor={{ false: "#767577", true: "#81b0ff" }}
+  thumbColor={mute ? "#f5dd4b" : "#f4f3f4"}
+  ios_backgroundColor="#3e3e3e"
+  onValueChange={toggleMute}
+  value={mute}
+/>
+
  </View>
+
+ <View style={{display: "flex", flexDirection: "row", gap: 10, alignItems: "center"}}>
+  <Text>
+    Muter le microphone
+  </Text>
+  <Switch
+  trackColor={{ false: "#767577", true: "#81b0ff" }}
+  thumbColor={mute ? "#f5dd4b" : "#f4f3f4"}
+  ios_backgroundColor="#3e3e3e"
+  onValueChange={toggleMuteMic}
+  value={muteMic}
+/>
+
+ </View>
+
+ <View className={styles.labelInputBox}>
+<Text style={styles.labelText}>Appairer le module :</Text>
+<View style={{display: "flex", flexDirection: "row"}}>
+    <TextInput
+                style={{borderColor: '#ccc', 
+                  borderWidth: 1,
+                  borderTopLeftRadius: 5,
+                  borderBottomLeftRadius: 5,
+                  paddingLeft: 10, 
+                  backgroundColor: '#fff', 
+                  fontSize: 16,
+                  color: '#333',
+                  alignSelf: "center",
+                  padding:10,width:"80%"}}
+                placeholder="Sélectionner un appareil"
+               
+              />
+ <Pressable onPress={() => {}} style={styles.ctaInput}>
+                <FontAwesomeIcon icon={faLink} size={20} style={{color:"white"}}  />
+              </Pressable>
+
+              </View>
+
+
+</View>
+
+
+
+<View className={styles.labelInputBox}>
+<Text style={styles.labelText}>Sélectionner une voix :</Text>
+<View style={{display: "flex", flexDirection: "row"}}>
+    <TextInput
+                style={{borderColor: '#ccc', 
+                  borderWidth: 1,
+                  borderTopLeftRadius: 5,
+                  borderBottomLeftRadius: 5,
+                  paddingLeft: 10, 
+                  backgroundColor: '#fff', 
+                  fontSize: 16,
+                  color: '#333',
+                  alignSelf: "center",
+                  padding:10,width:"80%"}}
+                placeholder="Voix homme"
+               
+              />
+ <Pressable onPress={() => {}} style={styles.ctaInput}>
+                <FontAwesomeIcon icon={faExchange} size={20} style={{color:"white"}}  />
+              </Pressable>
+
+              </View>
+
+
+</View>
+
+
+<View className={styles.labelInputBox}>
+<Text style={styles.labelText}>Changer le nom :</Text>
+<View style={{display: "flex", flexDirection: "row"}}>
+    <TextInput
+                style={{borderColor: '#ccc', 
+                  borderWidth: 1,
+                  borderTopLeftRadius: 5,
+                  borderBottomLeftRadius: 5,
+                  paddingLeft: 10, 
+                  backgroundColor: '#fff', 
+                  fontSize: 16,
+                  color: '#333',
+                  alignSelf: "center",
+                  padding:10,width:"80%"}}
+                placeholder="Sélectionner votre nom"
+               
+              />
+ <Pressable onPress={() => {}} style={styles.ctaInput}>
+                <FontAwesomeIcon icon={faCheckCircle} size={20} style={{color:"white"}}  />
+              </Pressable>
+
+              </View>
+
+
+</View>
+
+ </View>
+ 
     </View>
 )}
 
@@ -2687,7 +2844,74 @@ setModifyTo(element.endTime)
 
 
 
+{showEnregistrement && (
+<SafeAreaView style={styles.page}>
+<ScrollView style={{marginBottom:100}}>
+<View style={styles.header}>
 
+  <Text style={{fontSize: 20}}>Enregistrement</Text>
+  <Pressable onPress={() => setShowEnregistrement(false)}>
+    <FontAwesomeIcon icon={faX} size={20} />
+  </Pressable>
+
+</View>
+
+<View style={styles.insidePage}>
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Enregistrement</Text>
+
+</View>
+<Pressable
+  onPress={startRecord}
+  style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}
+>
+  <FontAwesomeIcon icon={faMicrophone} size={20} style={{color:"#6FDDE8"}} />
+  <Text style={{color:"#6FDDE8", fontSize:20}}>Enregistrer</Text>
+</Pressable>
+
+<Pressable
+  onPress={stopRecord}
+  style={{backgroundColor: "#142A4D", alignSelf: "flex-end", marginTop: 15, padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}
+>
+
+  <FontAwesomeIcon icon={faStop} size={20} style={{color:"#6FDDE8"}} />
+  <Text style={{color:"#6FDDE8", fontSize:20}}>Arrêter</Text>
+</Pressable>
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Liste des enregistrements</Text>
+</View>
+
+{records.length == 0 && (
+  <Text style={{fontSize:20, textAlign:"center", marginBottom:20}}>Aucun enregistrement n'a été effectué</Text>
+)}
+{records.map((record) => (
+  <View key={record} style={{display: "flex", justifyContent: "space-between", padding: 10, borderRadius: 5, backgroundColor:"white", marginTop: 15, flexDirection: "row", backgroundColor:"#142A4D"}}>
+    <Text style={{color:"white"}}>{record}</Text>
+    <Pressable onPress={() => {
+      axios({
+        method: 'post',
+        url: `http://${config.URL}:5000/api/deleteRecord`,
+        data: {
+          record: record,
+        },
+      }).then((response) => {
+        if(response.data.result === "success") {
+          showToastI("success", "Enregistrement supprimé", "L'enregistrement a été supprimé avec succès")
+          fetchRecords();
+        }
+      });
+    }}>
+      <FontAwesomeIcon icon={faTrash} size={20} color="#FF6254" />
+    </Pressable>
+    </View>
+))}
+
+</View>
+</ScrollView>
+</SafeAreaView>
+
+)}
 
 
 {ficheMaker && (
@@ -4409,6 +4633,7 @@ markingType={'multi-dot'}
 <TouchableOpacity onPress={() => {
   setPage("home")
   setShowAddCommand(false);
+  setShowEnregistrement(false)
   setShowCalendrier(false)
   setShowChronometre(false)
   setShowEditPPTimeTable(false)
@@ -4438,6 +4663,7 @@ markingType={'multi-dot'}
 <TouchableOpacity onPress={() => {
   setPage("settings")
   setShowAddCommand(false);
+  setShowEnregistrement(false)
   setShowCalendrier(false)
   setShowChronometre(false)
   setShowEditPPTimeTable(false)
