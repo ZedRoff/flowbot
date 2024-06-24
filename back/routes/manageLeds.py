@@ -1,4 +1,4 @@
-'''import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 
 
@@ -92,9 +92,9 @@ def manage_leds():
 
         
         except Exception as e:
-            return jsonify({'error': str(e)})'''
+            return jsonify({'error': str(e)})
 
-
+'''
 
 from flask import Blueprint, request, jsonify
 
@@ -108,6 +108,6 @@ def manage_leds():
 
         
         
-
+'''
 
 

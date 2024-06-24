@@ -1,4 +1,4 @@
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 import os
 import json
@@ -374,7 +374,6 @@ def handle_message(message):
 
 
 
-'''
 
 #Setup port name
 GPIO.setmode(GPIO.BOARD)
@@ -410,14 +409,14 @@ def run_molette():
                 prevPVal = prevVal
                 prevVal = 2
         
-        if(prevPVal == prevVal and prevVal == 1):
+        if(prevPVal == prevVal and prevVal == 1 and dir != 0):
             data = {
                    "message": "DROITE",
                    "from": "back",
                    "type": "molette"
                }
             requests.post("http://"+host+":5000/api/send_message",json=data)
-        elif(prevPVal == prevVal and prevVal == 2):
+        elif(prevPVal == prevVal and prevVal == 2 and dir != 0):
             data = {
                    "message": "GAUCHE",
                    "from": "back",
@@ -489,18 +488,18 @@ def run_bouttons():
                
                action_appuyer = False
 
-'''
+
 
 
 
 
 
 if __name__ == '__main__':
-    '''t1 = Thread(target=run_molette)
+    t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
     
     t1.start()
-    t2.start()'''
+    t2.start()
  
     
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)

@@ -646,9 +646,9 @@ socket.on('message', (message) => {
        
           if(currentModule.name == "Tâches") {
        
-            if (msg === 'GAUCHE') {
+            if (msg === 'DROITE') {
            refTaches.current.scrollLeft -= 20;
-            } else if (msg === 'DROITE') {
+            } else if (msg === 'GAUCHE') {
               refTaches.current.scrollLeft += 20;
             }
           
@@ -685,17 +685,38 @@ socket.on('message', (message) => {
             } else if (msg === 'DROITE') {
               let elem = document.querySelector(".train")
               elem.scrollTop += 20;
+
             } 
-          } else if(currentModule.name == "Fiches") {
+          } else if(currentModule.name == "Fiches" && popup) {
             if (msg == 'GAUCHE') {
+
+
               let elem = document.querySelector(".popup")
               elem.scrollTop -= 20;
+return;
+
+
             } else if (msg === 'DROITE') {
+
+
               let elem = document.querySelector(".popup")
               elem.scrollTop += 20;
-            }
-          } else if(currentModule.name == "Quizzs") {
-            if (msg === 'GAUCHE') {
+ return;         
+
+}
+  
+          } else if(currentModule.name == "Fiches" && !popup) {
+
+if(msg == "GAUCHE") {
+setIndexFiche(Math.min(fiches.length-1,indexFiche+1))
+} else if(msg == "DROITE") {
+setIndexFiche(Math.max(0,indexFiche-1))
+}
+}
+
+
+ else if(currentModule.name == "Quizzs") {
+            if (msg === 'DROITE') {
               if(qcmStartup) {
   
   
@@ -710,7 +731,7 @@ socket.on('message', (message) => {
   
   
               setIndexQcm(Math.max(0, indexQcm - 1));
-            } else if (msg === 'DROITE') {
+            } else if (msg === 'GAUCHE') {
               if(qcmStartup) {
   
              
@@ -741,10 +762,10 @@ socket.on('message', (message) => {
         }
 
 
-            if(msg === "GAUCHE") {
+            if(msg === "DROITE") {
                 console.log("GAUCHE");
                 moveLeft();
-            } else if(msg === "DROITE") {
+            } else if(msg === "GAUCHE") {
                 console.log("DROITE");
                 moveRight();
             }
