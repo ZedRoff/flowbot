@@ -1,3 +1,4 @@
+"use client"
 import logo from "./icon_header.png"
 import flo from "./flo.png"
 import SvgBurger from "./burger-menu-svgrepo-com.svg"
@@ -34,15 +35,21 @@ import checktick from "./righttick.png"
 import discordcircle from "./discordcircle.png"
 import githubcircle from "./githubcircle.png"
 import mailcircle from "./mailcircle.png"
+import { useState } from "react"
 
 
 
 
 
 export default function Home() {
+const [show, setShow] = useState(false)
+  const handleClick = () => {
+  setShow(!show)
+  }
   return (
-   <div>
-<header style={{background: "#152A4D",border: "1.5px solid rgba(0,0,0,0.5)", paddingLeft: "15px", paddingRight:"15px", paddingTop: "25px", paddingBottom: "25px", display:"flex",alignItems:"center",justifyContent:"space-between", flexDirection: "row", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)", zIndex:999}}>
+   <div id="accueil">
+<header style={{background: "#152A4D",border: "1.5px solid rgba(0,0,0,0.5)", paddingLeft: "15px", paddingRight:"15px", paddingTop: "25px", paddingBottom: "25px", display:"flex",alignItems:"center",justifyContent:"space-between", flexDirection: "row", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)", zIndex:999, position:"sticky", top: 0}}>
+ 
  <div style={{display: "flex", gap: "10px", alignItems: "center", justifyContent: "center"}}>
 
 
@@ -54,8 +61,40 @@ export default function Home() {
   />
   <h1 style={{color: "white", fontSize: "20px", fontWeight: "600"}}>FloBot</h1>
    </div>
+   <div onClick={handleClick} style={{cursor: "pointer"}}>
 <SvgBurger />
+</div>
+
+<div style={{background: "#152A4D", width: "400px", borderTop:"none", display: show ? "flex" : "none", flexDirection: "column", gap: "15px", padding:"15px", position: "absolute", top: "89px", right: 0}}>
+
+
+<a href="#accueil" style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Accueil
+</a>
+<a href="#pourquoiflo" style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Pourquoi Flo ? 
+</a>
+<a href="#solutionsdeveloppees"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Les solutions développées
+</a>
+<a href="#lesfonctionnalites" style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Les fonctionnalités
+</a>
+<a href="#quisommesnous"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Qui sommes-nous ? 
+</a>
+<a href="#pourquoiinvestir"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Pourquoi investir dans FloBot ?
+</a>
+<a href="#contact"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+Contact
+</a>
+<a href="#newsletter"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
+NewsLetter
+</a>
+</div>
 </header>
+
 <section style={{background: "#152A4D",marginTop:"0px", display: "flex", justifyContent: "space-evenly", alignItems: "center", flexFlow: "row wrap", paddingTop:"50px", paddingBottom:"50px"}}>
 <Image
   src={flo}
@@ -94,6 +133,7 @@ style={{width:"100%", marginTop:"-10px"}}
 alt="Wave"
 />
 
+<div id="pourquoiflo" style={{paddingBottom:"50px"}}></div>
 <div className="title_container">
   <h2 className="title">
  Pourquoi Flo ?
@@ -107,7 +147,7 @@ alt="Wave"
 
 </div>
 <div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
-
+<div id="solutionsdeveloppees" style={{paddingBottom:"50px"}}></div>
 
 <div className="title_container">
   <h2 className="title">
@@ -158,7 +198,7 @@ alt="Wave"
 
 
 
-<div style={{display: "flex", flexDirection: "column", gap: "25px", flex: 1, marginLeft:"-100px"}}>
+<div style={{display: "flex", flexDirection: "column", gap: "25px", flex: 1, alignItems:"center"}}>
 
 <h2 style={{color: "#152A4D"}}>Des commandes vocales</h2>
 <p>
@@ -176,7 +216,7 @@ A l'occasion de la journée des projets, les commandes vocales n'ont pas été m
 
 <div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
 
-
+<div id="lesfonctionnalites" style={{paddingBottom:"50px"}}></div>
 <div className="title_container">
   <h2 className="title">
  Les fonctionnalités
@@ -192,14 +232,14 @@ A l'occasion de la journée des projets, les commandes vocales n'ont pas été m
   <SecondCard title="Fiches de révisions" description="Assez d'avoir un tas de feuilles et de devoir réfléchir a la disposition de vos fiches ? Nous avons la solution pour vous et avons développé pour cette occasion un système de fiches personnalisées, avec lequel vous pouvez rédiger vos propres fiches et les visionnées sur le bot." />
   <SecondCard title="Outils d'organisations" description="Des outils complets de gestion du temps comme un emploi du temps, un système de rappels sont mit a votre disposition. Vous pouvez aussi gérer mieux votre temps en gardant l'oeil sur les temps de vos trains. Aussi un pense bête est mit a votre disposition pour y inscrire vos idées les plus folles" />
 
-  <h2 style={{color: "#152A4D", alignSelf:"flex-end", marginTop: "-15px", paddingRight:"25px"}}>Et bien plus encore ...</h2>
+  <h2 style={{color: "#152A4D", alignSelf:"center", marginTop: "-15px"}}>Et bien plus encore ...</h2>
 </div>
 
 <div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
 
 
 
-
+<div id="quisommesnous" style={{paddingBottom:"50px"}}></div>
 
 <div className="title_container">
   <h2 className="title">
@@ -211,14 +251,14 @@ A l'occasion de la journée des projets, les commandes vocales n'ont pas été m
 <div style={{display: "flex", justifyContent: "center",  gap: "100px", marginTop: "50px", flexFlow: "row wrap"}}>
 
 
-<ThirdCard icon={Nino} background={Spatial} co_name="Nino" role="Concepteur éléctronique" description="Passionné des nouvelles technologies et de l'électronique en général, mon rôle dans la conception de ce projet est le hardware en général comme les modèles, l'électronique etc..." />
-<ThirdCard icon={Aman} background={devBg} co_name="Aman" role="Développeur full-stack" description="Passionné par le développement informatique, mon rôle dans la conception de ce projet est le développement des solutions graphiques du robot." />
+<ThirdCard icon={Nino} link="https://www.linkedin.com/in/nino-coillard-32a9311b1/?originalSubdomain=fr" background={Spatial} co_name="Nino" role="Concepteur éléctronique" description="Passionné des nouvelles technologies et de l'électronique en général, mon rôle dans la conception de ce projet est le hardware en général comme les modèles, l'électronique etc..." />
+<ThirdCard icon={Aman} link="https://www.linkedin.com/in/aman-ghazanfar/?originalSubdomain=fr" background={devBg} co_name="Aman" role="Développeur full-stack" description="Passionné par le développement informatique, mon rôle dans la conception de ce projet est le développement des solutions graphiques du robot." />
 
 
 </div>
 
 <div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
-
+<div id="pourquoiinvestir" style={{paddingBottom:"50px"}}></div>
 <div className="title_container">
   <h2 className="title">
 Pourquoi investir dans FloBot ? 
@@ -230,7 +270,7 @@ Pourquoi investir dans FloBot ?
 <div style={{display: "flex", flexDirection: "column", gap: "50px", width: "80%", margin: "0 auto"}}>
 
 
-<div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+<div style={{display: "flex", gap: "10px", alignItems: "center", marginLeft: "70px"}}>
 <Image
 src={Arrow}
 width={50}
@@ -249,7 +289,7 @@ alt="Arrow"
 </div>
 
 
-<div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+<div style={{display: "flex", gap: "10px", alignItems: "center", marginLeft: "70px"}}>
 <Image
 src={Arrow}
 width={50}
@@ -268,7 +308,7 @@ alt="Arrow"
 </div>
 
 
-<div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+<div style={{display: "flex", gap: "10px", alignItems: "center", marginLeft: "70px"}}>
 <Image
 src={Arrow}
 width={50}
@@ -285,21 +325,23 @@ alt="Arrow"
 </div>
 
 
-<div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+<div style={{display: "flex", gap: "10px", alignItems: "center", marginLeft: "70px"}}>
 <Image
 src={Arrow}
 width={50}
 alt="Arrow"
 />
 
-<h2 style={{color: "#152A4D"}}>Convaincu ? Cliquez ici pour nous soutenir</h2>
+<h2 style={{color: "#152A4D"}}>Convaincu ? Cliquez ici pour nous soutenir : </h2>
+<a href="https://www.leetchi.com/fr/c/flobot-1304220?utm_source=copylink&utm_medium=social_sharing" target="_blank">
 <Image
 src={leetchi}
 width={150}
 height={50}
-style={{borderRadius:"5px"}}
+style={{borderRadius:"5px", marginLeft: "50px"}}
 alt="Leetchi"
 />
+</a>
 
 </div>
 
@@ -313,55 +355,8 @@ alt="Leetchi"
 
 <div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
 
-<div className="title_container">
-  <h2 className="title">
-Newsletter
-  </h2>
-  
-</div>
-
-<div style={{background: "#152A4D", display: "flex", flexFlow: "row wrap", justifyContent: "space-evenly", alignItems: "center", gap: "25px", padding: "25px"}}>
-
-    <div style={{display: "flex", flexDirection: "column", gap: "25px", alignItems: "center"}}>
-      <p style={{color: "white"}}>
-        Vous voulez rester notifier des avancées du bot ? Rejoignez le serveur Discord de la communauté !
-      </p>
-      <Image
-      src={DiscordLogo}
-      width={150}
-      alt="Discord Logo"
-      />
-
-    </div>
-
-
-    <div style={{display: "flex", flexDirection: "column", gap: "25px", alignItems: "center"}}>
-      <p style={{color: "white"}}>
-      Vous n'avez pas Discord ? Ne vous en faites pas, renseignez votre adresse-mail pour vous abonnez à la newsletter
-      </p>
-     
-     <div style={{display:"flex"}}>
-     
-      <input type="mail" placeholder="Votre adresse mail" style={{padding: "10px", borderTopLeftRadius: "5px", borderBottomLeftRadius: "5px", border: "none"}} />
-     <div style={{border: "2px solid white", borderTopRightRadius: "5px", borderBottomRightRadius: "5px", paddingTop: "5px", paddingBottom: "5px", paddingLeft: "10px", paddingRight: "10px"}}>
-      <Image
-      src={checktick}
-      width={25}
-      style={{ cursor: "pointer"}}
-      alt="Check Tick"
-      />
-</div>
-</div>
-    </div>
-
-
-</div>
-
-
-<div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
-
-
-<div className="title_container">
+<div id="contact" style={{paddingBottom:"50px"}}></div>
+<div className="title_container" style={{width: "70%", margin: "0 auto", marginTop: "50px"}}>
   <h2 className="title">
 Contact
   </h2>
@@ -370,10 +365,10 @@ Contact
   </p>
   
 
-<div style={{width: "40%", margin: "0 auto"}}>
+<div style={{width: "90%", margin: "0 auto"}}>
 
 
-<form style={{display: "flex", flexDirection: "column", gap: "50px", padding: "25px", background: "#152A4D", borderRadius: "15px"}}>
+<form style={{display: "flex", flexDirection: "column", gap: "50px", padding: "25px", background: "#152A4D", borderRadius: "15px", marginTop: "25px"}}>
 
 <h2 style={{color: "white"}}>
   Formulaire de contact
@@ -389,7 +384,71 @@ Contact
 <a href="mailto:flo-bot.pro@gmail.com" style={{textDecoration: "none", color: "inherit"}}>Notre adresse mail : flo-bot.pro@gmail.com</a>
 </h2>
 </div>
+
+
+
+
+
+
+
+
 </div>
+
+
+
+
+
+
+
+
+<div style={{width:"100px", background: "#152A4D", height: "5px", margin: "auto", marginTop: "50px", borderRadius:"50px"}}></div>
+<div id="newsletter" style={{paddingBottom:"50px"}}></div>
+<div className="title_container">
+  <h2 className="title">
+Newsletter
+  </h2>
+  
+</div>
+
+<div style={{ display: "flex", flexFlow: "row wrap", justifyContent: "space-evenly", alignItems: "center", gap: "100px", padding: "25px"}}>
+
+    <div style={{display: "flex", flexDirection: "column", gap: "25px", alignItems: "center", width:"500px"}}>
+      <p style={{color: "black"}}>
+        Vous voulez rester notifier des avancées du bot ? Rejoignez le serveur Discord de la communauté !
+      </p>
+      <a href="https://discord.gg/BYPZGenrNG" target="_blank">
+      <Image
+      src={DiscordLogo}
+      width={150}
+      alt="Discord Logo"
+      />
+      </a>
+
+    </div>
+
+
+    <div style={{display: "flex", flexDirection: "column", gap: "25px", alignItems: "center", width: "500px"}}>
+      <p style={{color: "black"}}>
+      Vous n'avez pas Discord ? Ne vous en faites pas, renseignez votre adresse-mail pour vous abonnez à la newsletter
+      </p>
+     
+     <div style={{display:"flex"}}>
+     
+      <input type="mail" placeholder="Votre adresse mail" style={{padding: "10px", borderTopLeftRadius: "5px", borderBottomLeftRadius: "5px", border: "none",border:"2px solid #152A4D", borderRight:"none"}} />
+     <div style={{border: "2px solid #152A4D", borderTopRightRadius: "5px", borderBottomRightRadius: "5px", paddingTop: "5px", paddingBottom: "5px", paddingLeft: "10px", paddingRight: "10px", background:"#152A4D"}}>
+      <Image
+      src={checktick}
+      width={25}
+      style={{ cursor: "pointer"}}
+      alt="Check Tick"
+      />
+</div>
+</div>
+    </div>
+
+
+</div>
+
 
 
 
@@ -406,24 +465,30 @@ Contact
 <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
   <h2 style={{color: "white"}}>Liens</h2>
   <div style={{display: "flex", gap: "10px", alignItems: "center", justifyContent: "center"}}>
+  <a href="https://github.com/ZedRoff/flowbot" target="_blank">
     <Image
     src={githubcircle}
     width={50}
     style={{borderRadius:"50%"}}
     alt="Github"
     />
+    </a>
+    <a href="mailto:flo-bot.pro@gmail.com">
     <Image
     src={mailcircle}
     width={50}
     style={{borderRadius:"50%"}}
     alt="Mail"
     />
+    </a>
+    <a href="https://discord.gg/BYPZGenrNG" target="_blank">
     <Image
     src={discordcircle}
     width={50}
     style={{borderRadius:"50%"}}
     alt="Discord"
     />
+    </a>
 
     </div>
 </div>

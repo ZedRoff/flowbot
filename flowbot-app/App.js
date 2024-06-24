@@ -17,6 +17,7 @@ import Toast from 'react-native-toast-message';
 import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
 
+
 LocaleConfig.locales['fr'] = {
   monthNames: [
     'Janvier',
@@ -1349,7 +1350,16 @@ const deleteQuestion = (questionIndex) => {
       showToastI("error", "Erreur", "Chaque question doit avoir au moins une réponse correcte")
       return;
     }
-
+    // check if there are options that are same
+    if(qcmQuestions.some(q => q.options.some(o => q.options.filter(option => option.text === o.text).length > 1))) {
+      showToastI("error", "Erreur", "Les options de chaque question doivent être différentes")
+      return;
+    }
+    // check if there are questions that are same
+    if(qcmQuestions.length !== new Set(qcmQuestions.map(q => q.question)).size) {
+      showToastI("error", "Erreur", "Les questions du QCM doivent être différentes")
+      return;
+    }
     
 
 
@@ -4396,10 +4406,63 @@ markingType={'multi-dot'}
 
         <View style={styles.footer}>
        
-<TouchableOpacity onPress={() => setPage("home")}>
+<TouchableOpacity onPress={() => {
+  setPage("home")
+  setShowAddCommand(false);
+  setShowCalendrier(false)
+  setShowChronometre(false)
+  setShowEditPPTimeTable(false)
+  setShowEditTimeTable(false)
+  setShowFeed(false)
+  setShowFichiers(false)
+  setShowFileInfo(false)
+  setShowLed(false)
+  setShowMeteo(false)
+  setShowMinuteur(false)
+  setShowMusique(false)
+  setShowNotes(false)
+  setShowPenseBete(false)
+  setShowPopupDate(false)
+  setShowQcm(false)
+  setShowReveil(false)
+  setShowTabFichiers(false)
+  setShowTaches(false)
+  setShowTimeTable(false)
+  setShowChronometre(false)
+  setShowCorrecteur(false)
+  setFicheMaker(false)
+  setShowTraducteur(false)
+  }}>
  <FontAwesomeIcon icon={faHome} size={30} style={{color: "black"}}/>
 </TouchableOpacity>
-<TouchableOpacity onPress={() => setPage("settings")}>
+<TouchableOpacity onPress={() => {
+  setPage("settings")
+  setShowAddCommand(false);
+  setShowCalendrier(false)
+  setShowChronometre(false)
+  setShowEditPPTimeTable(false)
+  setShowEditTimeTable(false)
+  setShowFeed(false)
+  setShowFichiers(false)
+  setShowFileInfo(false)
+  setShowLed(false)
+  setShowMeteo(false)
+  setShowMinuteur(false)
+  setShowMusique(false)
+  setShowNotes(false)
+  setShowPenseBete(false)
+  setShowPopupDate(false)
+  setShowQcm(false)
+  setShowReveil(false)
+  setShowTabFichiers(false)
+  setShowTaches(false)
+  setShowTimeTable(false)
+  setShowChronometre(false)
+  setShowTraducteur(false)
+  setShowCorrecteur(false)
+  
+  setFicheMaker(false)
+}}>
  <FontAwesomeIcon icon={faCog} size={30} style={{color: "black"}}  />
 </TouchableOpacity>
 

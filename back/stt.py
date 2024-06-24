@@ -21,6 +21,8 @@ try:
             result = recognizer.Result()
             query = result[14:-3].lower().strip()
             execute_action(query)
+            print(query)
+            print(result)
 except KeyboardInterrupt:
     print("\nKeyboardInterrupt: Arrêt du STT")
 finally:

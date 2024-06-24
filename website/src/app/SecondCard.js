@@ -5,7 +5,7 @@ const SecondCard = (props) => {
         <h2 style={{color: "#17A7E4"}}>
          {props.title}
         </h2>
-        <p style={{marginLeft:"75px", color: "white"}}>
+        <p style={{ color: "white"}} className="spec">
         {props.description}
         </p>
         </div>

@@ -13,6 +13,7 @@ import './Timetable.css';
 import { useRef } from 'react';
 import image from "./images/rerA.png"
 import moment from 'moment';
+
 //pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 
@@ -96,6 +97,13 @@ const ClockAnalog = () => {
 
 
 const Homepage = () => {
+
+
+
+  useEffect(() => {
+    let audio = new Audio("http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3");
+    audio.play();
+  }, [])
   const [getC, setGetC] = useState(false);
   const [qcmStartup, setQcmStartup] = useState(false); 
   const d = new Date();
@@ -125,7 +133,7 @@ const Homepage = () => {
 
   let [modules, setModules] = useState([
     
-    {name: "Enregistrement", description: "Enregistre toi en train de réviser", icon: "micro.png", show: false},
+    {name: "Enregistrement", description: "Enregistre toi en train de réviser", icon: "mic.png", show: false},
     { name: "Tâches", description: "Organise tes journées en tâches", icon: "taches.png", show: false },
     { name: "Rappels", description: "N'oublie plus rien", icon: "reveil.png", show: false },
     { name: "Quizzs", description: "Teste tes connaissances", icon: "quizz.png", show: false },
@@ -178,6 +186,13 @@ const Homepage = () => {
     if (currentIndex > 0) {
       console.log(currentIndex - 1)
       setCurrentIndex(currentIndex - 1);
+      axios({
+        method: "post",
+        url: `http://${config.URL}:5000/api/playSound`,
+        data: {
+          "sound": "Select2.mp3"
+        }
+      })
     }
   };
 
@@ -185,6 +200,13 @@ const Homepage = () => {
     if (currentIndex < modules.length - 1) {
       console.log(currentIndex + 1)
       setCurrentIndex(currentIndex + 1);
+      axios({
+        method: "post",
+        url: `http://${config.URL}:5000/api/playSound`,
+        data: {
+          "sound": "Select2.mp3"
+        }
+      })
     }
   };
 
@@ -308,10 +330,22 @@ const [indexEnregistrements, setIndexEnregistrements] = useState(0);
 return;
             }
 
+            if(showResults) {
+              
+                  let elem = document.querySelector(".qcm-choices");
+                  elem.scrollTop -= 20;
+              
+                return;
+              }
+            
 
 
             setIndexQcm(Math.max(0, indexQcm - 1));
           } else if (e.key === 'ArrowRight') {
+            
+
+
+
             if(qcmStartup) {
 
            
@@ -323,11 +357,21 @@ return;
               return;
             }
 
+
+            if(showResults) {
+             
+                  let elem = document.querySelector(".qcm-choices");
+                  elem.scrollTop += 20;
+            
+                return;
+              }
+
             setIndexQcm(Math.min(qcms.length - 1, indexQcm + 1));
           }
         } else if(currentModule.name == "Enregistrement") {
           if (e.key === 'ArrowLeft') {
             setIndexEnregistrements((Math.max(0, indexEnregistrements - 1)))
+            
              } else if (e.key === 'ArrowRight') {
             setIndexEnregistrements(Math.min(enregistrements.length - 1, indexEnregistrements + 1))
           
@@ -353,7 +397,13 @@ return;
 
         moveRight();
       } else if(e.key === "A") {
-
+        axios({
+          method: "post",
+          url: `http://${config.URL}:5000/api/playSound`,
+          data: {
+            "sound": "Select1.mp3"
+          }
+        })
         if(showResults) {
           setQcmStartup(false);
           setShowResults(false);
@@ -402,6 +452,14 @@ return;
         });
      
       } else if(e.key == "Z") {
+        axios({
+          method: "post",
+          url: `http://${config.URL}:5000/api/playSound`,
+          data: {
+            "sound": "Select1.mp3"
+          }
+        })
+
         if(currentModule.name == "Fiches" && currentModule.show) {
           handleShowFiche(fiches[indexFiche].title);
         } else if(currentModule.name == "Quizzs" && currentModule.show) {
@@ -431,7 +489,20 @@ return;
           handleGetQcm(qcms[indexQcm]);
         }
          
-        }
+        } else if(currentModule.name == "Enregistrement" && currentModule.show) {
+          axios({
+            method: 'post',
+            url: `http://${config.URL}:5000/api/playRecord`,
+            data: {
+              "filename": enregistrements[indexEnregistrements]
+            }
+          }).then((response) => {
+            console.log(response.data);
+          });
+
+          
+        
+      } 
       }
     };
 
@@ -716,6 +787,8 @@ setIndexFiche(Math.max(0,indexFiche-1))
 
 
  else if(currentModule.name == "Quizzs") {
+  
+  
             if (msg === 'DROITE') {
               if(qcmStartup) {
   
@@ -727,7 +800,13 @@ setIndexFiche(Math.max(0,indexFiche-1))
               
   return;
               }
-  
+              if(showResults) {
+             
+                let elem = document.querySelector(".qcm-choices");
+                elem.scrollTop += 20;
+          
+              return;
+            }
   
   
               setIndexQcm(Math.max(0, indexQcm - 1));
@@ -742,7 +821,13 @@ setIndexFiche(Math.max(0,indexFiche-1))
                
                 return;
               }
-  
+              if(showResults) {
+              
+                let elem = document.querySelector(".qcm-choices");
+                elem.scrollTop -= 20;
+            
+              return;
+            }
               setIndexQcm(Math.min(qcms.length - 1, indexQcm + 1));
             }
           } else if(currentModule.name == "Enregistrement") {
@@ -751,7 +836,7 @@ setIndexFiche(Math.max(0,indexFiche-1))
                } else if (msg === 'DROITE') {
               setIndexEnregistrements(Math.min(enregistrements.length - 1, indexEnregistrements + 1))
             
-            }
+            } 
           }
   
   
@@ -776,11 +861,28 @@ setIndexFiche(Math.max(0,indexFiche-1))
             break;
         case "bouton_action":
             if(msg === "APPUI"){
-              
+              axios({
+                method: "post",
+                url: `http://${config.URL}:5000/api/playSound`,
+                data: {
+                  "sound": "Select1.mp3"
+                }
+              })
           let currentModule = modules[currentIndex];
               if(currentModule.name == "Fiches" && currentModule.show) {
                 handleShowFiche(fiches[indexFiche].title);
               } else if(currentModule.name == "Quizzs" && currentModule.show) {
+                if(showResults) {
+                  setQcmStartup(false);
+                  setShowResults(false);
+                  setIndice(0);
+                  setPoints(0);
+                  setSelectedAnswers({});
+                  setResults([]);
+                  setInsideQcmIndex(0);
+                  
+                  return;
+                }
                 if (qcmStartup) {
       
       
@@ -807,7 +909,20 @@ setIndexFiche(Math.max(0,indexFiche-1))
                 handleGetQcm(qcms[indexQcm]);
               }
                
-              }
+              }else if(currentModule.name == "Enregistrement" && currentModule.show) {
+                axios({
+                  method: 'post',
+                  url: `http://${config.URL}:5000/api/playRecord`,
+                  data: {
+                    "filename": enregistrements[indexEnregistrements]
+                  }
+                }).then((response) => {
+                  console.log(response.data);
+                });
+      
+                
+              
+            } 
             }
             break;
         case "fiches_update":
@@ -840,7 +955,25 @@ setIndexFiche(Math.max(0,indexFiche-1))
 });
 
 const handleMoletteButtonPress = () => {
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/playSound`,
+    data: {
+      "sound": "Select2.mp3"
+    }
+  })
     const currentModule = modules[currentIndex];
+    if(showResults) {
+      setQcmStartup(false);
+      setShowResults(false);
+      setIndice(0);
+      setPoints(0);
+      setSelectedAnswers({});
+      setResults([]);
+      setInsideQcmIndex(0);
+      
+      return;
+    }
     if(qcmStartup) {
         setQcmStartup(false);
         setShowResults(false);
@@ -1082,7 +1215,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
 
   const handleValidate = () => {
       const currentQuestion = qcm[indice][0];
-      const correctAnswers = JSON.parse(qcm[indice][1]).filter((answer) => answer.isCorrect).map((answer) => answer.text);
+      const correctAnswers = JSON.parse(qcm[indice][1]).filter((answer) => answer.isCorrect).map((answer) => answer?.text);
       const selected = selectedAnswers[currentQuestion] || [];
       console.log("correctAnswers", correctAnswers);
       console.log("selected", selected);
@@ -1104,6 +1237,9 @@ const [typeTrain, setTypeTrain] = useState("departures");
       if (indice === qcm.length - 1) {
           setShowResults(true);
           setQcmStartup(false);
+          setIndice(0);
+          setInsideQcmIndex(0)
+          setSelectedAnswers({});
           return;
       }
 
@@ -1523,9 +1659,9 @@ const fetchRappels = async() => {
 
                                                     <input
                                                         type="checkbox"
-                                                        name={answer.text}
-                                                        value={answer.text}
-                                                        checked={(selectedAnswers[qcm[indice][0]] || []).includes(answer.text)}
+                                                        name={answer?.text}
+                                                        value={answer?.text}
+                                                        checked={(selectedAnswers[qcm[indice][0]] || []).includes(answer?.text)}
                                                         style={{ borderRadius: "5px", padding: "5px", cursor: "pointer" }}
                                                         onChange={(e) => {
                                                           console.log(selectedAnswers)
@@ -1552,6 +1688,8 @@ const fetchRappels = async() => {
                                     <div className="qcm-results" style={{ marginTop: "20px", padding: "20px", borderRadius: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.1)" }}>
                                         <h2 style={{ fontSize: "1.5rem", marginBottom: "20px" }}>Résultats</h2>
                                         <p>Points: {points} sur {qcm.length}</p>
+
+                                        <div class="qcm-choices" style={{height:"200px", overflowY: "scroll"}}>
                                         {results.map((result, index) => (
                                             <div key={index} style={{ marginBottom: "20px" }}>
                                                 <h3 style={{ fontSize: "1.2rem" }}>{result.question}</h3>
@@ -1562,6 +1700,7 @@ const fetchRappels = async() => {
                                                 </p>
                                             </div>
                                         ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>

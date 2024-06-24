@@ -4,11 +4,15 @@ import Linkedin from "./linkedin.png";
 
 
 
-const ThirdCard = ({icon, background, co_name, role, description}) => {
+const ThirdCard = ({icon, background, co_name, role, description, link}) => {
 return(
 <div style={{background:"white", borderRadius:"15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)", width:"500px"}}>
 
 <div style={{position: "relative", display:"flex", flexDirection: "column"}}>
+
+
+
+
 
 <Image
 src={background}
@@ -25,13 +29,16 @@ alt="no image"
 </div>
 
 <div style={{display: "flex", padding: "25px", justifyContent: "flex-end", alignItems: "center"}}>
+
+<a href={link} target="_blank">
   <Image
+
   src={Linkedin}
   alt="Linkedin"
   width={50}
   style={{borderRadius:"50%"}}
   />
-
+  </a>
 </div>
 
 <div style={{gap: "10px", flexDirection: "column", display: "flex", alignItems: "center"}}>

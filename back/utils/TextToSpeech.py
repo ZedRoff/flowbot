@@ -20,35 +20,38 @@ def get_config_value(key):
 
 
 async def amain(textToSpeak):
-    communicate = edge_tts.Communicate(text, VOICE)
+    communicate = edge_tts.Communicate(textToSpeak, VOICE)
+    
     await communicate.save("temp.mp3")
     
 
 
 def sayInstruction(textToSay):
-    thread = threading.Thread(target=saySomeWordInThread, args=(textToSay,))
-    thread.start()
+    saySomeWordInThread(textToSay)
 
-def setSound(value):
-    engine.setProperty('volume', value)
 
 
 def saySomeWordInThread(string):
     try:
         #setSound(self.CommandMaker.currentVolGeneral)
+        
         loop = asyncio.get_event_loop_policy().get_event_loop()
+        print("passage")
         try:
-            loop.run_until_complete(amain(textToSpeak))
+            
+            loop.run_until_complete(amain(string))
         finally:
+            
             loop.close()
             
         p = vlc.MediaPlayer("temp.mp3")
         p.play()
         setVolumeMusic(-0.6)
+        print(get_config_value('URL'))
         requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string, "command": "command_usage"})
 
         setVolumeMusic(+0.6)
-        engine.endLoop()   
+       
     except RuntimeError:
         pass
 
@@ -72,3 +75,5 @@ def readDb(pText):
     db.commit()
     cur.close()
     return res
+
+sayInstruction("Bonjour, je suis FlowBot, comment puis-je vous aider ?")
