@@ -196,13 +196,28 @@ const Homepage = () => {
   let refRappels = useRef(null);
   let refEdt = useRef(null);    
 
-
+  const [enregistrements, setEnregistrements] = useState([]);
+  const fetchEnregistrements = async() => {
+    axios({
+        method: 'get',
+        url: `http://${config.URL}:5000/api/getEnregistrements`,
+    }).then((response) => {
+        setEnregistrements(response.data.result);
+    });
+  }
+  useEffect(() => {
+  
+    fetchRappels();
+    fetchEnregistrements()
+    }, [])
+  
+  
 
 
 const [indexFiche, setIndexFiche] = useState(0);
 const [indexQcm, setIndexQcm] = useState(0);
 const [insideQcmIndex, setInsideQcmIndex] = useState(0);
-
+const [indexEnregistrements, setIndexEnregistrements] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -312,11 +327,10 @@ return;
           }
         } else if(currentModule.name == "Enregistrement") {
           if (e.key === 'ArrowLeft') {
-            let elem = document.querySelector(".enregistrements")
-            elem.scrollTop -= 20;
-          } else if (e.key === 'ArrowRight') {
-            let elem = document.querySelector(".enregistrements")
-            elem.scrollTop += 20;
+            setIndexEnregistrements((Math.max(0, indexEnregistrements - 1)))
+             } else if (e.key === 'ArrowRight') {
+            setIndexEnregistrements(Math.min(enregistrements.length - 1, indexEnregistrements + 1))
+          
           }
         }
 
@@ -426,7 +440,7 @@ return;
     return () => {
       document.removeEventListener('keyup', handleKeyDown);
     };
-  }, [currentIndex, modules, qcmStartup, popup, indexFiche, indexQcm, insideQcmIndex]);
+  }, [currentIndex, modules, qcmStartup, popup, indexFiche, indexQcm, insideQcmIndex, indexEnregistrements]);
 
 
 
@@ -680,6 +694,43 @@ socket.on('message', (message) => {
               let elem = document.querySelector(".popup")
               elem.scrollTop += 20;
             }
+          } else if(currentModule.name == "Quizzs") {
+            if (msg === 'GAUCHE') {
+              if(qcmStartup) {
+  
+  
+                setInsideQcmIndex(Math.max(0, insideQcmIndex - 1));
+  
+  
+                console.log(qcm)
+              
+  return;
+              }
+  
+  
+  
+              setIndexQcm(Math.max(0, indexQcm - 1));
+            } else if (msg === 'DROITE') {
+              if(qcmStartup) {
+  
+             
+  
+          setInsideQcmIndex(Math.min(JSON.parse(qcm[indice][1]).length, insideQcmIndex + 1));
+      
+  
+               
+                return;
+              }
+  
+              setIndexQcm(Math.min(qcms.length - 1, indexQcm + 1));
+            }
+          } else if(currentModule.name == "Enregistrement") {
+            if (msg === 'GAUCHE') {
+              setIndexEnregistrements((Math.max(0, indexEnregistrements - 1)))
+               } else if (msg === 'DROITE') {
+              setIndexEnregistrements(Math.min(enregistrements.length - 1, indexEnregistrements + 1))
+            
+            }
           }
   
   
@@ -703,7 +754,40 @@ socket.on('message', (message) => {
             if(msg === "APPUI") handleMoletteButtonPress();
             break;
         case "bouton_action":
-            if(msg === "APPUI") alert("appui du bouton");
+            if(msg === "APPUI"){
+              
+          let currentModule = modules[currentIndex];
+              if(currentModule.name == "Fiches" && currentModule.show) {
+                handleShowFiche(fiches[indexFiche].title);
+              } else if(currentModule.name == "Quizzs" && currentModule.show) {
+                if (qcmStartup) {
+      
+      
+                  if(insideQcmIndex == JSON.parse(qcm[indice][1]).length) {
+                    handleValidate();
+      
+                    return;
+                  }
+      
+                  const currentQuestion = qcm[indice][0];
+                 
+                        setSelectedAnswers((prev) => {
+                          const currentAnswers = prev[currentQuestion] || [];
+                          if (!currentAnswers.includes(JSON.parse(qcm[indice][1])[insideQcmIndex].text)) {
+                            return { ...prev, [currentQuestion]: [...currentAnswers, JSON.parse(qcm[indice][1])[insideQcmIndex].text] };
+                          } else {
+                            return { ...prev, [currentQuestion]: currentAnswers.filter((val) => val !== JSON.parse(qcm[indice][1])[insideQcmIndex].text) };
+                          }
+                        });
+      
+      
+      
+                 } else {
+                handleGetQcm(qcms[indexQcm]);
+              }
+               
+              }
+            }
             break;
         case "fiches_update":
             fetchFiches();
@@ -769,7 +853,7 @@ const handleMoletteButtonPress = () => {
 return () => {
     socket.disconnect();
 };
-  }, [currentIndex, modules, qcmStartup, popup]);
+  }, [currentIndex, modules, qcmStartup, popup, indexFiche, indexQcm, insideQcmIndex, indexEnregistrements]);
 
 
   useEffect(() => {
@@ -1022,21 +1106,6 @@ const fetchRappels = async() => {
 
 }
 
-const [enregistrements, setEnregistrements] = useState([]);
-const fetchEnregistrements = async() => {
-  axios({
-      method: 'get',
-      url: `http://${config.URL}:5000/api/getEnregistrements`,
-  }).then((response) => {
-      setEnregistrements(response.data.result);
-  });
-}
-useEffect(() => {
-
-  fetchRappels();
-  fetchEnregistrements()
-  }, [])
-
 
 
 
@@ -1105,9 +1174,9 @@ useEffect(() => {
         <h2 style={{color:"black"}}>Enregistrement</h2>
      
          
-          <div className="enregistrements" style={{display: "flex", flexDirection: "column", gap: 15, marginTop: 15, height:"300px", overflowY: "scroll"}}>
+          <div className="enregistrements" style={{display: "flex", flexDirection: "column", gap: 15, marginTop: 15, height:"300px", overflowY: "scroll", overflow:"hidden"}}>
             {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center", transform: indexEnregistrements == idx ? "scale(1.1)" : "scale(1)", width: "90%", margin: "0 auto", marginTop: "10px"}}>
                <h2>
                 {enregistrement}
                </h2>
@@ -1123,125 +1192,11 @@ useEffect(() => {
                }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
               </div>
             ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
+          
+      
+      
 
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
-
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
-
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
-
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
-
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
-
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
-            {enregistrements.map((enregistrement, idx) => (
-              <div key={idx} style={{background: "rgb(20, 42, 77)", color: "rgb(111, 221, 232)", padding: 10, borderRadius: 15, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-               <h2>
-                {enregistrement}
-               </h2>
-               <button onClick={() => {
-                axios({
-                  method: 'post',
-                  url: `http://${config.URL}:5000/api/playRecord`,
-                  data: {
-                      filename: enregistrement
-                  }
-
-                })
-               }} style={{background: "rgb(111, 221, 232)", color: "rgb(20, 42, 77)", padding: 10, borderRadius: 15, border: "none"}}>Ecouter</button>
-              </div>
-            ))}
+    
 
             </div>
    
@@ -1384,12 +1339,7 @@ useEffect(() => {
                 <p>{feed.headline}</p>
             </div>
         ))}
-  {feeds.map((feed, index) => (
-            <div key={index} className="feed">
-                <h3>{feed.journal}</h3>
-                <p>{feed.headline}</p>
-            </div>
-        ))}
+  
 </div>
                                                   </div>)} 
 
