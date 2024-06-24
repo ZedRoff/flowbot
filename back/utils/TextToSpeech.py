@@ -48,7 +48,7 @@ def saySomeWordInThread(string):
         p.play()
         setVolumeMusic(-0.6)
         print(get_config_value('URL'))
-        requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string, "command": "command_usage"})
+        #requests.post(f"http://{get_config_value('URL')}:5000/api/emitMessage", json={"message": string, "command": "command_usage"})
 
         setVolumeMusic(+0.6)
        
