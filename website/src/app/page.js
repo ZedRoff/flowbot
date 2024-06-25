@@ -48,8 +48,6 @@ const [show, setShow] = useState(false)
   }
 
 
-
-  const refTextArea = React.createRef()
   return (
    <div id="accueil">
 <header style={{background: "#152A4D",border: "1.5px solid rgba(0,0,0,0.5)", paddingLeft: "15px", paddingRight:"15px", paddingTop: "25px", paddingBottom: "25px", display:"flex",alignItems:"center",justifyContent:"space-between", flexDirection: "row", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)", zIndex:999, position:"sticky", top: 0}}>
@@ -90,9 +88,7 @@ Qui sommes-nous ?
 <a href="#pourquoiinvestir"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
 Pourquoi investir dans FloBot ?
 </a>
-<a href="#contact"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
-Contact
-</a>
+
 <a href="#newsletter"  style={{padding: "15px", background: "white", padding: "15px", width: "80%", margin: "0 auto", borderRadius: "15px", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)"}} className="spec_header" onClick={() => setShow(!show)}>
 NewsLetter
 </a>
