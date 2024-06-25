@@ -5,6 +5,10 @@ import threading
 from flask import Flask, Blueprint, jsonify, request
 import os
 import uuid
+import sqlite3
+from flask_socketio import SocketIO, emit
+
+db = sqlite3.connect("./db/database.db", check_same_thread=False)
 
 app = Flask(__name__)
 
@@ -32,7 +36,7 @@ def record_voice():
 
     print("Enregistrement terminé.")
     recording = np.concatenate(recording)
-
+    return jsonify({'result': 'success'})
 def save_audio(filename, recording, fs):
     wavio.write(filename, recording, fs, sampwidth=2)
     print(f"L'audio a été sauvegardé dans le fichier {filename}")
@@ -46,7 +50,16 @@ def play_audio(filename):
             return
 
         audio = wavio.read(file_path).data
+        cur = db.cursor()
+        cur.execute("SELECT voice FROM muted")
+        
         sd.play(audio, fs)
+        muted = cur.fetchone()
+        if muted[0] == "on":
+            sd.volume = 0
+        else:
+            sd.volume = 1
+        
         sd.wait()  
         print('Audio joué avec succès.')
     except Exception as e:
@@ -76,6 +89,7 @@ def stop_record():
 
         if recording is not None:
             save_audio(f'./uploads/enregistrements/{filename}', recording, fs)
+            emit('message', {"from": "back", "type": "recordings_update"}, broadcast=True, namespace='/')
             return jsonify({'result': 'Audio sauvegardé avec succès.'})
     
     return jsonify({'result': 'Aucun enregistrement à sauvegarder.'})
@@ -104,6 +118,6 @@ def delete_record():
 
     if os.path.exists(file_path):
         os.remove(file_path)
-        return jsonify({'result': 'Fichier supprimé avec succès.'})
+        return jsonify({'result': 'success'})
     else:
         return jsonify({'result': 'Fichier non trouvé.'})

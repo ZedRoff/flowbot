@@ -12,7 +12,7 @@ def get_background():
     if request.method == 'GET':
         cur = db.cursor()
         cur.execute("SELECT * FROM background")
-        rows = cur.fetchall()
+        rows = cur.fetchone()
         cur.close()
         response = jsonify({'result': rows})
         return response

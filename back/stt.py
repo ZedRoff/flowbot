@@ -1,6 +1,9 @@
 import pyaudio
 from vosk import Model, KaldiRecognizer
 from utils.ActionsFromText import execute_action
+import sqlite3
+
+con = sqlite3.connect("./db/database.db", check_same_thread=False)
 
 #model_path = r"C:\Users\amang\Desktop\flowbot\flowbot\back\vosk-model-small-fr-0.22"
 model_path = r"./vosk-model-small-fr-0.22"
@@ -16,7 +19,15 @@ stream.start_stream()
 
 try:
     while True:
+        cur = con.cursor()
+        cur.execute("SELECT mic FROM muted")
+        muted = cur.fetchone()
+        cur.close()
+        if muted[0] == "on":
+            continue
+
         data = stream.read(chunk_size)
+
         if recognizer.AcceptWaveform(data):
             result = recognizer.Result()
             query = result[14:-3].lower().strip()

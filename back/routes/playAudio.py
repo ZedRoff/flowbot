@@ -61,7 +61,24 @@ def play_audio():
     if request.method == 'POST':
 
         data = request.get_json()
-        # 
+        
+
+
+
+        cur = db.cursor()
+        cur.execute('''
+SELECT active FROM musiques
+                    
+                    ''')
+        active = cur.fetchone()
+        cur.close()
+        if active[0] == 1 or active[0] == 2:
+            return jsonify({'result': 'already'})
+        with db_lock:
+            cur = db.cursor()
+            cur.execute("UPDATE musiques SET active = 1")
+            db.commit()
+            cur.close()
         videosSearch = VideosSearch(data["query"], limit=1)
         download_audio(videosSearch.result()['result'][0]["link"])
         pygame.mixer.init()
@@ -73,12 +90,8 @@ def play_audio():
         elapsed_time = 0
         last_start_time = time.time()
         is_paused = False
-
-        with db_lock:
-            cur = db.cursor()
-            cur.execute("UPDATE musiques SET active = 1")
-            db.commit()
-            cur.close()
+    
+        
 
         try:
             while True:
@@ -89,7 +102,12 @@ def play_audio():
                     last_start_time = time.time()
                 print("Elapsed time: {}".format(elapsed_time))
                 # Emit the elapsed time
-                
+                cur = db.cursor()
+                muted = cur.execute("SELECT voice FROM muted").fetchone()
+                if muted[0] == "on":
+                    pygame.mixer.music.set_volume(0)
+                else:
+                    pygame.mixer.music.set_volume(1)
                 emit('message', {"from": "back", "type": "music_update", "title": title, "duration": duration, "elapsed_time": elapsed_time, "image": image, "status": status}, broadcast=True, namespace='/')
 
                 with db_lock:

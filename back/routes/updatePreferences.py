@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import sqlite3
+from flask_socketio import SocketIO, emit
 import requests
 
 db = sqlite3.connect("./db/database.db", check_same_thread=False)
@@ -16,7 +17,8 @@ def get_positions():
         cur.execute("UPDATE preferences SET voice = ?, name = ?", (data['voice'], data['name']))
         db.commit()
         cur.close()
-        return jsonify({'message': 'Preferences updated successfully'})
+        emit('message', {"from": "back", "type": "preferences_update"}, broadcast=True, namespace='/')
+        return jsonify({'result': 'success'})
 
       
 

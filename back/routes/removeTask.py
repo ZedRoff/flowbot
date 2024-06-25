@@ -27,3 +27,31 @@ def remove_task():
     
     
 
+'''
+
+import pygame
+import os
+
+# Chemin vers le fichier audio
+audio_file = "temp.mp3"
+
+# Vérification si le fichier audio existe
+if not os.path.isfile(audio_file):
+    print(f"Le fichier {audio_file} n'existe pas.")
+else:
+    # Initialisation de pygame
+    pygame.mixer.init()
+
+    # Chargement du fichier audio
+    pygame.mixer.music.load(audio_file)
+    print("Fichier audio chargé.")
+
+    # Lecture du fichier audio
+    pygame.mixer.music.play()
+    print("Lecture du fichier audio.")
+
+    # Attente de la fin de la lecture
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+    print("Lecture terminée.")
+'''

@@ -107,13 +107,8 @@ cur.execute('''
 ''')
 con.commit()
 
-cur.execute('''
-    CREATE TABLE IF NOT EXISTS background(
-    color1 TEXT,
-    color2 TEXT
-    )
-''')
-con.commit()
+
+
 
 cur.execute('''
     CREATE TABLE IF NOT EXISTS positions(
@@ -214,7 +209,28 @@ cur.execute('''
             '''
             )
 con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS train(
+            name TEXT
+            )
+            '''
+            )
+con.commit()
+cur.execute('''
+            CREATE TABLE IF NOT EXISTS background(
+            url TEXT
+            )
+            '''
+            )
+con.commit()
 
+cur.execute('''
+CREATE TABLE IF NOT EXISTS muted(
+            voice TEXT,
+            mic TEXT
+            )
+            ''')
+con.commit()
 
 
 
@@ -228,10 +244,6 @@ if res_test is None:
 
 
 
-res_test = cur.execute("SELECT * FROM background").fetchone()
-if res_test is None:
-    cur.execute("INSERT INTO background VALUES (?, ?)", ("#6d0069", "#000b60"))
-    con.commit()
 
 res_test = cur.execute("SELECT action FROM global").fetchone()
 if res_test is None:
@@ -279,7 +291,18 @@ res_test = cur.execute("SELECT * FROM city").fetchone()
 if res_test is None:
     cur.execute("INSERT INTO city VALUES (?)", ("Paris",))
     con.commit()
-
+res_test = cur.execute("SELECT * FROM train").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO train VALUES (?)", ("Noisy-Champs",))
+    con.commit()
+res_test = cur.execute("SELECT * FROM background").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO background VALUES (?)", ("red",))
+    con.commit()
+res_test = cur.execute("SELECT * FROM muted").fetchone()
+if res_test is None:
+    cur.execute("INSERT INTO muted VALUES (?, ?)", ("off", "off"))
+    con.commit()
 
 
 
@@ -497,13 +520,16 @@ def run_bouttons():
 if __name__ == '__main__':
     '''t1 = Thread(target=run_molette)
     t2 = Thread(target=run_bouttons)
-
+    
     t1.start()
     t2.start()
     '''
+    
  
     
+    
     socketio.run(app, host=host, port=5000, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
+    
 
     
 

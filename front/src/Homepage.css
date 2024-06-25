@@ -426,6 +426,10 @@ footer {
     left: 49%;
     background: white; /* Or pour l'aiguille des secondes */
   }
+  .icon_spec {
+    width: 15px;
+   
+  }
 
 
 

@@ -18,6 +18,9 @@ import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
 import { CheckBox } from 'react-native-elements';
 
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Asyncstorage: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();
 
 LocaleConfig.locales['fr'] = {
   monthNames: [
@@ -374,6 +377,7 @@ const stopRecord = async() => {
       showToastI("error", "Aucun enregistrement à sauvegarder", "Aucun enregistrement n'est en cours")
     } else if(res.data.result == "Audio sauvegardé avec succès.") {
       showToastI("success", "Audio sauvegardé", "L'audio a été sauvegardé avec succès")
+      fetchRecords()
     }
   })
 }
@@ -557,6 +561,7 @@ useEffect(() => {
       showToastI("error", "Musique vide", "Le nom de la musique ne peut pas être vide")
       return;
     }
+    showToastI("success", "En cours", "Musique en cours de recherche, merci de patienter")
     
     axios({
       method: 'post',
@@ -569,6 +574,8 @@ useEffect(() => {
         showToastI("success", "Musique jouée", "La musique a été jouée avec succès")
         const socket = io(`http://${config.URL}:5000`);
         socket.emit('message', {from: "mobile", message: "music_changed", music: music});
+      } else if(response.data.result == "already") {
+        showToastI("error", "Musique déjà jouée", "Une musique est déjà en cours, merci de la stoppée et ensuite d'en relancer une")
       }
     }
     )
@@ -1426,6 +1433,7 @@ const deleteQuestion = (questionIndex) => {
 
     }
   }
+  const [station, setStation] = useState('');
    
 const [qcms, setQcms] = useState([]);
 
@@ -1997,7 +2005,6 @@ const fetchNotes = async() => {
     method: 'get',
     url: `http://${config.URL}:5000/api/getPenseBete`,
   }).then((response) => {
-    console.log(response.data.result)
     setNotes(response.data.result);
   });
 }
@@ -2034,6 +2041,80 @@ useEffect(() => {
 
 }, [])
 
+const [showTrains, setShowTrains] = useState(false);
+const [train, setTrain] = useState('');
+const fetchTrain = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getTrainName`,
+  }).then((response) => {
+    setTrain(response.data.result);
+  });
+}
+
+const handleChangeStation = () => {
+  if(!station) {
+    showToastI("error", "Station vide", "La station ne peut pas être vide")
+    return;
+  }
+
+  axios({
+    method: 'post',
+    url: `http://${config.URL}:5000/api/setTrainName`,
+    data: {
+      name: station,
+    },
+  }).then((response) => {
+    if(response.data.result == "success") {
+      showToastI("success", "Station ajoutée", "La station a été ajoutée avec succès")
+      fetchTrain();
+    } else if(response.data.result == "already") {
+      showToastI("error", "Station déjà existante", "La station existe déjà")
+    }
+  });
+}
+
+useEffect(() => {
+  fetchTrain()
+}, [])
+
+const [preferences, setPreferences] = useState([]);
+
+
+
+
+const getPreferences = () => {
+  axios({
+    method: "get", 
+    url: `http://${config.URL}:5000/api/getPreferences`
+  }).then((res) => {
+    setPreferences(res.data.result[0])
+  })
+}
+
+useEffect(() => {
+  getPreferences()
+}, [])
+
+
+
+
+
+
+const [muted, setMuted] = useState([]);
+const getMuted = () => {
+  axios({
+    method: "get", 
+    url: `http://${config.URL}:5000/api/getMuted`
+  }).then((res) => {
+    setMuted(res.data.result[0])
+  })
+}
+
+useEffect(() => {
+  getMuted()
+}
+, [])
 
 
 
@@ -2244,6 +2325,13 @@ style={styles.image}
     </Text>
   </Pressable>
 
+  <Pressable onPress={() => setShowTrains(true)}style={styles.item}>
+<Image source={require('./assets/trains.png')}style={styles.icon} />
+    <Text>
+      Trains
+    </Text>
+  </Pressable>
+
 <Pressable onPress={() => setShowMusique(true)}style={styles.item}>
     <Image source={require('./assets/musique.png')} style={styles.icon}/>
     <Text>
@@ -2348,12 +2436,13 @@ Fichiers
 <Text style={styles.labelText}>Sélectionner un réseau</Text>
 <RNPickerSelect
       style={styles}
-      placeholder={{label: "Sélectionner le réseau", value: null}}
+      placeholder={{label: "Réseau: ESIEE", value: null}}
       onValueChange={(value) => value}
       items={[
         {label: "eduroam",value: "eduroam"},
         {label:"ESIEE", value: "ESIEE"}
       ]}
+      disabled={true}
     />
       <View style={{display: "flex", flexDirection: "row"}}>
     <TextInput
@@ -2367,7 +2456,8 @@ Fichiers
                   color: '#333',
                   alignSelf: "center",
                   padding:10,width:"80%"}}
-                placeholder="Saisir le code"
+                placeholder="Code déjà saisie"
+                editable={false}
                
               />
  <Pressable onPress={() => {}} style={styles.ctaInput}>
@@ -2379,34 +2469,10 @@ Fichiers
 </View>
 <View style={{...styles.labelInputBox, marginTop:15}}>
 
-<Text style={styles.labelText}>Mélangeur de volume</Text>
+<Text style={styles.labelText}>Gestion du son</Text>
 
-<View style={styles.labelInputBox}>
-<Text style={styles.labelText}>Global:</Text>
-<Slider
-    style={{ width: '100%', marginTop: 10 }}
-    minimumValue={0}
-    maximumValue={1}
-    minimumTrackTintColor="#142A4D"
-    maximumTrackTintColor="#FFFFFF"
-    thumbTintColor="#142A4D"
-    value={globalVolume}
-    onValueChange={(value) => setGlobalVolume(value)}
-  />
-</View>
-<View style={styles.labelInputBox}>
-<Text style={styles.labelText}>Musique:</Text>
-<Slider
-    style={{ width: '100%', marginTop: 10 }}
-    minimumValue={0}
-    maximumValue={1}
-    minimumTrackTintColor="#142A4D"
-    maximumTrackTintColor="#FFFFFF"
-    thumbTintColor="#142A4D"
-    value={effectsVolume}
-    onValueChange={(value) => handleChangeVolume(value)}
-  />
-</View>
+
+
 <View style={{display: "flex", flexDirection: "row", gap: 10, alignItems: "center"}}>
   <Text>
     Muter le son
@@ -2415,8 +2481,21 @@ Fichiers
   trackColor={{ false: "#767577", true: "#81b0ff" }}
   thumbColor={mute ? "#f5dd4b" : "#f4f3f4"}
   ios_backgroundColor="#3e3e3e"
-  onValueChange={toggleMute}
-  value={mute}
+  onValueChange={(e) => {
+    console.log(e)
+    setMuted([e ? "on": "off", muted[1]])
+ 
+    axios({
+      method: "post",
+      url: `http://${config.URL}:5000/api/setMuted`,
+      data: {
+        voice: e ? "on": "off",
+        mic: muted[1]
+      }
+    })
+
+  }}
+  value={muted[0] == "on"}
 />
 
  </View>
@@ -2429,8 +2508,18 @@ Fichiers
   trackColor={{ false: "#767577", true: "#81b0ff" }}
   thumbColor={mute ? "#f5dd4b" : "#f4f3f4"}
   ios_backgroundColor="#3e3e3e"
-  onValueChange={toggleMuteMic}
-  value={muteMic}
+  onValueChange={(e) => {
+    setMuted([muted[0], e ? "on": "off"])
+    axios({
+      method: "post",
+      url: `http://${config.URL}:5000/api/setMuted`,
+      data: {
+       voice: muted[0],
+        mic: e ? "on":"off"
+      }
+    })
+  }}
+  value={muted[1] == "on"}
 />
 
  </View>
@@ -2449,8 +2538,8 @@ Fichiers
                   color: '#333',
                   alignSelf: "center",
                   padding:10,width:"80%"}}
-                placeholder="Sélectionner un appareil"
-               
+                placeholder="Iphone 8"
+                editable={false}
               />
  <Pressable onPress={() => {}} style={styles.ctaInput}>
                 <FontAwesomeIcon icon={faLink} size={20} style={{color:"white"}}  />
@@ -2463,24 +2552,97 @@ Fichiers
 
 
 
+
+
+
+
+<View className={styles.labelInputBox}>
+<Text style={styles.labelText}>Changer de thème</Text>
+<View style={{display: "flex", flexDirection: "row"}}>
+  <Pressable onPress={() => {
+    axios({
+      method: "post", 
+      url: `http://${config.URL}:5000/api/changeBackground`,
+      data: {
+        url: "red"
+      }
+    }).then((res) => {
+      if(res.data.result == "success") {
+        showToastI("success", "Thème changé", "Le thème a été changé avec succès")
+      }
+    
+    })
+  }}>
+    <View style={{backgroundColor: "red", width: 50, height: 50, borderRadius: 50, marginRight: 10}}></View>
+  </Pressable>
+  <Pressable onPress={() => {
+    axios({
+      method: "post",
+      url: `http://${config.URL}:5000/api/changeBackground`,
+      data: {
+        url: "blue"
+      }
+    }).then((res) => {
+      if(res.data.result == "success") {
+        showToastI("success", "Thème changé", "Le thème a été changé avec succès")
+      }
+
+    })
+  }}>
+    <View style={{backgroundColor: "blue", width: 50, height: 50, borderRadius: 50, marginRight: 10}}></View>
+  </Pressable>
+  <Pressable onPress={() => {
+    axios({
+      method: "post",
+      url: `http://${config.URL}:5000/api/changeBackground`,
+      data: {
+        url: "green"
+      }
+    }).then((res) => {
+      if(res.data.result == "success") {
+        showToastI("success", "Thème changé", "Le thème a été changé avec succès")
+      }
+
+    })
+  }}>
+    <View style={{backgroundColor: "green", width: 50, height: 50, borderRadius: 50, marginRight: 10}}></View>
+  </Pressable>
+  </View>
+</View>
+
 <View className={styles.labelInputBox}>
 <Text style={styles.labelText}>Sélectionner une voix :</Text>
 <View style={{display: "flex", flexDirection: "row"}}>
-    <TextInput
-                style={{borderColor: '#ccc', 
-                  borderWidth: 1,
-                  borderTopLeftRadius: 5,
-                  borderBottomLeftRadius: 5,
-                  paddingLeft: 10, 
-                  backgroundColor: '#fff', 
-                  fontSize: 16,
-                  color: '#333',
-                  alignSelf: "center",
-                  padding:10,width:"80%"}}
-                placeholder="Voix homme"
-               
-              />
- <Pressable onPress={() => {}} style={styles.ctaInput}>
+    <RNPickerSelect 
+      style={styles}
+      placeholder={{label: "Sélectionner une voix", value: null}}
+      onValueChange={(value) => setPreferences([value, preferences[1]])}
+      items={[
+        {label: "Homme", value: "Homme"},
+        {label:"Femme", value: "Femme"}
+      ]}
+    />
+
+  <Pressable onPress={() => {
+    if(preferences[0] == "") {
+      showToastI("error", "Voix vide", "La voix ne peut pas être vide")
+      return;
+    }
+    console.log(preferences[0], preferences[1])
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/updatePreferences`,
+    data: {
+      voice: preferences[0],
+      name: preferences[1]
+    }
+
+  }).then((res) => {
+    if(res.data.result == "success") {
+      showToastI("success", "Préférences mises à jour", "Les préférences ont été mises à jour avec succès")
+    }
+  })
+ }} style={styles.ctaInput}>
                 <FontAwesomeIcon icon={faExchange} size={20} style={{color:"white"}}  />
               </Pressable>
 
@@ -2488,7 +2650,6 @@ Fichiers
 
 
 </View>
-
 
 <View className={styles.labelInputBox}>
 <Text style={styles.labelText}>Changer le nom :</Text>
@@ -2504,10 +2665,34 @@ Fichiers
                   color: '#333',
                   alignSelf: "center",
                   padding:10,width:"80%"}}
-                placeholder="Sélectionner votre nom"
+                placeholder={preferences[1]}
+                  onChange={(e) => {
+                  setPreferences([preferences[0], e.target.value])
+
+                  }
+                  }
+                
                
               />
- <Pressable onPress={() => {}} style={styles.ctaInput}>
+ <Pressable onPress={() => {
+  if(preferences[1] == "") {
+    showToastI("error", "Nom vide", "Le nom ne peut pas être vide")
+    return;
+  }
+  axios({
+    method: "post",
+    url: `http://${config.URL}:5000/api/updatePreferences`,
+    data: {
+      voice: preferences[0],
+      name: preferences[1]
+    }
+
+  }).then((res) => {
+    if(res.data.result == "success") {
+      showToastI("success", "Préférences mises à jour", "Les préférences ont été mises à jour avec succès")
+    }
+  })
+ }} style={styles.ctaInput}>
                 <FontAwesomeIcon icon={faCheckCircle} size={20} style={{color:"white"}}  />
               </Pressable>
 
@@ -2531,7 +2716,7 @@ Fichiers
 <View style={styles.header}>
 
   <Text style={{fontSize: 20}}>Fichiers</Text>
-  <Pressable onPress={() => setShowFichiers(false)}>
+  <Pressable onPress={() => setShowFichiers(false)} style={{padding:15}}>
     <FontAwesomeIcon icon={faX} size={20} />
   </Pressable>
 
@@ -2544,7 +2729,7 @@ Fichiers
 <Text style={styles.sizeSubtitlePage}>Explorateur de fichiers</Text>
 </View>
 
-<View style={{display: "flex", flexDirection: "row", gap: 10, alignItems: "center"}}>
+<View style={{display: "flex", flexFlow: "row wrap", gap: 10, alignItems: "center"}}>
 {folder.length == 0 && hierarchy.map((element, id_g) => (
  <Pressable key={id_g} onPress={() => {
   
@@ -2683,6 +2868,58 @@ Fichiers
      </SafeAreaView>
     )}
 
+{showTrains && (
+         
+<SafeAreaView style={styles.page}>
+  <ScrollView style={{marginBottom:100}}>
+  <View style={styles.header}>
+  <View style={styles.titlePage}>
+    <Text style={styles.sizeTitlePage}>Trains</Text>
+    </View>
+    <Pressable onPress={() => setShowTrains(false)} style={{padding:15}}>
+      <FontAwesomeIcon icon={faX} size={20} />
+    </Pressable>
+  
+  </View>
+  
+            
+  <View style={styles.insidePage}>
+  
+  
+  <View style={styles.subtitlePage}>
+  <Text style={styles.sizeSubtitlePage}>Changer la station</Text>
+  </View>
+  <View style={styles.labelInputBox}>
+
+<Text style={styles.labelText}>Contenu</Text>
+<TextInput
+style={styles.input}
+placeholder="Exemple : Coder un truc cool"
+value={station}
+onChangeText={setStation}
+/>
+
+</View>
+
+<Pressable onPress={handleChangeStation} style={{backgroundColor: "#142A4D", alignSelf: "flex-end", padding: 10, borderRadius:10, gap:5, display:"flex", alignItems:"center",justifyContent:"center",paddingLeft:25,paddingRight:25,paddingTop:15,paddingBottom:15, flexDirection:"row"}}>
+<FontAwesomeIcon icon={faExchange} size={20} style={{color:"#6FDDE8"}} />
+<Text style={{color:"#6FDDE8", fontSize:20}}>Changer</Text>
+</Pressable>
+
+<View style={styles.subtitlePage}>
+<Text style={styles.sizeSubtitlePage}>Station Actuelle</Text>
+</View>
+<View style={styles.labelInputBox}>
+<Text style={styles.labelText}>Station</Text>
+<Text style={styles.input}>{train[0]}</Text>
+</View>
+</View>
+</ScrollView>
+</SafeAreaView>
+
+  
+)  
+}
 
         {showTimeTable && ( 
          
@@ -2692,7 +2929,7 @@ Fichiers
   <View style={styles.titlePage}>
     <Text style={styles.sizeTitlePage}>Emploi du temps</Text>
     </View>
-    <Pressable onPress={() => setShowTimeTable(false)}>
+    <Pressable onPress={() => setShowTimeTable(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -2850,7 +3087,7 @@ setModifyTo(element.endTime)
 <View style={styles.header}>
 
   <Text style={{fontSize: 20}}>Enregistrement</Text>
-  <Pressable onPress={() => setShowEnregistrement(false)}>
+  <Pressable onPress={() => setShowEnregistrement(false)} style={{padding:15}}>
     <FontAwesomeIcon icon={faX} size={20} />
   </Pressable>
 
@@ -2893,7 +3130,7 @@ setModifyTo(element.endTime)
         method: 'post',
         url: `http://${config.URL}:5000/api/deleteRecord`,
         data: {
-          record: record,
+          filename: record,
         },
       }).then((response) => {
         if(response.data.result === "success") {
@@ -3040,7 +3277,7 @@ setModifyTo(element.endTime)
 <View style={styles.header}>
 
   <Text style={{fontSize: 20}}>Tâches</Text>
-  <Pressable onPress={() => setShowTaches(false)}>
+  <Pressable onPress={() => setShowTaches(false)} style={{padding:15}}>
     <FontAwesomeIcon icon={faX} size={20} />
   </Pressable>
 
@@ -3213,7 +3450,7 @@ setModifyTo(element.endTime)
     <View style={styles.header}>
 
 <Text style={{fontSize: 20}}>QCM</Text>
-<Pressable onPress={() => setShowQcm(false)}>
+<Pressable onPress={() => setShowQcm(false)} style={{padding:15}}>
   <FontAwesomeIcon icon={faX} size={20} />
 </Pressable>
 
@@ -3375,7 +3612,7 @@ setModifyTo(element.endTime)
     <View style={styles.header}>
 
 <Text style={{fontSize: 20}}>Pense-bête</Text>
-<Pressable onPress={() => setShowPenseBete(false)}>
+<Pressable onPress={() => setShowPenseBete(false)} style={{padding:15}}>
   <FontAwesomeIcon icon={faX} size={20} />
 </Pressable>
 
@@ -3465,7 +3702,7 @@ setModifyTo(element.endTime)
   }}>
     <View style={{display: "flex", justifyContent: "space-between", padding: 25, flexDirection: "row"}}>
       <Text style={{fontSize: 20}}>Fichiers</Text>
-      <Pressable onPress={() => setShowFileInfo(false)}>
+      <Pressable onPress={() => setShowFileInfo(false)} style={{padding:15}}>
         <FontAwesomeIcon icon={faX} size={20} />
       </Pressable>
     </View>
@@ -3519,7 +3756,7 @@ setModifyTo(element.endTime)
  
     <Text style={styles.sizeTitlePage}>Rappels</Text>
  
-    <Pressable onPress={() => setShowCalendrier(false)}>
+    <Pressable onPress={() => setShowCalendrier(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -3680,7 +3917,7 @@ markingType={'multi-dot'}
   <View style={styles.titlePage}>
     <Text style={styles.sizeTitlePage}>Commandes</Text>
     </View>
-    <Pressable onPress={() => setShowAddCommand(false)} style={{alignSelf: "flex-start"}}>
+    <Pressable onPress={() => setShowAddCommand(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -3761,7 +3998,7 @@ markingType={'multi-dot'}
   <View style={styles.titlePage}>
     <Text style={styles.sizeTitlePage}>Correcteur</Text>
     </View>
-    <Pressable onPress={() => setShowCorrecteur(false)} style={{alignSelf: "flex-start"}}>
+    <Pressable onPress={() => setShowCorrecteur(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -3834,7 +4071,7 @@ markingType={'multi-dot'}
 {correctedText !== '' && (
 
 <View style={{display: "flex", flexDirection: "column", gap: 15}}>
-{console.log(corrections)}
+
   {Object.keys(corrections).map((key) => (  
     <Text key={key}> 
       {key} &gt; {corrections[key]}
@@ -3933,7 +4170,7 @@ markingType={'multi-dot'}
 <View style={styles.header}>
 
   <Text style={{fontSize: 20}}>Leds</Text>
-  <Pressable onPress={() => setShowLed(false)}>
+  <Pressable onPress={() => setShowLed(false)} style={{padding:15}}>
     <FontAwesomeIcon icon={faX} size={20} />
   </Pressable>
 
@@ -4006,7 +4243,7 @@ markingType={'multi-dot'}
   <View style={styles.titlePage}>
     <Text style={styles.sizeTitlePage}>Réveil</Text>
     </View>
-    <Pressable onPress={() => setShowReveil(false)} style={{alignSelf: "flex-start"}}>
+    <Pressable onPress={() => setShowReveil(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -4093,7 +4330,7 @@ markingType={'multi-dot'}
       
          <Text style={styles.sizeTitlePage}>Actualités</Text>
       
-         <Pressable onPress={() => setShowFeed(false)}>
+         <Pressable onPress={() => setShowFeed(false)} style={{padding:15}}>
            <FontAwesomeIcon icon={faX} size={20} />
          </Pressable>
        
@@ -4149,7 +4386,7 @@ markingType={'multi-dot'}
 <View style={styles.header}>
 
   <Text style={{fontSize: 20}}>Traducteur</Text>
-  <Pressable onPress={() => setShowTraducteur(false)}>
+  <Pressable onPress={() => setShowTraducteur(false)} style={{padding:15}}>
     <FontAwesomeIcon icon={faX} size={20} />
   </Pressable>
 
@@ -4239,7 +4476,7 @@ markingType={'multi-dot'}
   <View style={styles.titlePage}>
     <Text style={styles.sizeTitlePage}>Minuteur</Text>
     </View>
-    <Pressable onPress={() => setShowMinuteur(false)} style={{alignSelf: "flex-start"}}>
+    <Pressable onPress={() => setShowMinuteur(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -4336,7 +4573,7 @@ markingType={'multi-dot'}
   <View style={styles.titlePage}>
     <Text style={styles.sizeTitlePage}>Chronomètre</Text>
     </View>
-    <Pressable onPress={() => setShowChronometre(false)} style={{alignSelf: "flex-start"}}>
+    <Pressable onPress={() => setShowChronometre(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -4386,7 +4623,7 @@ markingType={'multi-dot'}
        <View style={styles.popupContainer}>
          <View style={{padding: 15, display:"flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
            <Text style={{fontSize:20}}>Modifier un jour</Text>
-           <Pressable onPress={() => setShowEditTimeTable(false)}>
+           <Pressable onPress={() => setShowEditTimeTable(false)} style={{padding:15}}>
              <FontAwesomeIcon style={{ color: 'black' }} icon={faX} size={20} />
            </Pressable>
          </View>
@@ -4479,7 +4716,7 @@ markingType={'multi-dot'}
 <View style={styles.titlePage}>
   <Text style={styles.sizeTitlePage}>Météo</Text>
   </View>
-  <Pressable onPress={() => setShowMeteo(false)} style={{alignSelf: "flex-start"}}>
+  <Pressable onPress={() => setShowMeteo(false)} style={{padding:15}}>
     <FontAwesomeIcon icon={faX} size={20} />
   </Pressable>
 
@@ -4559,7 +4796,7 @@ markingType={'multi-dot'}
  
     <Text style={styles.sizeTitlePage}>Musique</Text>
  
-    <Pressable onPress={() => setShowMusique(false)}>
+    <Pressable onPress={() => setShowMusique(false)} style={{padding:15}}>
       <FontAwesomeIcon icon={faX} size={20} />
     </Pressable>
   
@@ -4610,9 +4847,9 @@ markingType={'multi-dot'}
     style={{ width: '100%', marginTop: 10 }}
     minimumValue={0}
     maximumValue={1}
-    minimumTrackTintColor="#FFFFFF"
-    maximumTrackTintColor="#000000"
-    thumbTintColor="#FFFFFF"
+    minimumTrackTintColor="#000000"
+    maximumTrackTintColor="#FFFFFF"
+    thumbTintColor="#000000"
     value={volume}
     onValueChange={(value) => handleChangeVolume(value)}
   />
@@ -4803,7 +5040,7 @@ footer:{display:"flex", alignItems: "center", justifyContent: "space-evenly", ba
 
   header: {display: "flex", justifyContent: "space-between", flexDirection: "row",padding:25},
 
-titlePage: {borderBottomWidth:2,borderColor: "black"},
+titlePage: {borderBottomWidth:2,borderColor: "black", alignSelf:"center"},
 sizeTitlePage: {fontSize: 20},
 insidePage:{padding:25,display:"flex",flexDirection:"column", gap:25},
 subtitlePage: {borderLeftWidth: 2, borderColor:"black"},

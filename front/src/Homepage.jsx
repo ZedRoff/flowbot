@@ -8,13 +8,23 @@ import config from "../../config.json";
 import axios from 'axios';
 
 import './Timetable.css';
-//import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-//import 'pdfjs-dist/web/pdf_viewer.css';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.min.js';
+await import('pdfjs-dist/build/pdf.worker.min.js');
+import 'pdfjs-dist/web/pdf_viewer.css';
 import { useRef } from 'react';
 import image from "./images/rerA.png"
 import moment from 'moment';
+import red from "./images/red.png"
+import green from "./images/green.png"
+import blue from "./images/blue.png"
+import micOn from "./images/mic_on.png"
+import micOff from "./images/mic_off.png"
+import voiceOn from "./images/voice_on.png"
+import voiceOff from "./images/voice_off.png"
+import user from "./images/user.png"
+import currentvoice from "./images/currentvoice.png"
 
-//pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 
 const Rappels = ({ data }) => {
@@ -41,7 +51,7 @@ const Rappels = ({ data }) => {
           {rappels.map((rappel, idx) => (
             <div
               key={idx}
-              style={{ backgroundColor: rappel[2], padding: '10px', margin: '10px 0' }}
+              style={{ backgroundColor: rappel[2], padding: '10px', margin: '10px 0', borderRadius: "10px" }}
             >
               <h3>{rappel[0]}</h3>
             </div>
@@ -145,12 +155,26 @@ const Homepage = () => {
     {name: "Trains", description: "Consulte les horaires de train", icon: "trains.png", show: false},
     {name: "Fiches", description: "Consulte tes fiches de révision", icon: "fiche.png", show: false},
     {name: "Actualités", description: "Consulte les actualités", icon: "news.png", show: false},
-    {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false}
+    {name: "Réveil", description: "Gère tes réveils", icon: "reveil.png", show: false},
+    {name: "Pense Bête", description: "N'oublie plus rien", icon: "pensebete.png", show: false},
     
 
     
   ]);
-
+  const [pdfs, setPdfs] = useState([]);
+  const fetchPDFs = async() => {
+      axios({
+          method: 'get',
+          url: `http://${config.URL}:5000/api/getPDFs`,
+      }).then((response) => {
+          setPdfs(response.data.pdf_files);
+      
+          if (response.data.pdf_files.length > 0) {
+             
+              setPdfName(response.data.pdf_files[0]); 
+          }
+      });
+  }
   let [popup, setPopup] = useState(false);
   const containerRef = useRef(null);
   const elsRef = useRef([]);
@@ -376,6 +400,23 @@ return;
             setIndexEnregistrements(Math.min(enregistrements.length - 1, indexEnregistrements + 1))
           
           }
+        } else if(currentModule.name == "Pense Bête")  {
+          if (e.key === 'ArrowLeft') {
+            let elem = document.querySelector(".pensebetes")
+            elem.scrollTop -= 20;
+          } else if (e.key === 'ArrowRight') {
+            let elem = document.querySelector(".pensebetes")
+            elem.scrollTop += 20;
+          } 
+        } else if(currentModule.name == "PDF") {
+
+          if(e.key == "ArrowLeft") {
+            let elem = document.querySelector(".pdfreader")
+            elem.scrollTop -= 20;
+          } else if(e.key == "ArrowRight") {
+            let elem = document.querySelector(".pdfreader")
+            elem.scrollTop += 20;
+          }
         }
 
 
@@ -412,7 +453,8 @@ return;
           setSelectedAnswers({});
           setResults([]);
           setInsideQcmIndex(0);
-          
+          setIndexQcm(0);
+
           return;
         }
 
@@ -657,6 +699,26 @@ axios({
 };
 
 
+const  [background, setBackground] = useState("");
+const fetchBackground = async() => {
+  axios({
+    method: 'get',
+    url: `http://${config.URL}:5000/api/getBackground`,
+  }).then((response) => {
+    setBackground(response.data.result);
+  }
+  )
+}
+useEffect(() => {
+  fetchBackground()
+}, [])
+
+
+
+
+
+
+
 const fetchData = async () => {
   try {
       setLoading(true);
@@ -677,6 +739,24 @@ useEffect(() => {
   fetchData(); 
 }, [])
 
+
+
+const [voice, setVoice] = useState(false);
+const [mic, setMic] = useState(false);
+
+
+
+
+useEffect(() => {
+  axios({
+    method: "get",
+    url: `http://${config.URL}:5000/api/getMuted`
+  }).then((res) => {
+    console.log(res.data.result)
+    setVoice(res.data.result[0][0] == "on");
+    setMic(res.data.result[0][1] == "on");
+  })
+}, [])
 
   useEffect(() => {
       
@@ -707,9 +787,27 @@ socket.on('message', (message) => {
         case "timetable_update":
             fetchDays();
             break;
+            case "recordings_update":
+            fetchEnregistrements();
+            break;
         case "files_update":
             fetchPDFs();
             break;
+          case "train_name_update":
+          fetchTrain();
+            break;
+            case "background_update":
+            fetchBackground();
+              break;
+              case "preferences_update":
+              fetchPreferences();
+                break;
+              case "muted_update":
+                console.log("get")
+                setVoice(message["voice"] == "on")
+                setMic(message["mic"] == "on")
+                break;
+
         case "molette": {
 
           let currentModule = modules[currentIndex];
@@ -837,6 +935,23 @@ setIndexFiche(Math.max(0,indexFiche-1))
               setIndexEnregistrements(Math.min(enregistrements.length - 1, indexEnregistrements + 1))
             
             } 
+          }else if(currentModule.name == "Pense Bête")  {
+            if (msg == "GAUCHE") {
+              let elem = document.querySelector(".pensebetes")
+              elem.scrollTop -= 20;
+            } else if (msg == "DROITE") {
+              let elem = document.querySelector(".pensebetes")
+              elem.scrollTop += 20;
+            } 
+          } else if(currentModule.name == "PDF") {
+
+            if(msg == "GAUCHE") {
+              let elem = document.querySelector(".pdfreader")
+              elem.scrollTop -= 20;
+            } else if(msg == "DROITE") {
+              let elem = document.querySelector(".pdfreader")
+              elem.scrollTop += 20;
+            }
           }
   
   
@@ -922,7 +1037,12 @@ setIndexFiche(Math.max(0,indexFiche-1))
       
                 
               
-            } 
+            }  else if(currentModule.name == "PDF" && currentModule.show) {
+              let random_pdf = pdfs[Math.floor(Math.random() * pdfs.length)];
+              setPdfName(random_pdf);
+              fetchPdf();
+
+            }
             }
             break;
         case "fiches_update":
@@ -947,6 +1067,10 @@ setIndexFiche(Math.max(0,indexFiche-1))
         case "rappels_update":
             fetchRappels();
             break;
+          case "pense_bete_update":
+            fetchPenseBetes();
+            break;
+
         default:
             console.log('Unknown message type:', type);
     }
@@ -1007,7 +1131,7 @@ const handleMoletteButtonPress = () => {
 return () => {
     socket.disconnect();
 };
-  }, [currentIndex, modules, qcmStartup, popup, indexFiche, indexQcm, insideQcmIndex, indexEnregistrements]);
+  }, [currentIndex, modules, qcmStartup, popup, indexFiche, indexQcm, insideQcmIndex, indexEnregistrements, pdfs]);
 
 
   useEffect(() => {
@@ -1127,36 +1251,33 @@ return () => {
 
       await page.render(renderContext).promise;
   };
-const [pdfs, setPdfs] = useState([]);
-  const fetchPDFs = async() => {
-      axios({
-          method: 'get',
-          url: `http://${config.URL}:5000/api/getPDFs`,
-      }).then((response) => {
-          setPdfs(response.data.pdf_files);
-      
-          if (response.data.pdf_files.length > 0) {
-             
-              setPdfName(response.data.pdf_files[0]); 
-          }
-      });
-  }
+
 const [train, setTrain] = useState([]);
-const [typeTrain, setTypeTrain] = useState("departures");
+const [trainName, setTrainName] = useState("departures");
 
   const fetchTrain = async() => {
+
+    axios({
+      method: "get", 
+      url: `http://${config.URL}:5000/api/getTrainName`
+    }).then((r1) => {
       axios({
-          method: 'post',
-          url: `http://${config.URL}:5000/api/getTrain`,
-          data: {
-              "location": "Chatelet Les Halles"
-          }
-      }).then((response) => {
-         
-              setTrain(response.data.result);
-          
+        method: 'post',
+        url: `http://${config.URL}:5000/api/getTrain`,
+        data: {
+            "location": r1.data.result[0]
+        }
+    }).then((response) => {
+       setTrainName(r1.data.result[0])
+            setTrain(response.data.result);
         
-      });
+      
+    });
+    })
+
+
+
+     
   }
 
  
@@ -1166,11 +1287,7 @@ const [typeTrain, setTypeTrain] = useState("departures");
       fetchPDFs();
       fetchTrain();
       fetchAlarms()
-      axios({
-          method: "post",
-          url: `http://${config.URL}:5000/api/launch_reveil`,
-
-      })
+     
   }, []);
 
 
@@ -1265,29 +1382,65 @@ const fetchRappels = async() => {
 
 
 
+const [penseBetes, setPenseBetes] = useState([]);
+const fetchPenseBetes = async() => {
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getPenseBete`,
+  }).then((response) => {
+    console.log(response.data.result)
+      setPenseBetes(response.data.result);
+  });
+}
+
+useEffect(() => {
+  fetchPenseBetes();
+}, []);
 
 
 
+const [preferences, setPreferences] = useState([]);
+const fetchPreferences = async() => {
+  axios({
+      method: 'get',
+      url: `http://${config.URL}:5000/api/getPreferences`,
+  }).then((response) => {
+      setPreferences(response.data.result[0]);
+  });
+}
+
+useEffect(() => {
+  fetchPreferences();
+
+}, [])
 
 
 
+useEffect(() => {
+  axios({
+    method: "post",
+    url: "http://localhost:5000/api/launch_reveil",
 
-
-
-
+  })
+}, [])
   return (
     <div className="global">
-      <img src="https://cdn.glitch.global/fc3240cb-ecdc-47a9-9aff-06b7b848d76e/image%204.png?v=1718792102188" className="image_main" alt="Main" />
+      <img src={background == "red" && red || background == "green" && green || background == "blue" && blue} className="image_main" alt="Main" />
       <header>
         <div className="header_item">
           <img src="https://cdn.glitch.global/fc3240cb-ecdc-47a9-9aff-06b7b848d76e/image%203.png?v=1718792685753" className="icon_flo" alt="Icon" />
-          <h2 className="header_title">FloBot</h2>
+          <h2 className="header_title">FloBot | <img src={user} className="icon_spec" /> {preferences[1]} | <img src={currentvoice} className="icon_spec"/>  {preferences[0]}</h2>
         </div>
         <div className="header_item">
           
-          <FontAwesomeIcon icon={faMicrophoneSlash} size="2x" className="icon" style={{color: "#3DE56D"}} />
+
+          {!voice && <img src={voiceOn} alt="Microphone" className="icon_spec" style={{width: "25px"}} />}
+          {voice && <img src={voiceOff} alt="Microphone" className="icon_spec" style={{width: "25px"}} />}
+          {!mic && <img src={micOn} alt="Microphone" className="icon_spec" />}
+          {mic && <img src={micOff} alt="Microphone" className="icon_spec" />}
+          
           <FontAwesomeIcon icon={faPhone} size="2x" className="icon" style={{color: phoneConnected ? "#3DE56D":"#FF6254"}} />
-            <FontAwesomeIcon icon={faWifi} size="2x" className="icon" style={{color: "#3DE56D"}} />
+         <FontAwesomeIcon icon={faWifi} size="2x" className="icon" style={{color: "#3DE56D"}} />
           
           
             </div>
@@ -1323,6 +1476,20 @@ const fetchRappels = async() => {
 
         
       </main>
+
+{modules[currentIndex].name == "Pense Bête" && modules[currentIndex].show && (
+        <div className="popC">
+          <h2 style={{color:"black"}}>Pense Bête</h2>
+          <div className="pensebetes" style={{display: "flex", flexDirection: "column", gap: "25px", height:"300px", overflowY: "scroll"}}>
+            {penseBetes.map((penseBete, idx) => (
+              <div key={idx} style={{background: "rgb(20, 42, 77)", color:"rgb(111, 221, 232)", padding: "15px", borderRadius: "15px" }}>
+                <h2>Titre : {penseBete[0]}</h2>
+                <p>Contenu : {penseBete[1]}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
 
 
@@ -1414,12 +1581,15 @@ const fetchRappels = async() => {
                     <option key={index} value={pdf}>{pdf}</option>
                 ))}
             </select>
+            <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
             <button onClick={fetchPdf} style={{ margin: '10px' }}>Charger le PDF</button>
-                                                   
+                                                               
             <button onClick={() => setPageC((prev) => Math.max(prev - 1, 1))} style={{ margin: '10px' }}>Page précédente</button>
             <button onClick={() => setPageC((prev) => (pdf && prev < pdf.numPages) ? prev + 1 : prev)} style={{ margin: '10px' }}>Page suivante</button>
-           
+         </div>
+           <div style={{overflowY: "scroll", height: "300px"}} className="pdfreader">
                                                         <canvas ref={canvasRef} style={{ border: '1px solid black' }}></canvas>
+                                                        </div>
                                                     </div>
 
                                                   </div>)}
@@ -1428,7 +1598,7 @@ const fetchRappels = async() => {
                                                   {modules[currentIndex].name == "Trains" && modules[currentIndex].show && (
         <div className="popC">
         <div className="train">
-                                                        <h2>Prochains départs du <i className="fas fa-train train-icon"></i> RER A <img src={image} alt="RER A Logo" className="rer-a-logo" /></h2>
+                                                        <h2>Prochains départs de {trainName}</h2>
                                                         {train.map((departure, index) => (
                                                           <div key={index} className="departure">
                                                             <div>{departure.direction}</div>
@@ -1471,11 +1641,11 @@ const fetchRappels = async() => {
         <div className="popC">
         <div className="fiches">
                                                             <h2>Fiches</h2>
-                                                            <div className="fiches-container" style={{display: "flex", gap: "25px", flexFlow: "row wrap"}}>
+                                                            <div className="fiches-container" style={{display: "flex", gap: "25px", flexFlow: "row wrap", height:"350px",overflowY:"scroll", padding: "25px" }}>
                                                                 {fiches.map((fiche, index) => (
-                                                                    <div key={index} className="fiche" style={{padding: "25px", borderRadius: "15px", background: '#FF5733', color: "white", width: "300px", transform: index == indexFiche ? "scale(1.1)" : "scale(1)"}} onClick={() => handleShowFiche(fiche.title)}>
-                                                                        <h3 style={{borderBottom: "1px solid white"}}>{fiche.title}</h3>
-                                                                        <p>{fiche.description}</p>
+                                                                    <div key={index} className="fiche" style={{ overflow:"hidden",   textOverflow: "ellipsis",padding: "25px", borderRadius: "15px", background: '#152A4D', color: "white", width: "200px", transform: index == indexFiche ? "scale(1.1)" : "scale(1)"}} onClick={() => handleShowFiche(fiche.title)}>
+                                                                        <h3 style={{borderBottom: "1px solid white", color: "rgb(111, 221, 232)"}}>{fiche.title}</h3>
+                                                                        <p style={{marginTop:"10px"}}>{fiche.description}</p>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -1491,8 +1661,8 @@ const fetchRappels = async() => {
     <h2>Actualités</h2>
     <div className="feeds-container">
         {feeds.map((feed, index) => (
-            <div key={index} className="feed">
-                <h3>{feed.journal}</h3>
+            <div key={index} className="feed" style={{background:"#152A4D"}}>
+                <h3 style={{color: "rgb(111, 221, 232)"}}>{feed.journal}</h3>
                 <p>{feed.headline}</p>
             </div>
         ))}
@@ -1506,10 +1676,10 @@ const fetchRappels = async() => {
         <div className="popC">
          <div className="reveil">
                                                                     <h2>Liste des réveils programmés</h2>
-                                                                    <div className="reveil-container">
+                                                                    <div style={{display: "flex", marginTop:"15px", gap: "15px", flexDirection: "column"}}>
                                                                         {alarms.map((alarm, index) => (
-                                                                            <div key={index} className="alarm">
-                                                                                <h3>{alarm[0]}</h3>
+                                                                            <div key={index} className="alarm" style={{backgroundColor: "#152A4D", padding:"15px", borderRadius: "5px"}}>
+                                                                                <h3 style={{color:"rgb(111, 221, 232)"}}>{alarm[0]}</h3>
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -1716,14 +1886,14 @@ const fetchRappels = async() => {
 {popup && (
 <div className="popup" style={{ position: "absolute", top: "15px",left:"15px",right:"15px",bottom:"15px",background:"white",zIndex:1002, overflow:"scroll", borderRadius:"15px", padding:"5px" }}>
     <div className="popup-inner" style={{ background: "white", padding: "15px", borderRadius: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)", marginBottom: "10px" }}>
-      <button style={{ background: "#e74c3c",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer" }} onClick={() => {
+      <button style={{ background: "#152A4D",  border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", color:"white" }} onClick={() => {
         setPopup(false)
    
       }}>Appuyez sur la molette pour quitter</button>
     </div>
 
     <div style={{ marginBottom: "10px" }}>
-      <h2 style={{ background: "#e74c3c", padding: "10px", borderRadius: "5px", marginBottom: "10px", fontSize: "1.2rem" }}>{fiche[0].fiche}</h2>
+      <h2 style={{ background: "#152A4D", padding: "10px", borderRadius: "5px", marginBottom: "10px", fontSize: "1.2rem", color:"#17A7E4azZAa" }}>{fiche[0].fiche}</h2>
       <p style={{ padding: "10px", borderRadius: "5px", background: "#f2f2f2", fontSize: "1rem" }}>{fiche[0].description}</p>
     </div>
 
@@ -1731,11 +1901,11 @@ const fetchRappels = async() => {
       <div key={index} style={{ marginBottom: "10px" }}>
         <div style={{ background: section.type === "propriete" ? "#3498db" : section.type === "texte" ? "#2ecc71" : section.type === "definition" ? "#f39c12" : section.type === "exemple" ? "#76B487" : "#FE7E67", color: "white", padding: "10px", borderRadius: "5px", marginBottom: "10px", display: "flex", alignItems: "center", fontSize: "1.2rem" }}>
           <div style={{ background: "black", border: "1px solid black", borderRadius: "50%", padding: "15px", marginRight: "10px", boxShadow: "0px 0px 5px rgba(0,0,0,0.1)" }}>
-            {section.type === "propriete" && (<FontAwesomeIcon icon={faTools} size="2x" />)}
-            {section.type === "definition" && (<FontAwesomeIcon icon={faBook} size="2x" />)}
-            {section.type === "theoreme" && (<FontAwesomeIcon icon={faRuler} size="2x" />)}
-            {section.type === "exemple" && (<FontAwesomeIcon icon={faMapPin} size="2x" />)}
-            {section.type === "texte" && (<FontAwesomeIcon icon={faPen} size="2x" />)}
+            {section.type === "propriete" && (<FontAwesomeIcon icon={faTools} size="1x" />)}
+            {section.type === "definition" && (<FontAwesomeIcon icon={faBook} size="1x" />)}
+            {section.type === "theoreme" && (<FontAwesomeIcon icon={faRuler} size="1x" />)}
+            {section.type === "exemple" && (<FontAwesomeIcon icon={faMapPin} size="1x" />)}
+            {section.type === "texte" && (<FontAwesomeIcon icon={faPen} size="1x" />)}
           </div>
           <div> 
             {section.type === "propriete" && "Propriété"}
