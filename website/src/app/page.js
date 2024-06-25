@@ -46,6 +46,10 @@ const [show, setShow] = useState(false)
   const handleClick = () => {
   setShow(!show)
   }
+
+
+
+  const refTextArea = React.createRef()
   return (
    <div id="accueil">
 <header style={{background: "#152A4D",border: "1.5px solid rgba(0,0,0,0.5)", paddingLeft: "15px", paddingRight:"15px", paddingTop: "25px", paddingBottom: "25px", display:"flex",alignItems:"center",justifyContent:"space-between", flexDirection: "row", boxShadow: "0px 24px 48px 0 rgba(0,0,0,0.16)", zIndex:999, position:"sticky", top: 0}}>
@@ -368,18 +372,7 @@ Contact
 <div style={{width: "90%", margin: "0 auto"}}>
 
 
-<form style={{display: "flex", flexDirection: "column", gap: "50px", padding: "25px", background: "#152A4D", borderRadius: "15px", marginTop: "25px"}}>
 
-<h2 style={{color: "white"}}>
-  Formulaire de contact
-</h2>
-
-<input style={{outline: "none", border: "none", background: "#152A4D", borderBottom: "2px solid #0AD8EB", color: "white", padding: "15px", width: "300px"}} placeholder="E-mail" />
-<textarea style={{outline: "none",minHeight: "200px", maxWidth: "600px", border: "none", background: "#152A4D", borderBottom: "2px solid #0AD8EB", color: "white", padding: "15px"}} placeholder="Message" />
-<button style={{background: "#152A4D", alignSelf: "flex-end", width: "100px", marginRight: "15px",color: "white", padding: "15px", border: "2px solid #0AD8EB", borderRadius: "5px"}}>Envoyer</button>
-
-
-</form>
 <h2 style={{color: "#152A4D", borderBottom: "2px solid #152A4D", marginLeft: "auto", float: "right", marginTop: "15px"}}>
 <a href="mailto:flo-bot.pro@gmail.com" style={{textDecoration: "none", color: "inherit"}}>Notre adresse mail : flo-bot.pro@gmail.com</a>
 </h2>
@@ -427,25 +420,8 @@ Newsletter
     </div>
 
 
-    <div style={{display: "flex", flexDirection: "column", gap: "25px", alignItems: "center", width: "500px"}}>
-      <p style={{color: "black"}}>
-      Vous n'avez pas Discord ? Ne vous en faites pas, renseignez votre adresse-mail pour vous abonnez à la newsletter
-      </p>
-     
-     <div style={{display:"flex"}}>
-     
-      <input type="mail" placeholder="Votre adresse mail" style={{padding: "10px", borderTopLeftRadius: "5px", borderBottomLeftRadius: "5px", border: "none",border:"2px solid #152A4D", borderRight:"none"}} />
-     <div style={{border: "2px solid #152A4D", borderTopRightRadius: "5px", borderBottomRightRadius: "5px", paddingTop: "5px", paddingBottom: "5px", paddingLeft: "10px", paddingRight: "10px", background:"#152A4D"}}>
-      <Image
-      src={checktick}
-      width={25}
-      style={{ cursor: "pointer"}}
-      alt="Check Tick"
-      />
-</div>
-</div>
-    </div>
-
+   
+ 
 
 </div>
 
